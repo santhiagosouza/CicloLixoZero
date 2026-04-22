@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import {
   Recycle, LogOut, Building2, Tags, Scale, LayoutDashboard,
-  Users, Layers, BarChart3, Menu, X
+  Users, Layers, BarChart3, Menu, X, Briefcase
 } from "lucide-react";
 
 interface NavItem {
@@ -34,6 +34,7 @@ export const AppLayout = ({ children }: { children: ReactNode }) => {
   const masterItems: NavItem[] = [
     { to: "/master", label: "Visão Geral", icon: LayoutDashboard },
     { to: "/master/clients", label: "Clientes", icon: Building2 },
+    { to: "/master/company-types", label: "Tipos de Empresa", icon: Briefcase },
     { to: "/master/categories", label: "Categorias", icon: Tags },
   ];
 
