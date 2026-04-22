@@ -1,0 +1,137 @@
+import { ReactNode, useEffect, useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import {
+  Recycle, LogOut, Building2, Tags, Scale, LayoutDashboard,
+  Users, Layers, BarChart3, Menu, X
+} from "lucide-react";
+
+interface NavItem {
+  to: string;
+  label: string;
+  icon: typeof Recycle;
+}
+
+export const AppLayout = ({ children }: { children: ReactNode }) => {
+  const { isMasterAdmin, isClientAdmin, clientId, fullName, signOut } = useAuth();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [clientName, setClientName] = useState<string>("");
+  const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    if (clientId) {
+      supabase.from("clients").select("name").eq("id", clientId).maybeSingle()
+        .then(({ data }) => setClientName(data?.name ?? ""));
+    } else {
+      setClientName("");
+    }
+  }, [clientId]);
+
+  const masterItems: NavItem[] = [
+    { to: "/master", label: "Visão Geral", icon: LayoutDashboard },
+    { to: "/master/clients", label: "Clientes", icon: Building2 },
+    { to: "/master/categories", label: "Categorias", icon: Tags },
+  ];
+
+  const clientItems: NavItem[] = [
+    { to: "/", label: "Gravimetria", icon: Scale },
+    { to: "/sectors", label: "Setores", icon: Layers },
+    { to: "/subcategories", label: "Subcategorias", icon: Tags },
+    { to: "/reports", label: "Relatórios", icon: BarChart3 },
+    ...(isClientAdmin ? [{ to: "/users", label: "Usuários", icon: Users }] : []),
+  ];
+
+  const items = isMasterAdmin && location.pathname.startsWith("/master") ? masterItems : clientItems;
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/auth", { replace: true });
+  };
+
+  const SidebarContent = (
+    <div className="flex h-full flex-col bg-sidebar text-sidebar-foreground">
+      <div className="flex items-center gap-2 px-6 py-5 border-b border-sidebar-border">
+        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
+          <Recycle className="h-5 w-5" />
+        </div>
+        <div className="flex-1">
+          <p className="text-sm font-semibold leading-tight">Ciclo Lixo Zero</p>
+          <p className="text-xs opacity-70 leading-tight">{isMasterAdmin && location.pathname.startsWith("/master") ? "Master Admin" : clientName || "Cliente"}</p>
+        </div>
+      </div>
+      <nav className="flex-1 space-y-1 p-3 overflow-y-auto">
+        {items.map((item) => {
+          const active = location.pathname === item.to;
+          return (
+            <Link
+              key={item.to}
+              to={item.to}
+              onClick={() => setOpen(false)}
+              className={cn(
+                "flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors",
+                active
+                  ? "bg-sidebar-primary text-sidebar-primary-foreground"
+                  : "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+              )}
+            >
+              <item.icon className="h-4 w-4" />
+              {item.label}
+            </Link>
+          );
+        })}
+
+        {isMasterAdmin && (
+          <div className="pt-3 mt-3 border-t border-sidebar-border space-y-1">
+            <p className="px-3 pb-1 text-[10px] uppercase tracking-wider opacity-60">Mudar área</p>
+            <Link
+              to={location.pathname.startsWith("/master") ? "/" : "/master"}
+              onClick={() => setOpen(false)}
+              className="flex items-center gap-3 rounded-md px-3 py-2 text-sm hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+            >
+              <LayoutDashboard className="h-4 w-4" />
+              {location.pathname.startsWith("/master") ? "Área do Cliente" : "Área Master"}
+            </Link>
+          </div>
+        )}
+      </nav>
+      <div className="border-t border-sidebar-border p-3">
+        <p className="px-2 py-1 text-xs opacity-70 truncate">{fullName || "Usuário"}</p>
+        <Button variant="ghost" size="sm" onClick={handleSignOut} className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground">
+          <LogOut className="h-4 w-4 mr-2" /> Sair
+        </Button>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="flex min-h-screen">
+      {/* Desktop sidebar */}
+      <aside className="hidden md:block w-64 shrink-0">{SidebarContent}</aside>
+
+      {/* Mobile sidebar */}
+      {open && (
+        <div className="md:hidden fixed inset-0 z-40 flex">
+          <div className="absolute inset-0 bg-black/40" onClick={() => setOpen(false)} />
+          <aside className="relative w-64">{SidebarContent}</aside>
+        </div>
+      )}
+
+      <div className="flex-1 flex flex-col min-w-0">
+        <header className="flex items-center justify-between border-b bg-card px-4 md:px-6 py-3">
+          <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setOpen((v) => !v)}>
+            {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </Button>
+          <div className="flex-1 md:flex-initial">
+            <h1 className="text-sm md:text-base font-medium">{clientName || (isMasterAdmin ? "Painel Master" : "")}</h1>
+          </div>
+          <div className="text-xs text-muted-foreground hidden sm:block">{fullName}</div>
+        </header>
+        <main className="flex-1 p-4 md:p-6 bg-background overflow-x-hidden">{children}</main>
+      </div>
+    </div>
+  );
+};
