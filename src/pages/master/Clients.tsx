@@ -9,9 +9,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Plus } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
 
 interface CompanyType { id: string; name: string }
 interface Client {
@@ -129,6 +130,12 @@ const Clients = () => {
     if (error) toast.error(error.message); else setReload((k) => k + 1);
   };
 
+  const remove = async (c: Client) => {
+    const { error } = await supabase.from("clients").delete().eq("id", c.id);
+    if (error) toast.error(error.message);
+    else { toast.success("Cliente excluído"); setReload((k) => k + 1); }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -233,9 +240,10 @@ const Clients = () => {
             <TableHead>Cidade/UF</TableHead>
             <TableHead>Status</TableHead>
             <TableHead>Ativo</TableHead>
+            <TableHead className="w-12"></TableHead>
           </TableRow></TableHeader>
           <TableBody>
-            {items.length === 0 && <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-6">Nenhum cliente</TableCell></TableRow>}
+            {items.length === 0 && <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-6">Nenhum cliente</TableCell></TableRow>}
             {items.map((c) => (
               <TableRow key={c.id}>
                 <TableCell className="font-medium">{c.name}</TableCell>
@@ -244,6 +252,16 @@ const Clients = () => {
                 <TableCell>{[c.city, c.state].filter(Boolean).join(" / ") || "—"}</TableCell>
                 <TableCell><Badge variant={c.active ? "default" : "secondary"}>{c.active ? "Ativo" : "Inativo"}</Badge></TableCell>
                 <TableCell><Switch checked={c.active} onCheckedChange={() => toggle(c)} /></TableCell>
+                <TableCell>
+                  <ConfirmDialog
+                    trigger={<Button variant="ghost" size="icon" className="text-destructive hover:text-destructive"><Trash2 className="h-4 w-4" /></Button>}
+                    title={`Excluir ${c.name}?`}
+                    description="Esta ação removerá o cliente e todos os dados vinculados (setores, subcategorias, gravimetrias, pesagens). Não pode ser desfeita."
+                    confirmLabel="Excluir"
+                    destructive
+                    onConfirm={() => remove(c)}
+                  />
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>
