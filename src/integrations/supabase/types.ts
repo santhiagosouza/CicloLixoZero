@@ -41,23 +41,97 @@ export type Database = {
       clients: {
         Row: {
           active: boolean
+          address: string | null
+          city: string | null
           cnpj: string | null
+          company_type_id: string | null
+          created_at: string
+          email: string | null
+          energy_consumption_kwh: number | null
+          gas_consumption_m3: number | null
+          id: string
+          license_number: string | null
+          name: string
+          operating_days: string[] | null
+          people_count: number | null
+          phone: string | null
+          responsible_name: string | null
+          state: string | null
+          team_count: number | null
+          total_area_m2: number | null
+          updated_at: string
+          zip_code: string | null
+        }
+        Insert: {
+          active?: boolean
+          address?: string | null
+          city?: string | null
+          cnpj?: string | null
+          company_type_id?: string | null
+          created_at?: string
+          email?: string | null
+          energy_consumption_kwh?: number | null
+          gas_consumption_m3?: number | null
+          id?: string
+          license_number?: string | null
+          name: string
+          operating_days?: string[] | null
+          people_count?: number | null
+          phone?: string | null
+          responsible_name?: string | null
+          state?: string | null
+          team_count?: number | null
+          total_area_m2?: number | null
+          updated_at?: string
+          zip_code?: string | null
+        }
+        Update: {
+          active?: boolean
+          address?: string | null
+          city?: string | null
+          cnpj?: string | null
+          company_type_id?: string | null
+          created_at?: string
+          email?: string | null
+          energy_consumption_kwh?: number | null
+          gas_consumption_m3?: number | null
+          id?: string
+          license_number?: string | null
+          name?: string
+          operating_days?: string[] | null
+          people_count?: number | null
+          phone?: string | null
+          responsible_name?: string | null
+          state?: string | null
+          team_count?: number | null
+          total_area_m2?: number | null
+          updated_at?: string
+          zip_code?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clients_company_type_id_fkey"
+            columns: ["company_type_id"]
+            isOneToOne: false
+            referencedRelation: "company_types"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      company_types: {
+        Row: {
           created_at: string
           id: string
           name: string
           updated_at: string
         }
         Insert: {
-          active?: boolean
-          cnpj?: string | null
           created_at?: string
           id?: string
           name: string
           updated_at?: string
         }
         Update: {
-          active?: boolean
-          cnpj?: string | null
           created_at?: string
           id?: string
           name?: string

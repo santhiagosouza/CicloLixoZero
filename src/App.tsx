@@ -18,6 +18,7 @@ import Reports from "./pages/Reports";
 import MasterDashboard from "./pages/master/MasterDashboard";
 import Clients from "./pages/master/Clients";
 import Categories from "./pages/master/Categories";
+import CompanyTypes from "./pages/master/CompanyTypes";
 
 const queryClient = new QueryClient();
 
@@ -48,6 +49,7 @@ const App = () => (
             <Route path="/master" element={<ProtectedRoute requireMaster><AppLayout><MasterDashboard /></AppLayout></ProtectedRoute>} />
             <Route path="/master/clients" element={<ProtectedRoute requireMaster><AppLayout><Clients /></AppLayout></ProtectedRoute>} />
             <Route path="/master/categories" element={<ProtectedRoute requireMaster><AppLayout><Categories /></AppLayout></ProtectedRoute>} />
+            <Route path="/master/company-types" element={<ProtectedRoute requireMaster><AppLayout><CompanyTypes /></AppLayout></ProtectedRoute>} />
 
             <Route path="*" element={<NotFound />} />
           </Routes>
