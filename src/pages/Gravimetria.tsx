@@ -3,7 +3,7 @@ import { Navigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Scale, Calendar, Trash2, Play, Square } from "lucide-react";
+import { Scale, Calendar, Trash2, Play, Square, Pencil, Check, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -50,6 +50,14 @@ const Gravimetria = () => {
   const [subcategoryId, setSubcategoryId] = useState("");
   const [peso, setPeso] = useState("");
   const [submitting, setSubmitting] = useState(false);
+
+  // edit state
+  const [editId, setEditId] = useState<string | null>(null);
+  const [editData, setEditData] = useState("");
+  const [editSector, setEditSector] = useState("");
+  const [editCategory, setEditCategory] = useState("");
+  const [editSub, setEditSub] = useState("");
+  const [editPeso, setEditPeso] = useState("");
 
   useEffect(() => {
     if (!clientId) return;
@@ -126,7 +134,32 @@ const Gravimetria = () => {
     else { toast.success("Pesagem removida"); setReloadKey((k) => k + 1); }
   };
 
+  const startEdit = (w: Weighing) => {
+    setEditId(w.id);
+    setEditData(w.data);
+    setEditSector(w.sector_id);
+    setEditCategory(w.category_id);
+    setEditSub(w.subcategory_id);
+    setEditPeso(String(w.peso_kg));
+  };
+  const cancelEdit = () => setEditId(null);
+  const saveEdit = async (id: string) => {
+    if (!editSector || !editCategory || !editSub || !editPeso) {
+      toast.error("Preencha todos os campos"); return;
+    }
+    const { error } = await supabase.from("weighings").update({
+      data: editData,
+      sector_id: editSector,
+      category_id: editCategory,
+      subcategory_id: editSub,
+      peso_kg: Number(editPeso),
+    }).eq("id", id);
+    if (error) toast.error(error.message);
+    else { toast.success("Pesagem atualizada"); setEditId(null); setReloadKey((k) => k + 1); }
+  };
+
   const filteredSubs = subcategories.filter((s) => !categoryId || s.category_id === categoryId);
+  const editFilteredSubs = subcategories.filter((s) => !editCategory || s.category_id === editCategory);
   const totalKg = weighings.reduce((sum, w) => sum + Number(w.peso_kg), 0);
 
   const sectorById = (id: string) => sectors.find((x) => x.id === id)?.name ?? "—";
@@ -232,7 +265,38 @@ const Gravimetria = () => {
                   {weighings.length === 0 && (
                     <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">Nenhuma pesagem registrada ainda</TableCell></TableRow>
                   )}
-                  {weighings.map((w) => (
+                  {weighings.map((w) => editId === w.id ? (
+                    <TableRow key={w.id}>
+                      <TableCell><Input type="date" value={editData} onChange={(e) => setEditData(e.target.value)} className="h-8" /></TableCell>
+                      <TableCell>
+                        <Select value={editSector} onValueChange={setEditSector}>
+                          <SelectTrigger className="h-8"><SelectValue /></SelectTrigger>
+                          <SelectContent>{sectors.map((s) => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}</SelectContent>
+                        </Select>
+                      </TableCell>
+                      <TableCell>
+                        <Select value={editCategory} onValueChange={(v) => { setEditCategory(v); setEditSub(""); }}>
+                          <SelectTrigger className="h-8"><SelectValue /></SelectTrigger>
+                          <SelectContent>{categories.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}</SelectContent>
+                        </Select>
+                      </TableCell>
+                      <TableCell>
+                        <Select value={editSub} onValueChange={setEditSub}>
+                          <SelectTrigger className="h-8"><SelectValue /></SelectTrigger>
+                          <SelectContent>{editFilteredSubs.map((s) => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}</SelectContent>
+                        </Select>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Input type="number" step="0.001" min="0.001" value={editPeso} onChange={(e) => setEditPeso(e.target.value)} className="h-8 text-right" />
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex gap-1">
+                          <Button variant="ghost" size="icon" onClick={() => saveEdit(w.id)}><Check className="h-4 w-4" /></Button>
+                          <Button variant="ghost" size="icon" onClick={cancelEdit}><X className="h-4 w-4" /></Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ) : (
                     <TableRow key={w.id}>
                       <TableCell>{new Date(w.data + "T00:00:00").toLocaleDateString("pt-BR")}</TableCell>
                       <TableCell>{sectorById(w.sector_id)}</TableCell>
@@ -240,9 +304,17 @@ const Gravimetria = () => {
                       <TableCell>{subcategoryById(w.subcategory_id)}</TableCell>
                       <TableCell className="text-right tabular-nums">{Number(w.peso_kg).toFixed(3)}</TableCell>
                       <TableCell>
-                        <Button variant="ghost" size="icon" onClick={() => removeWeighing(w.id)}>
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                        <div className="flex gap-1">
+                          <Button variant="ghost" size="icon" onClick={() => startEdit(w)}><Pencil className="h-4 w-4" /></Button>
+                          <ConfirmDialog
+                            trigger={<Button variant="ghost" size="icon" className="text-destructive hover:text-destructive"><Trash2 className="h-4 w-4" /></Button>}
+                            title="Remover pesagem?"
+                            description="Esta ação não pode ser desfeita."
+                            destructive
+                            confirmLabel="Remover"
+                            onConfirm={() => removeWeighing(w.id)}
+                          />
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}
