@@ -35,14 +35,32 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ error: "email, password e client_id são obrigatórios" }), { status: 400, headers: { ...cors, "Content-Type": "application/json" } });
     }
 
+    let userId: string | null = null;
     const { data: created, error: createErr } = await admin.auth.admin.createUser({
       email,
       password,
       email_confirm: true,
       user_metadata: { full_name: full_name ?? "", client_id },
     });
-    if (createErr || !created.user) {
-      return new Response(JSON.stringify({ error: createErr?.message ?? "Erro ao criar usuário" }), { status: 400, headers: { ...cors, "Content-Type": "application/json" } });
+
+    if (createErr) {
+      const msg = createErr.message?.toLowerCase() ?? "";
+      const alreadyExists = msg.includes("already") || msg.includes("registered") || (createErr as any).code === "email_exists";
+      if (!alreadyExists) {
+        return new Response(JSON.stringify({ error: createErr.message }), { status: 400, headers: { ...cors, "Content-Type": "application/json" } });
+      }
+      // Find existing user by email
+      const { data: list, error: listErr } = await admin.auth.admin.listUsers({ page: 1, perPage: 200 });
+      if (listErr) {
+        return new Response(JSON.stringify({ error: listErr.message }), { status: 400, headers: { ...cors, "Content-Type": "application/json" } });
+      }
+      const existing = list.users.find((u) => u.email?.toLowerCase() === String(email).toLowerCase());
+      if (!existing) {
+        return new Response(JSON.stringify({ error: "Usuário já existe mas não foi possível localizá-lo" }), { status: 400, headers: { ...cors, "Content-Type": "application/json" } });
+      }
+      userId = existing.id;
+    } else {
+      userId = created!.user!.id;
     }
 
     // Garantir profile (caso trigger falhe)
