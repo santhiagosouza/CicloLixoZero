@@ -409,6 +409,9 @@ const Gravimetria = () => {
                     );
                   })}
                 </div>
+                <div className="flex justify-end text-sm text-muted-foreground">
+                  Total geral: <span className="ml-2 font-semibold text-foreground tabular-nums">{grandTotal.toFixed(3)} kg</span>
+                </div>
                 {(() => {
                   const days = samplingStats.days;
                   const daysInMonth = 30;
