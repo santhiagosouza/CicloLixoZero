@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import {
   Recycle, LogOut, Building2, Tags, Scale, LayoutDashboard,
-  Users, Layers, BarChart3, Menu, X, Briefcase
+  Users, Layers, BarChart3, Menu, X, Briefcase, UserCog
 } from "lucide-react";
 
 interface NavItem {
@@ -16,7 +16,7 @@ interface NavItem {
 }
 
 export const AppLayout = ({ children }: { children: ReactNode }) => {
-  const { isMasterAdmin, isClientAdmin, clientId, fullName, signOut } = useAuth();
+  const { isMasterAdmin, isClientAdmin, clientId, fullName, signOut, impersonatedClientId, setImpersonatedClient } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const [clientName, setClientName] = useState<string>("");
@@ -89,13 +89,22 @@ export const AppLayout = ({ children }: { children: ReactNode }) => {
           <div className="pt-3 mt-3 border-t border-sidebar-border space-y-1">
             <p className="px-3 pb-1 text-[10px] uppercase tracking-wider opacity-60">Mudar área</p>
             <Link
-              to={location.pathname.startsWith("/master") ? "/" : "/master"}
+              to="/master"
               onClick={() => setOpen(false)}
               className="flex items-center gap-3 rounded-md px-3 py-2 text-sm hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
             >
               <LayoutDashboard className="h-4 w-4" />
-              {location.pathname.startsWith("/master") ? "Área do Cliente" : "Área Master"}
+              Área Master
             </Link>
+            {impersonatedClientId && !location.pathname.startsWith("/master") && (
+              <button
+                onClick={() => { setImpersonatedClient(null); setOpen(false); navigate("/master/clients"); }}
+                className="w-full flex items-center gap-3 rounded-md px-3 py-2 text-sm hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+              >
+                <X className="h-4 w-4" />
+                Sair da personificação
+              </button>
+            )}
           </div>
         )}
       </nav>
@@ -126,8 +135,13 @@ export const AppLayout = ({ children }: { children: ReactNode }) => {
           <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setOpen((v) => !v)}>
             {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </Button>
-          <div className="flex-1 md:flex-initial">
+          <div className="flex-1 md:flex-initial flex items-center gap-2">
             <h1 className="text-sm md:text-base font-medium">{clientName || (isMasterAdmin ? "Painel Master" : "")}</h1>
+            {isMasterAdmin && impersonatedClientId && !location.pathname.startsWith("/master") && (
+              <span className="inline-flex items-center gap-1 text-[10px] md:text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">
+                <UserCog className="h-3 w-3" /> Visualizando como cliente
+              </span>
+            )}
           </div>
           <div className="text-xs text-muted-foreground hidden sm:block">{fullName}</div>
         </header>
