@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Plus, Trash2, LogIn } from "lucide-react";
+import { Plus, Trash2, LogIn, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
@@ -22,6 +22,11 @@ interface Client {
   license_number: string | null; company_type_id: string | null;
   responsible_name: string | null; phone: string | null; email: string | null;
   city: string | null; state: string | null;
+  address: string | null; zip_code: string | null;
+  people_count: number | null; team_count: number | null;
+  total_area_m2: number | null;
+  gas_consumption_m3: number | null; energy_consumption_kwh: number | null;
+  operating_days: string[] | null;
 }
 
 const WEEKDAYS = [
@@ -43,7 +48,7 @@ const initialForm = {
   people_count: "", team_count: "", total_area_m2: "",
   gas_consumption_m3: "", energy_consumption_kwh: "",
   operating_days: [] as string[],
-  // admin
+  // admin (only for create)
   adminName: "", adminEmail: "", adminPassword: "",
 };
 
@@ -54,8 +59,11 @@ const Clients = () => {
   const [types, setTypes] = useState<CompanyType[]>([]);
   const [form, setForm] = useState(initialForm);
   const [open, setOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [reload, setReload] = useState(0);
   const [busy, setBusy] = useState(false);
+
+  const isEditing = editingId !== null;
 
   const accessAs = (c: Client) => {
     setImpersonatedClient(c.id);
@@ -65,7 +73,7 @@ const Clients = () => {
 
   useEffect(() => {
     Promise.all([
-      supabase.from("clients").select("id, name, cnpj, active, license_number, company_type_id, responsible_name, phone, email, city, state").order("name"),
+      supabase.from("clients").select("*").order("name"),
       supabase.from("company_types").select("*").order("name"),
     ]).then(([c, t]) => {
       setItems((c.data ?? []) as Client[]);
@@ -84,35 +92,86 @@ const Clients = () => {
     }));
   };
 
-  const create = async () => {
-    if (!form.name.trim() || !form.adminEmail.trim() || !form.adminPassword) {
-      toast.error("Nome do cliente, e-mail e senha do admin são obrigatórios"); return;
+  const openCreate = () => {
+    setEditingId(null);
+    setForm(initialForm);
+    setOpen(true);
+  };
+
+  const openEdit = (c: Client) => {
+    setEditingId(c.id);
+    setForm({
+      name: c.name ?? "",
+      cnpj: c.cnpj ?? "",
+      license_number: c.license_number ?? "",
+      company_type_id: c.company_type_id ?? "",
+      responsible_name: c.responsible_name ?? "",
+      address: c.address ?? "",
+      city: c.city ?? "",
+      state: c.state ?? "",
+      zip_code: c.zip_code ?? "",
+      phone: c.phone ?? "",
+      email: c.email ?? "",
+      people_count: c.people_count?.toString() ?? "",
+      team_count: c.team_count?.toString() ?? "",
+      total_area_m2: c.total_area_m2?.toString() ?? "",
+      gas_consumption_m3: c.gas_consumption_m3?.toString() ?? "",
+      energy_consumption_kwh: c.energy_consumption_kwh?.toString() ?? "",
+      operating_days: c.operating_days ?? [],
+      adminName: "", adminEmail: "", adminPassword: "",
+    });
+    setOpen(true);
+  };
+
+  const buildPayload = () => ({
+    name: form.name.trim(),
+    cnpj: form.cnpj.trim() || null,
+    license_number: form.license_number.trim() || null,
+    company_type_id: form.company_type_id || null,
+    responsible_name: form.responsible_name.trim() || null,
+    address: form.address.trim() || null,
+    city: form.city.trim() || null,
+    state: form.state || null,
+    zip_code: form.zip_code.trim() || null,
+    phone: form.phone.trim() || null,
+    email: form.email.trim() || null,
+    people_count: form.people_count ? Number(form.people_count) : null,
+    team_count: form.team_count ? Number(form.team_count) : null,
+    total_area_m2: form.total_area_m2 ? Number(form.total_area_m2) : null,
+    gas_consumption_m3: form.gas_consumption_m3 ? Number(form.gas_consumption_m3) : null,
+    energy_consumption_kwh: form.energy_consumption_kwh ? Number(form.energy_consumption_kwh) : null,
+    operating_days: form.operating_days,
+  });
+
+  const save = async () => {
+    if (!form.name.trim()) { toast.error("Nome do cliente é obrigatório"); return; }
+
+    if (isEditing) {
+      setBusy(true);
+      try {
+        const { error } = await supabase.from("clients").update(buildPayload()).eq("id", editingId!);
+        if (error) throw new Error(error.message);
+        toast.success("Cliente atualizado com sucesso!");
+        setForm(initialForm);
+        setEditingId(null);
+        setOpen(false);
+        setReload((k) => k + 1);
+      } catch (err: any) {
+        toast.error(err.message || "Erro ao atualizar cliente");
+      } finally {
+        setBusy(false);
+      }
+      return;
+    }
+
+    // Create flow
+    if (!form.adminEmail.trim() || !form.adminPassword) {
+      toast.error("E-mail e senha do admin são obrigatórios"); return;
     }
     setBusy(true);
-
-    const payload = {
-      name: form.name.trim(),
-      cnpj: form.cnpj.trim() || null,
-      license_number: form.license_number.trim() || null,
-      company_type_id: form.company_type_id || null,
-      responsible_name: form.responsible_name.trim() || null,
-      address: form.address.trim() || null,
-      city: form.city.trim() || null,
-      state: form.state || null,
-      zip_code: form.zip_code.trim() || null,
-      phone: form.phone.trim() || null,
-      email: form.email.trim() || null,
-      people_count: form.people_count ? Number(form.people_count) : null,
-      team_count: form.team_count ? Number(form.team_count) : null,
-      total_area_m2: form.total_area_m2 ? Number(form.total_area_m2) : null,
-      gas_consumption_m3: form.gas_consumption_m3 ? Number(form.gas_consumption_m3) : null,
-      energy_consumption_kwh: form.energy_consumption_kwh ? Number(form.energy_consumption_kwh) : null,
-      operating_days: form.operating_days,
-    };
-
     try {
-      const { data: client, error } = await supabase.from("clients").insert(payload).select().single();
-      if (error || !client) { throw new Error(error?.message ?? "Erro ao criar cliente"); }
+      const { data: client, error } = await supabase.from("clients").insert(buildPayload()).select().single();
+      if (error || !client) throw new Error(error?.message ?? "Erro ao criar cliente");
 
       const { data: signup, error: suErr } = await supabase.auth.signUp({
         email: form.adminEmail.trim(),
@@ -122,7 +181,7 @@ const Clients = () => {
           data: { full_name: form.adminName.trim(), client_id: client.id },
         },
       });
-      if (suErr || !signup.user) { throw new Error(suErr?.message ?? "Erro ao criar admin"); }
+      if (suErr || !signup.user) throw new Error(suErr?.message ?? "Erro ao criar admin");
 
       const { error: roleErr } = await supabase.from("user_roles").insert({
         user_id: signup.user.id, role: "client_admin", client_id: client.id,
@@ -158,12 +217,16 @@ const Clients = () => {
           <h1 className="text-2xl font-semibold">Clientes</h1>
           <p className="text-sm text-muted-foreground">Empresas que utilizam o sistema</p>
         </div>
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild><Button><Plus className="h-4 w-4 mr-2" />Novo cliente</Button></DialogTrigger>
+        <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) { setEditingId(null); setForm(initialForm); } }}>
+          <DialogTrigger asChild>
+            <Button onClick={openCreate}><Plus className="h-4 w-4 mr-2" />Novo cliente</Button>
+          </DialogTrigger>
           <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Novo cliente</DialogTitle>
-              <DialogDescription>Cadastre a empresa, dados do local e o primeiro administrador.</DialogDescription>
+              <DialogTitle>{isEditing ? "Editar cliente" : "Novo cliente"}</DialogTitle>
+              <DialogDescription>
+                {isEditing ? "Atualize os dados da empresa." : "Cadastre a empresa, dados do local e o primeiro administrador."}
+              </DialogDescription>
             </DialogHeader>
 
             <div className="space-y-5">
@@ -228,19 +291,23 @@ const Clients = () => {
                 </div>
               </section>
 
-              {/* Admin */}
-              <section className="space-y-3 border-t pt-4">
-                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Primeiro Administrador</h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                  <div className="space-y-2"><Label>Nome</Label><Input value={form.adminName} onChange={(e) => setF("adminName", e.target.value)} /></div>
-                  <div className="space-y-2"><Label>E-mail *</Label><Input type="email" value={form.adminEmail} onChange={(e) => setF("adminEmail", e.target.value)} /></div>
-                  <div className="space-y-2"><Label>Senha *</Label><Input type="text" value={form.adminPassword} onChange={(e) => setF("adminPassword", e.target.value)} /></div>
-                </div>
-              </section>
+              {/* Admin - somente na criação */}
+              {!isEditing && (
+                <section className="space-y-3 border-t pt-4">
+                  <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Primeiro Administrador</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <div className="space-y-2"><Label>Nome</Label><Input value={form.adminName} onChange={(e) => setF("adminName", e.target.value)} /></div>
+                    <div className="space-y-2"><Label>E-mail *</Label><Input type="email" value={form.adminEmail} onChange={(e) => setF("adminEmail", e.target.value)} /></div>
+                    <div className="space-y-2"><Label>Senha *</Label><Input type="text" value={form.adminPassword} onChange={(e) => setF("adminPassword", e.target.value)} /></div>
+                  </div>
+                </section>
+              )}
             </div>
 
             <DialogFooter className="mt-4">
-              <Button onClick={create} disabled={busy}>{busy ? "Criando..." : "Criar"}</Button>
+              <Button onClick={save} disabled={busy}>
+                {busy ? (isEditing ? "Salvando..." : "Criando...") : (isEditing ? "Salvar alterações" : "Criar")}
+              </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
@@ -255,7 +322,7 @@ const Clients = () => {
             <TableHead>Cidade/UF</TableHead>
             <TableHead>Status</TableHead>
             <TableHead>Ativo</TableHead>
-            <TableHead className="w-32"></TableHead>
+            <TableHead className="w-44"></TableHead>
           </TableRow></TableHeader>
           <TableBody>
             {items.length === 0 && <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-6">Nenhum cliente</TableCell></TableRow>}
@@ -271,6 +338,9 @@ const Clients = () => {
                   <div className="flex items-center gap-1 justify-end">
                     <Button variant="outline" size="sm" onClick={() => accessAs(c)}>
                       <LogIn className="h-3.5 w-3.5 mr-1" /> Acessar
+                    </Button>
+                    <Button variant="ghost" size="icon" onClick={() => openEdit(c)} title="Editar">
+                      <Pencil className="h-4 w-4" />
                     </Button>
                     <ConfirmDialog
                       trigger={<Button variant="ghost" size="icon" className="text-destructive hover:text-destructive"><Trash2 className="h-4 w-4" /></Button>}
