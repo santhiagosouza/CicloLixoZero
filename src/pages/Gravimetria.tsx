@@ -41,6 +41,7 @@ const Gravimetria = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
   const [weighings, setWeighings] = useState<Weighing[]>([]);
+  const [categoryTotals, setCategoryTotals] = useState<CategoryTotal[]>([]);
   const [reloadKey, setReloadKey] = useState(0);
 
   // form state
