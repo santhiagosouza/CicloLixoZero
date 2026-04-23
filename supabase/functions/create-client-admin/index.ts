@@ -63,24 +63,25 @@ Deno.serve(async (req) => {
       userId = created!.user!.id;
     }
 
-    // Garantir profile (caso trigger falhe)
+    // Garantir profile
     await admin.from("profiles").upsert({
-      id: created.user.id,
+      id: userId!,
       email,
       full_name: full_name ?? "",
       client_id,
     }, { onConflict: "id" });
 
+    // Atribuir role (idempotente)
     const { error: roleInsertErr } = await admin.from("user_roles").insert({
-      user_id: created.user.id,
+      user_id: userId!,
       role,
       client_id,
     });
-    if (roleInsertErr) {
+    if (roleInsertErr && !roleInsertErr.message?.toLowerCase().includes("duplicate")) {
       return new Response(JSON.stringify({ error: roleInsertErr.message }), { status: 400, headers: { ...cors, "Content-Type": "application/json" } });
     }
 
-    return new Response(JSON.stringify({ user_id: created.user.id }), {
+    return new Response(JSON.stringify({ user_id: userId }), {
       status: 200,
       headers: { ...cors, "Content-Type": "application/json" },
     });
