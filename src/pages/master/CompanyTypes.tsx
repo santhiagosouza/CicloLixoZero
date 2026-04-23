@@ -6,9 +6,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, Settings2 } from "lucide-react";
 import { toast } from "sonner";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
+import { Link } from "react-router-dom";
 
 interface CT { id: string; name: string }
 
@@ -55,15 +56,18 @@ const CompanyTypes = () => {
 
       <Card><CardContent className="p-0">
         <Table>
-          <TableHeader><TableRow><TableHead>Nome</TableHead><TableHead className="w-16" /></TableRow></TableHeader>
+          <TableHeader><TableRow><TableHead>Nome</TableHead><TableHead className="w-32 text-right">Ações</TableHead></TableRow></TableHeader>
           <TableBody>
             {items.length === 0 && <TableRow><TableCell colSpan={2} className="text-center text-muted-foreground py-6">Nenhum tipo cadastrado</TableCell></TableRow>}
             {items.map((c) => (
               <TableRow key={c.id}>
                 <TableCell className="font-medium">{c.name}</TableCell>
-                <TableCell>
+                <TableCell className="text-right">
+                  <Button variant="ghost" size="icon" asChild title="Gerenciar padrões">
+                    <Link to={`/master/company-types/${c.id}`}><Settings2 className="h-4 w-4" /></Link>
+                  </Button>
                   <ConfirmDialog trigger={<Button variant="ghost" size="icon"><Trash2 className="h-4 w-4" /></Button>}
-                    title="Remover tipo?" description="Clientes vinculados ficarão sem tipo." destructive
+                    title="Remover tipo?" description="Clientes vinculados ficarão sem tipo. Os padrões deste tipo também serão removidos." destructive
                     onConfirm={() => remove(c.id)} />
                 </TableCell>
               </TableRow>
