@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,7 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, LogIn } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
@@ -46,12 +48,20 @@ const initialForm = {
 };
 
 const Clients = () => {
+  const navigate = useNavigate();
+  const { setImpersonatedClient } = useAuth();
   const [items, setItems] = useState<Client[]>([]);
   const [types, setTypes] = useState<CompanyType[]>([]);
   const [form, setForm] = useState(initialForm);
   const [open, setOpen] = useState(false);
   const [reload, setReload] = useState(0);
   const [busy, setBusy] = useState(false);
+
+  const accessAs = (c: Client) => {
+    setImpersonatedClient(c.id);
+    toast.success(`Acessando como ${c.name}`);
+    navigate("/");
+  };
 
   useEffect(() => {
     Promise.all([
@@ -240,7 +250,7 @@ const Clients = () => {
             <TableHead>Cidade/UF</TableHead>
             <TableHead>Status</TableHead>
             <TableHead>Ativo</TableHead>
-            <TableHead className="w-12"></TableHead>
+            <TableHead className="w-32"></TableHead>
           </TableRow></TableHeader>
           <TableBody>
             {items.length === 0 && <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-6">Nenhum cliente</TableCell></TableRow>}
@@ -253,14 +263,19 @@ const Clients = () => {
                 <TableCell><Badge variant={c.active ? "default" : "secondary"}>{c.active ? "Ativo" : "Inativo"}</Badge></TableCell>
                 <TableCell><Switch checked={c.active} onCheckedChange={() => toggle(c)} /></TableCell>
                 <TableCell>
-                  <ConfirmDialog
-                    trigger={<Button variant="ghost" size="icon" className="text-destructive hover:text-destructive"><Trash2 className="h-4 w-4" /></Button>}
-                    title={`Excluir ${c.name}?`}
-                    description="Esta ação removerá o cliente e todos os dados vinculados (setores, subcategorias, gravimetrias, pesagens). Não pode ser desfeita."
-                    confirmLabel="Excluir"
-                    destructive
-                    onConfirm={() => remove(c)}
-                  />
+                  <div className="flex items-center gap-1 justify-end">
+                    <Button variant="outline" size="sm" onClick={() => accessAs(c)}>
+                      <LogIn className="h-3.5 w-3.5 mr-1" /> Acessar
+                    </Button>
+                    <ConfirmDialog
+                      trigger={<Button variant="ghost" size="icon" className="text-destructive hover:text-destructive"><Trash2 className="h-4 w-4" /></Button>}
+                      title={`Excluir ${c.name}?`}
+                      description="Esta ação removerá o cliente e todos os dados vinculados (setores, subcategorias, gravimetrias, pesagens). Não pode ser desfeita."
+                      confirmLabel="Excluir"
+                      destructive
+                      onConfirm={() => remove(c)}
+                    />
+                  </div>
                 </TableCell>
               </TableRow>
             ))}
