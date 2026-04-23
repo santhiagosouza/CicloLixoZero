@@ -113,6 +113,12 @@ const Gravimetria = () => {
     else { toast.success("Gravimetria iniciada"); setReloadKey((k) => k + 1); }
   };
 
+  const deleteGravimetria = async (id: string) => {
+    const { error } = await supabase.from("gravimetrias").delete().eq("id", id);
+    if (error) toast.error(error.message);
+    else { toast.success("Gravimetria excluída"); setReloadKey((k) => k + 1); }
+  };
+
   const endGravimetria = async () => {
     if (!active) return;
     const { error } = await supabase.from("gravimetrias").update({ ended_at: new Date().toISOString() }).eq("id", active.id);
