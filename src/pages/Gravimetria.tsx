@@ -69,7 +69,7 @@ const Gravimetria = () => {
         supabase.from("sectors").select("id, name").eq("client_id", clientId).eq("active", true).order("name"),
         supabase.from("categories").select("id, name, color").order("name"),
         supabase.from("subcategories").select("id, name, category_id").eq("client_id", clientId).eq("active", true).order("name"),
-        supabase.from("weighings").select("category_id, peso_kg").eq("client_id", clientId),
+        supabase.from("weighings").select("category_id, peso_kg, data").eq("client_id", clientId),
       ]);
       const all = (g.data ?? []) as Gravimetria[];
       const act = all.find((x) => !x.ended_at) ?? null;
