@@ -32,6 +32,7 @@ interface Weighing {
   subcategory_id: string;
 }
 interface CategoryTotal { category_id: string; peso_kg: number }
+interface SamplingStats { days: number; totalKg: number }
 
 const Gravimetria = () => {
   const { clientId, isClientAdmin, isMasterAdmin, user, loading } = useAuth();
@@ -42,6 +43,7 @@ const Gravimetria = () => {
   const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
   const [weighings, setWeighings] = useState<Weighing[]>([]);
   const [categoryTotals, setCategoryTotals] = useState<CategoryTotal[]>([]);
+  const [samplingStats, setSamplingStats] = useState<SamplingStats>({ days: 0, totalKg: 0 });
   const [reloadKey, setReloadKey] = useState(0);
 
   // form state
@@ -69,7 +71,7 @@ const Gravimetria = () => {
         supabase.from("sectors").select("id, name").eq("client_id", clientId).eq("active", true).order("name"),
         supabase.from("categories").select("id, name, color").order("name"),
         supabase.from("subcategories").select("id, name, category_id").eq("client_id", clientId).eq("active", true).order("name"),
-        supabase.from("weighings").select("category_id, peso_kg").eq("client_id", clientId),
+        supabase.from("weighings").select("category_id, peso_kg, data").eq("client_id", clientId),
       ]);
       const all = (g.data ?? []) as Gravimetria[];
       const act = all.find((x) => !x.ended_at) ?? null;
@@ -80,10 +82,16 @@ const Gravimetria = () => {
       setSubcategories((sc.data ?? []) as Subcategory[]);
 
       const totalsMap = new Map<string, number>();
-      for (const w of (allW.data ?? []) as { category_id: string; peso_kg: number }[]) {
-        totalsMap.set(w.category_id, (totalsMap.get(w.category_id) ?? 0) + Number(w.peso_kg));
+      const dayset = new Set<string>();
+      let totalKg = 0;
+      for (const w of (allW.data ?? []) as { category_id: string; peso_kg: number; data: string }[]) {
+        const kg = Number(w.peso_kg);
+        totalsMap.set(w.category_id, (totalsMap.get(w.category_id) ?? 0) + kg);
+        if (w.data) dayset.add(w.data);
+        totalKg += kg;
       }
       setCategoryTotals(Array.from(totalsMap.entries()).map(([category_id, peso_kg]) => ({ category_id, peso_kg })));
+      setSamplingStats({ days: dayset.size, totalKg });
     })();
   }, [clientId, reloadKey]);
 
@@ -404,6 +412,47 @@ const Gravimetria = () => {
                 <div className="flex justify-end text-sm text-muted-foreground">
                   Total geral: <span className="ml-2 font-semibold text-foreground tabular-nums">{grandTotal.toFixed(3)} kg</span>
                 </div>
+                {(() => {
+                  const days = samplingStats.days;
+                  const daysInMonth = 30;
+                  const samplePct = (days / daysInMonth) * 100;
+                  const dailyAvg = days > 0 ? grandTotal / days : 0;
+                  const monthly = dailyAvg * 30;
+                  const yearly = dailyAvg * 365;
+                  return (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2">
+                      <div className="rounded-md border p-3">
+                        <div className="text-xs text-muted-foreground">Dias de separação amostrados</div>
+                        <div className="mt-1 text-xl font-semibold tabular-nums">
+                          {days} <span className="text-xs text-muted-foreground font-normal">{days === 1 ? "dia" : "dias"}</span>
+                        </div>
+                        <div className="text-xs text-muted-foreground mt-1">
+                          {samplePct.toFixed(1)}% do mês (base 30 dias)
+                        </div>
+                      </div>
+                      <div className="rounded-md border p-3">
+                        <div className="text-xs text-muted-foreground">Previsão de geração</div>
+                        <div className="mt-1 flex flex-wrap gap-x-6 gap-y-1">
+                          <div>
+                            <div className="text-xs text-muted-foreground">Mensal</div>
+                            <div className="text-xl font-semibold tabular-nums">
+                              {monthly.toFixed(2)} <span className="text-xs text-muted-foreground font-normal">kg</span>
+                            </div>
+                          </div>
+                          <div>
+                            <div className="text-xs text-muted-foreground">Anual</div>
+                            <div className="text-xl font-semibold tabular-nums">
+                              {yearly.toFixed(2)} <span className="text-xs text-muted-foreground font-normal">kg</span>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="text-xs text-muted-foreground mt-1">
+                          Baseado na média diária de {dailyAvg.toFixed(2)} kg
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
             );
           })()}
