@@ -420,7 +420,7 @@ const Gravimetria = () => {
                   const monthly = dailyAvg * 30;
                   const yearly = dailyAvg * 365;
                   return (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 pt-2">
                       <div className="rounded-md border p-3">
                         <div className="text-xs text-muted-foreground">Dias de separação amostrados</div>
                         <div className="mt-1 text-xl font-semibold tabular-nums">
@@ -431,23 +431,21 @@ const Gravimetria = () => {
                         </div>
                       </div>
                       <div className="rounded-md border p-3">
-                        <div className="text-xs text-muted-foreground">Previsão de geração</div>
-                        <div className="mt-1 flex flex-wrap gap-x-6 gap-y-1">
-                          <div>
-                            <div className="text-xs text-muted-foreground">Mensal</div>
-                            <div className="text-xl font-semibold tabular-nums">
-                              {monthly.toFixed(2)} <span className="text-xs text-muted-foreground font-normal">kg</span>
-                            </div>
-                          </div>
-                          <div>
-                            <div className="text-xs text-muted-foreground">Anual</div>
-                            <div className="text-xl font-semibold tabular-nums">
-                              {yearly.toFixed(2)} <span className="text-xs text-muted-foreground font-normal">kg</span>
-                            </div>
-                          </div>
+                        <div className="text-xs text-muted-foreground">Previsão mensal</div>
+                        <div className="mt-1 text-xl font-semibold tabular-nums">
+                          {monthly.toFixed(2)} <span className="text-xs text-muted-foreground font-normal">kg</span>
                         </div>
                         <div className="text-xs text-muted-foreground mt-1">
-                          Baseado na média diária de {dailyAvg.toFixed(2)} kg
+                          Média diária de {dailyAvg.toFixed(2)} kg × 30
+                        </div>
+                      </div>
+                      <div className="rounded-md border p-3">
+                        <div className="text-xs text-muted-foreground">Previsão anual</div>
+                        <div className="mt-1 text-xl font-semibold tabular-nums">
+                          {yearly.toFixed(2)} <span className="text-xs text-muted-foreground font-normal">kg</span>
+                        </div>
+                        <div className="text-xs text-muted-foreground mt-1">
+                          Média diária de {dailyAvg.toFixed(2)} kg × 365
                         </div>
                       </div>
                     </div>
