@@ -225,7 +225,7 @@ const Gravimetria = () => {
               </CardTitle>
               <div className="text-sm text-muted-foreground flex items-center gap-4">
                 <span className="flex items-center gap-1"><Calendar className="h-4 w-4" />{new Date(active.started_at).toLocaleString("pt-BR")}</span>
-                <span className="flex items-center gap-1"><Scale className="h-4 w-4" />{totalKg.toFixed(3)} kg</span>
+                <span className="flex items-center gap-1"><Scale className="h-4 w-4" />{totalKg.toFixed(1)} kg</span>
                 <span>{weighings.length} pesagens</span>
               </div>
             </div>
@@ -325,7 +325,7 @@ const Gravimetria = () => {
                       <TableCell>{sectorById(w.sector_id)}</TableCell>
                       <TableCell>{categoryById(w.category_id)}</TableCell>
                       <TableCell>{subcategoryById(w.subcategory_id)}</TableCell>
-                      <TableCell className="text-right tabular-nums">{Number(w.peso_kg).toFixed(3)}</TableCell>
+                      <TableCell className="text-right tabular-nums">{Number(w.peso_kg).toFixed(1)}</TableCell>
                       <TableCell>
                         <div className="flex gap-1">
                           <Button variant="ghost" size="icon" onClick={() => startEdit(w)}><Pencil className="h-4 w-4" /></Button>
@@ -407,7 +407,7 @@ const Gravimetria = () => {
                           </span>
                           <span className="text-xs text-muted-foreground tabular-nums">{pct.toFixed(1)}%</span>
                         </div>
-                        <div className="text-xl font-semibold tabular-nums">{r.kg.toFixed(3)} <span className="text-xs text-muted-foreground font-normal">kg</span></div>
+                        <div className="text-xl font-semibold tabular-nums">{r.kg.toFixed(1)} <span className="text-xs text-muted-foreground font-normal">kg</span></div>
                         <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
                           <div className="h-full rounded-full" style={{ width: `${pct}%`, background: color }} />
                         </div>
@@ -416,7 +416,7 @@ const Gravimetria = () => {
                   })}
                 </div>
                 <div className="flex justify-end text-sm text-muted-foreground">
-                  Total geral: <span className="ml-2 font-semibold text-foreground tabular-nums">{grandTotal.toFixed(3)} kg</span>
+                  Total geral: <span className="ml-2 font-semibold text-foreground tabular-nums">{grandTotal.toFixed(1)} kg</span>
                 </div>
                 {(() => {
                   const days = samplingStats.days;
@@ -439,19 +439,19 @@ const Gravimetria = () => {
                       <div className="rounded-md border p-3">
                         <div className="text-xs text-muted-foreground">Previsão mensal</div>
                         <div className="mt-1 text-xl font-semibold tabular-nums">
-                          {monthly.toFixed(2)} <span className="text-xs text-muted-foreground font-normal">kg</span>
+                          {monthly.toFixed(1)} <span className="text-xs text-muted-foreground font-normal">kg</span>
                         </div>
                         <div className="text-xs text-muted-foreground mt-1">
-                          Média diária de {dailyAvg.toFixed(2)} kg × 30
+                          Média diária de {dailyAvg.toFixed(1)} kg × 30
                         </div>
                       </div>
                       <div className="rounded-md border p-3">
                         <div className="text-xs text-muted-foreground">Previsão anual</div>
                         <div className="mt-1 text-xl font-semibold tabular-nums">
-                          {yearly.toFixed(2)} <span className="text-xs text-muted-foreground font-normal">kg</span>
+                          {yearly.toFixed(1)} <span className="text-xs text-muted-foreground font-normal">kg</span>
                         </div>
                         <div className="text-xs text-muted-foreground mt-1">
-                          Média diária de {dailyAvg.toFixed(2)} kg × 365
+                          Média diária de {dailyAvg.toFixed(1)} kg × 365
                         </div>
                       </div>
                     </div>
