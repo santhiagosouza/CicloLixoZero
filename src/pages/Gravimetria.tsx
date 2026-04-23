@@ -3,7 +3,7 @@ import { Navigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Scale, Calendar, Trash2, Play, Square, Pencil, Check, X, Leaf, Recycle, AlertTriangle, Ban } from "lucide-react";
+import { Scale, Calendar, Trash2, Play, Square, Pencil, Check, X, Leaf, Recycle, AlertTriangle, Ban, Printer, FileSpreadsheet } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
+import * as XLSX from "xlsx";
 
 interface Gravimetria {
   id: string;
@@ -358,10 +359,44 @@ const Gravimetria = () => {
         </Card>
       )}
 
-      <Card>
+      <Card className="print-area">
         <CardHeader>
-          <CardTitle>Resumo geral por categoria</CardTitle>
-          <CardDescription>Soma de todas as gravimetrias deste cliente</CardDescription>
+          <div className="flex items-start justify-between flex-wrap gap-2">
+            <div>
+              <CardTitle>Resumo geral por categoria</CardTitle>
+              <CardDescription>Soma de todas as gravimetrias deste cliente</CardDescription>
+            </div>
+            <div className="flex items-center gap-2 no-print">
+              <Button variant="outline" size="sm" onClick={() => window.print()}>
+                <Printer className="h-4 w-4 mr-2" />Imprimir
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => {
+                const grandTotal = categoryTotals.reduce((s, t) => s + t.peso_kg, 0);
+                const days = samplingStats.days;
+                const dailyAvg = days > 0 ? grandTotal / days : 0;
+                const wb = XLSX.utils.book_new();
+                const resumo: any[][] = [
+                  ["Resumo geral por categoria"],
+                  [],
+                  ["Categoria", "Peso (kg)", "% do total"],
+                  ...categories
+                    .map((c) => ({ name: c.name, kg: categoryTotals.find((t) => t.category_id === c.id)?.peso_kg ?? 0 }))
+                    .filter((r) => r.kg > 0)
+                    .map((r) => [r.name, Number(r.kg.toFixed(1)), grandTotal ? Number(((r.kg / grandTotal) * 100).toFixed(1)) : 0]),
+                  ["Total geral", Number(grandTotal.toFixed(1)), 100],
+                  [],
+                  ["Dias amostrados", days],
+                  ["Média diária (kg)", Number(dailyAvg.toFixed(1))],
+                  ["Previsão mensal (kg)", Number((dailyAvg * 30).toFixed(1))],
+                  ["Previsão anual (kg)", Number((dailyAvg * 365).toFixed(1))],
+                ];
+                XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(resumo), "Resumo");
+                XLSX.writeFile(wb, `resumo-gravimetria.xlsx`);
+              }}>
+                <FileSpreadsheet className="h-4 w-4 mr-2" />Exportar XLSX
+              </Button>
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
           {(() => {

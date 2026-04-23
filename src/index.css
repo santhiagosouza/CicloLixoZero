@@ -101,3 +101,11 @@
     50% { box-shadow: 0 0 0 8px hsl(var(--primary) / 0); }
   }
 }
+
+@media print {
+  body * { visibility: hidden; }
+  .print-area, .print-area * { visibility: visible; }
+  .print-area { position: absolute; left: 0; top: 0; width: 100%; padding: 16px; }
+  .no-print { display: none !important; }
+  @page { margin: 12mm; }
+}

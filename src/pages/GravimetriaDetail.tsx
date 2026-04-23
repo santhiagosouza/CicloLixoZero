@@ -4,7 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ArrowLeft, Download } from "lucide-react";
+import { ArrowLeft, Download, Printer, FileSpreadsheet } from "lucide-react";
+import * as XLSX from "xlsx";
 import * as Recharts from "recharts";
 const { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Legend } = Recharts as any;
 
@@ -78,13 +79,43 @@ const GravimetriaDetail = () => {
     URL.revokeObjectURL(url);
   };
 
+  const exportXLSX = () => {
+    const wb = XLSX.utils.book_new();
+    const resumo = [
+      ["Gravimetria", grav?.numero ?? ""],
+      ["Início", grav?.started_at ? new Date(grav.started_at).toLocaleString("pt-BR") : ""],
+      ["Encerramento", grav?.ended_at ? new Date(grav.ended_at).toLocaleString("pt-BR") : "em andamento"],
+      ["Total (kg)", Number(total.toFixed(1))],
+      ["Pesagens", weighings.length],
+      [],
+      ["Categoria", "Peso (kg)"],
+      ...byCategory.map((c: any) => [c.name, Number(c.value.toFixed(1))]),
+      [],
+      ["Setor", "Peso (kg)"],
+      ...bySector.map((s: any) => [s.name, Number(s.value.toFixed(1))]),
+    ];
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(resumo), "Resumo");
+    const detalhe = [
+      ["Data", "Setor", "Categoria", "Subcategoria", "Peso (kg)"],
+      ...weighings.map((w) => [
+        w.data,
+        sectorMap[w.sector_id] ?? "",
+        categoryMap[w.category_id]?.name ?? "",
+        subMap[w.subcategory_id] ?? "",
+        Number(Number(w.peso_kg).toFixed(1)),
+      ]),
+    ];
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(detalhe), "Pesagens");
+    XLSX.writeFile(wb, `gravimetria-${grav?.numero ?? id}.xlsx`);
+  };
+
   if (!grav) return <div className="text-muted-foreground">Carregando...</div>;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 print-area">
       <div className="flex items-center justify-between flex-wrap gap-2">
         <div className="flex items-center gap-3">
-          <Button variant="ghost" size="icon" asChild><Link to="/"><ArrowLeft className="h-4 w-4" /></Link></Button>
+          <Button variant="ghost" size="icon" asChild className="no-print"><Link to="/"><ArrowLeft className="h-4 w-4" /></Link></Button>
           <div>
             <h1 className="text-2xl font-semibold">Gravimetria {grav.numero}</h1>
             <p className="text-sm text-muted-foreground">
@@ -92,7 +123,11 @@ const GravimetriaDetail = () => {
             </p>
           </div>
         </div>
-        <Button variant="outline" onClick={exportCSV}><Download className="h-4 w-4 mr-2" />Exportar CSV</Button>
+        <div className="flex items-center gap-2 no-print">
+          <Button variant="outline" onClick={() => window.print()}><Printer className="h-4 w-4 mr-2" />Imprimir</Button>
+          <Button variant="outline" onClick={exportXLSX}><FileSpreadsheet className="h-4 w-4 mr-2" />Exportar XLSX</Button>
+          <Button variant="outline" onClick={exportCSV}><Download className="h-4 w-4 mr-2" />CSV</Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
