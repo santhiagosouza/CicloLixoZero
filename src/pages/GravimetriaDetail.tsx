@@ -67,7 +67,7 @@ const GravimetriaDetail = () => {
         sectorMap[w.sector_id] ?? "",
         categoryMap[w.category_id]?.name ?? "",
         subMap[w.subcategory_id] ?? "",
-        Number(w.peso_kg).toFixed(3),
+        Number(w.peso_kg).toFixed(1),
       ]);
     });
     const csv = rows.map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(";")).join("\n");
@@ -97,7 +97,7 @@ const GravimetriaDetail = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card><CardHeader><CardTitle className="text-sm font-medium text-muted-foreground">Total</CardTitle></CardHeader>
-          <CardContent><p className="text-3xl font-semibold">{total.toFixed(3)} <span className="text-base text-muted-foreground">kg</span></p></CardContent></Card>
+          <CardContent><p className="text-3xl font-semibold">{total.toFixed(1)} <span className="text-base text-muted-foreground">kg</span></p></CardContent></Card>
         <Card><CardHeader><CardTitle className="text-sm font-medium text-muted-foreground">Pesagens</CardTitle></CardHeader>
           <CardContent><p className="text-3xl font-semibold">{weighings.length}</p></CardContent></Card>
         <Card><CardHeader><CardTitle className="text-sm font-medium text-muted-foreground">Categorias</CardTitle></CardHeader>
@@ -113,7 +113,7 @@ const GravimetriaDetail = () => {
                 <Pie data={byCategory} dataKey="value" nameKey="name" outerRadius={90} label={(e: any) => `${e.name}: ${e.value.toFixed(1)}kg`}>
                   {byCategory.map((e, i) => <Cell key={i} fill={e.color} />)}
                 </Pie>
-                <Tooltip formatter={(v: any) => `${Number(v).toFixed(3)} kg`} />
+                <Tooltip formatter={(v: any) => `${Number(v).toFixed(1)} kg`} />
               </PieChart>
             </ResponsiveContainer>
           </CardContent>
@@ -125,7 +125,7 @@ const GravimetriaDetail = () => {
               <BarChart data={bySector}>
                 <XAxis dataKey="name" />
                 <YAxis />
-                <Tooltip formatter={(v: any) => `${Number(v).toFixed(3)} kg`} />
+                <Tooltip formatter={(v: any) => `${Number(v).toFixed(1)} kg`} />
                 <Legend />
                 <Bar dataKey="value" name="kg" fill="hsl(var(--primary))" />
               </BarChart>
@@ -155,7 +155,7 @@ const GravimetriaDetail = () => {
                     <TableCell>{sectorMap[w.sector_id] ?? "—"}</TableCell>
                     <TableCell>{categoryMap[w.category_id]?.name ?? "—"}</TableCell>
                     <TableCell>{subMap[w.subcategory_id] ?? "—"}</TableCell>
-                    <TableCell className="text-right tabular-nums">{Number(w.peso_kg).toFixed(3)}</TableCell>
+                    <TableCell className="text-right tabular-nums">{Number(w.peso_kg).toFixed(1)}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>

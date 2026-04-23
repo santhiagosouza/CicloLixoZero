@@ -35,7 +35,7 @@ const MasterDashboard = () => {
         <Card><CardHeader className="flex flex-row items-center justify-between pb-2"><CardTitle className="text-sm font-medium text-muted-foreground">Gravimetrias</CardTitle><Tags className="h-4 w-4 text-muted-foreground" /></CardHeader>
           <CardContent><p className="text-3xl font-semibold">{stats.gravimetrias}</p></CardContent></Card>
         <Card><CardHeader className="flex flex-row items-center justify-between pb-2"><CardTitle className="text-sm font-medium text-muted-foreground">Total pesado</CardTitle><Scale className="h-4 w-4 text-muted-foreground" /></CardHeader>
-          <CardContent><p className="text-3xl font-semibold">{stats.totalKg.toFixed(2)} <span className="text-base text-muted-foreground">kg</span></p></CardContent></Card>
+          <CardContent><p className="text-3xl font-semibold">{stats.totalKg.toFixed(1)} <span className="text-base text-muted-foreground">kg</span></p></CardContent></Card>
       </div>
 
       <Card>

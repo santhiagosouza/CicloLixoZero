@@ -35,7 +35,7 @@ const Reports = () => {
             <BarChart data={data}>
               <XAxis dataKey="name" />
               <YAxis />
-              <Tooltip formatter={(v: any) => `${Number(v).toFixed(3)} kg`} />
+              <Tooltip formatter={(v: any) => `${Number(v).toFixed(1)} kg`} />
               <Legend />
               <Bar dataKey="total" name="kg" fill="hsl(var(--primary))" />
             </BarChart>
