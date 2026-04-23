@@ -31,6 +31,7 @@ interface Weighing {
   category_id: string;
   subcategory_id: string;
 }
+interface CategoryTotal { category_id: string; peso_kg: number }
 
 const Gravimetria = () => {
   const { clientId, isClientAdmin, isMasterAdmin, user, loading } = useAuth();
