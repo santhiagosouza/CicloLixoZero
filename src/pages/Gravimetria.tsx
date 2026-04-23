@@ -82,10 +82,16 @@ const Gravimetria = () => {
       setSubcategories((sc.data ?? []) as Subcategory[]);
 
       const totalsMap = new Map<string, number>();
-      for (const w of (allW.data ?? []) as { category_id: string; peso_kg: number }[]) {
-        totalsMap.set(w.category_id, (totalsMap.get(w.category_id) ?? 0) + Number(w.peso_kg));
+      const dayset = new Set<string>();
+      let totalKg = 0;
+      for (const w of (allW.data ?? []) as { category_id: string; peso_kg: number; data: string }[]) {
+        const kg = Number(w.peso_kg);
+        totalsMap.set(w.category_id, (totalsMap.get(w.category_id) ?? 0) + kg);
+        if (w.data) dayset.add(w.data);
+        totalKg += kg;
       }
       setCategoryTotals(Array.from(totalsMap.entries()).map(([category_id, peso_kg]) => ({ category_id, peso_kg })));
+      setSamplingStats({ days: dayset.size, totalKg });
     })();
   }, [clientId, reloadKey]);
 
