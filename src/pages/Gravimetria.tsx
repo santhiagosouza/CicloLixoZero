@@ -346,6 +346,55 @@ const Gravimetria = () => {
 
       <Card>
         <CardHeader>
+          <CardTitle>Resumo geral por categoria</CardTitle>
+          <CardDescription>Soma de todas as gravimetrias deste cliente</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {(() => {
+            const grandTotal = categoryTotals.reduce((s, t) => s + t.peso_kg, 0);
+            if (grandTotal === 0) {
+              return <div className="text-center text-muted-foreground py-6">Nenhuma pesagem registrada ainda</div>;
+            }
+            const rows = categories
+              .map((c) => ({
+                cat: c,
+                kg: categoryTotals.find((t) => t.category_id === c.id)?.peso_kg ?? 0,
+              }))
+              .filter((r) => r.kg > 0)
+              .sort((a, b) => b.kg - a.kg);
+            return (
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                  {rows.map((r) => {
+                    const pct = (r.kg / grandTotal) * 100;
+                    return (
+                      <div key={r.cat.id} className="rounded-md border p-3 space-y-2">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="flex items-center gap-2 text-sm font-medium">
+                            <span className="inline-block h-2.5 w-2.5 rounded-full" style={{ background: r.cat.color ?? "hsl(var(--primary))" }} />
+                            {r.cat.name}
+                          </span>
+                          <span className="text-xs text-muted-foreground tabular-nums">{pct.toFixed(1)}%</span>
+                        </div>
+                        <div className="text-xl font-semibold tabular-nums">{r.kg.toFixed(3)} <span className="text-xs text-muted-foreground font-normal">kg</span></div>
+                        <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
+                          <div className="h-full rounded-full" style={{ width: `${pct}%`, background: r.cat.color ?? "hsl(var(--primary))" }} />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+                <div className="flex justify-end text-sm text-muted-foreground">
+                  Total geral: <span className="ml-2 font-semibold text-foreground tabular-nums">{grandTotal.toFixed(3)} kg</span>
+                </div>
+              </div>
+            );
+          })()}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
           <CardTitle>Histórico</CardTitle>
           <CardDescription>Gravimetrias encerradas</CardDescription>
         </CardHeader>
