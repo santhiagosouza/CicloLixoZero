@@ -31,6 +31,7 @@ interface Weighing {
   category_id: string;
   subcategory_id: string;
 }
+interface CategoryTotal { category_id: string; peso_kg: number }
 
 const Gravimetria = () => {
   const { clientId, isClientAdmin, isMasterAdmin, user, loading } = useAuth();
@@ -40,6 +41,7 @@ const Gravimetria = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
   const [weighings, setWeighings] = useState<Weighing[]>([]);
+  const [categoryTotals, setCategoryTotals] = useState<CategoryTotal[]>([]);
   const [reloadKey, setReloadKey] = useState(0);
 
   // form state
@@ -62,11 +64,12 @@ const Gravimetria = () => {
   useEffect(() => {
     if (!clientId) return;
     (async () => {
-      const [g, s, c, sc] = await Promise.all([
+      const [g, s, c, sc, allW] = await Promise.all([
         supabase.from("gravimetrias").select("*").eq("client_id", clientId).order("numero", { ascending: false }),
         supabase.from("sectors").select("id, name").eq("client_id", clientId).eq("active", true).order("name"),
         supabase.from("categories").select("id, name, color").order("name"),
         supabase.from("subcategories").select("id, name, category_id").eq("client_id", clientId).eq("active", true).order("name"),
+        supabase.from("weighings").select("category_id, peso_kg").eq("client_id", clientId),
       ]);
       const all = (g.data ?? []) as Gravimetria[];
       const act = all.find((x) => !x.ended_at) ?? null;
@@ -75,6 +78,12 @@ const Gravimetria = () => {
       setSectors((s.data ?? []) as Sector[]);
       setCategories((c.data ?? []) as Category[]);
       setSubcategories((sc.data ?? []) as Subcategory[]);
+
+      const totalsMap = new Map<string, number>();
+      for (const w of (allW.data ?? []) as { category_id: string; peso_kg: number }[]) {
+        totalsMap.set(w.category_id, (totalsMap.get(w.category_id) ?? 0) + Number(w.peso_kg));
+      }
+      setCategoryTotals(Array.from(totalsMap.entries()).map(([category_id, peso_kg]) => ({ category_id, peso_kg })));
     })();
   }, [clientId, reloadKey]);
 
@@ -334,6 +343,55 @@ const Gravimetria = () => {
           </CardContent>
         </Card>
       )}
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Resumo geral por categoria</CardTitle>
+          <CardDescription>Soma de todas as gravimetrias deste cliente</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {(() => {
+            const grandTotal = categoryTotals.reduce((s, t) => s + t.peso_kg, 0);
+            if (grandTotal === 0) {
+              return <div className="text-center text-muted-foreground py-6">Nenhuma pesagem registrada ainda</div>;
+            }
+            const rows = categories
+              .map((c) => ({
+                cat: c,
+                kg: categoryTotals.find((t) => t.category_id === c.id)?.peso_kg ?? 0,
+              }))
+              .filter((r) => r.kg > 0)
+              .sort((a, b) => b.kg - a.kg);
+            return (
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                  {rows.map((r) => {
+                    const pct = (r.kg / grandTotal) * 100;
+                    return (
+                      <div key={r.cat.id} className="rounded-md border p-3 space-y-2">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="flex items-center gap-2 text-sm font-medium">
+                            <span className="inline-block h-2.5 w-2.5 rounded-full" style={{ background: r.cat.color ?? "hsl(var(--primary))" }} />
+                            {r.cat.name}
+                          </span>
+                          <span className="text-xs text-muted-foreground tabular-nums">{pct.toFixed(1)}%</span>
+                        </div>
+                        <div className="text-xl font-semibold tabular-nums">{r.kg.toFixed(3)} <span className="text-xs text-muted-foreground font-normal">kg</span></div>
+                        <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
+                          <div className="h-full rounded-full" style={{ width: `${pct}%`, background: r.cat.color ?? "hsl(var(--primary))" }} />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+                <div className="flex justify-end text-sm text-muted-foreground">
+                  Total geral: <span className="ml-2 font-semibold text-foreground tabular-nums">{grandTotal.toFixed(3)} kg</span>
+                </div>
+              </div>
+            );
+          })()}
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>
