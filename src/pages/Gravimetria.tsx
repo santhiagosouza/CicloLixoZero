@@ -64,11 +64,12 @@ const Gravimetria = () => {
   useEffect(() => {
     if (!clientId) return;
     (async () => {
-      const [g, s, c, sc] = await Promise.all([
+      const [g, s, c, sc, allW] = await Promise.all([
         supabase.from("gravimetrias").select("*").eq("client_id", clientId).order("numero", { ascending: false }),
         supabase.from("sectors").select("id, name").eq("client_id", clientId).eq("active", true).order("name"),
         supabase.from("categories").select("id, name, color").order("name"),
         supabase.from("subcategories").select("id, name, category_id").eq("client_id", clientId).eq("active", true).order("name"),
+        supabase.from("weighings").select("category_id, peso_kg").eq("client_id", clientId),
       ]);
       const all = (g.data ?? []) as Gravimetria[];
       const act = all.find((x) => !x.ended_at) ?? null;
@@ -77,6 +78,12 @@ const Gravimetria = () => {
       setSectors((s.data ?? []) as Sector[]);
       setCategories((c.data ?? []) as Category[]);
       setSubcategories((sc.data ?? []) as Subcategory[]);
+
+      const totalsMap = new Map<string, number>();
+      for (const w of (allW.data ?? []) as { category_id: string; peso_kg: number }[]) {
+        totalsMap.set(w.category_id, (totalsMap.get(w.category_id) ?? 0) + Number(w.peso_kg));
+      }
+      setCategoryTotals(Array.from(totalsMap.entries()).map(([category_id, peso_kg]) => ({ category_id, peso_kg })));
     })();
   }, [clientId, reloadKey]);
 
