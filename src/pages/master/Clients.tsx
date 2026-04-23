@@ -173,23 +173,22 @@ const Clients = () => {
       const { data: client, error } = await supabase.from("clients").insert(buildPayload()).select().single();
       if (error || !client) throw new Error(error?.message ?? "Erro ao criar cliente");
 
-      const { data: signup, error: suErr } = await supabase.auth.signUp({
-        email: form.adminEmail.trim(),
-        password: form.adminPassword,
-        options: {
-          emailRedirectTo: window.location.origin,
-          data: { full_name: form.adminName.trim(), client_id: client.id },
+      const { data: fnData, error: fnErr } = await supabase.functions.invoke("create-client-admin", {
+        body: {
+          email: form.adminEmail.trim(),
+          password: form.adminPassword,
+          full_name: form.adminName.trim(),
+          client_id: client.id,
+          role: "client_admin",
         },
       });
-      if (suErr || !signup.user) throw new Error(suErr?.message ?? "Erro ao criar admin");
-
-      const { error: roleErr } = await supabase.from("user_roles").insert({
-        user_id: signup.user.id, role: "client_admin", client_id: client.id,
-      });
-      if (roleErr) throw new Error(roleErr.message);
+      if (fnErr || (fnData as any)?.error) {
+        throw new Error((fnData as any)?.error ?? fnErr?.message ?? "Erro ao criar admin");
+      }
 
       toast.success("Cliente e admin criados com sucesso!");
       setForm(initialForm);
+      setEditingId(null);
       setOpen(false);
       setReload((k) => k + 1);
     } catch (err: any) {
