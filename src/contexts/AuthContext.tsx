@@ -18,19 +18,26 @@ interface AuthContextType {
   isMasterAdmin: boolean;
   isClientAdmin: boolean;
   fullName: string;
+  impersonatedClientId: string | null;
+  setImpersonatedClient: (clientId: string | null) => void;
   signOut: () => Promise<void>;
   refresh: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+const IMPERSONATE_KEY = "impersonate_client_id";
+
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [roles, setRoles] = useState<RoleRow[]>([]);
-  const [clientId, setClientId] = useState<string | null>(null);
+  const [profileClientId, setProfileClientId] = useState<string | null>(null);
   const [fullName, setFullName] = useState<string>("");
+  const [impersonatedClientId, setImpersonatedClientIdState] = useState<string | null>(
+    () => (typeof window !== "undefined" ? localStorage.getItem(IMPERSONATE_KEY) : null)
+  );
 
   const loadProfileAndRoles = async (uid: string) => {
     const [{ data: rolesData }, { data: profileData }] = await Promise.all([
@@ -38,7 +45,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       supabase.from("profiles").select("client_id, full_name").eq("id", uid).maybeSingle(),
     ]);
     setRoles((rolesData ?? []) as RoleRow[]);
-    setClientId(profileData?.client_id ?? null);
+    setProfileClientId(profileData?.client_id ?? null);
     setFullName(profileData?.full_name ?? "");
   };
 
@@ -50,8 +57,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setTimeout(() => { loadProfileAndRoles(sess.user.id); }, 0);
       } else {
         setRoles([]);
-        setClientId(null);
+        setProfileClientId(null);
         setFullName("");
+        localStorage.removeItem(IMPERSONATE_KEY);
+        setImpersonatedClientIdState(null);
       }
     });
 
@@ -66,9 +75,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const isMasterAdmin = roles.some((r) => r.role === "master_admin");
-  const isClientAdmin = roles.some((r) => r.role === "client_admin");
+  const baseIsClientAdmin = roles.some((r) => r.role === "client_admin");
+
+  // Effective values consider master admin impersonation
+  const clientId = isMasterAdmin && impersonatedClientId ? impersonatedClientId : profileClientId;
+  const isClientAdmin = (isMasterAdmin && !!impersonatedClientId) || baseIsClientAdmin;
+
+  const setImpersonatedClient = (id: string | null) => {
+    if (id) localStorage.setItem(IMPERSONATE_KEY, id);
+    else localStorage.removeItem(IMPERSONATE_KEY);
+    setImpersonatedClientIdState(id);
+  };
 
   const signOut = async () => {
+    localStorage.removeItem(IMPERSONATE_KEY);
+    setImpersonatedClientIdState(null);
     await supabase.auth.signOut();
   };
 
@@ -78,7 +99,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   return (
     <AuthContext.Provider
-      value={{ user, session, loading, roles, clientId, isMasterAdmin, isClientAdmin, fullName, signOut, refresh }}
+      value={{ user, session, loading, roles, clientId, isMasterAdmin, isClientAdmin, fullName, impersonatedClientId, setImpersonatedClient, signOut, refresh }}
     >
       {children}
     </AuthContext.Provider>
