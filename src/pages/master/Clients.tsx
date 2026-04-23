@@ -110,28 +110,33 @@ const Clients = () => {
       operating_days: form.operating_days,
     };
 
-    const { data: client, error } = await supabase.from("clients").insert(payload).select().single();
-    if (error || !client) { setBusy(false); toast.error(error?.message ?? "Erro"); return; }
+    try {
+      const { data: client, error } = await supabase.from("clients").insert(payload).select().single();
+      if (error || !client) { throw new Error(error?.message ?? "Erro ao criar cliente"); }
 
-    const { data: signup, error: suErr } = await supabase.auth.signUp({
-      email: form.adminEmail.trim(),
-      password: form.adminPassword,
-      options: {
-        emailRedirectTo: window.location.origin,
-        data: { full_name: form.adminName.trim(), client_id: client.id },
-      },
-    });
-    if (suErr || !signup.user) { setBusy(false); toast.error(suErr?.message ?? "Erro ao criar admin"); return; }
+      const { data: signup, error: suErr } = await supabase.auth.signUp({
+        email: form.adminEmail.trim(),
+        password: form.adminPassword,
+        options: {
+          emailRedirectTo: window.location.origin,
+          data: { full_name: form.adminName.trim(), client_id: client.id },
+        },
+      });
+      if (suErr || !signup.user) { throw new Error(suErr?.message ?? "Erro ao criar admin"); }
 
-    const { error: roleErr } = await supabase.from("user_roles").insert({
-      user_id: signup.user.id, role: "client_admin", client_id: client.id,
-    });
-    setBusy(false);
-    if (roleErr) toast.error(roleErr.message);
-    else {
-      toast.success("Cliente e admin criados");
+      const { error: roleErr } = await supabase.from("user_roles").insert({
+        user_id: signup.user.id, role: "client_admin", client_id: client.id,
+      });
+      if (roleErr) throw new Error(roleErr.message);
+
+      toast.success("Cliente e admin criados com sucesso!");
       setForm(initialForm);
-      setOpen(false); setReload((k) => k + 1);
+      setOpen(false);
+      setReload((k) => k + 1);
+    } catch (err: any) {
+      toast.error(err.message || "Erro ao criar cliente");
+    } finally {
+      setBusy(false);
     }
   };
 
