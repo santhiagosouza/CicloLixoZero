@@ -489,7 +489,23 @@ const Gravimetria = () => {
                     <TableCell>{new Date(g.started_at).toLocaleString("pt-BR")}</TableCell>
                     <TableCell>{g.ended_at ? new Date(g.ended_at).toLocaleString("pt-BR") : "—"}</TableCell>
                     <TableCell className="text-right">
-                      <Button variant="link" asChild><Link to={`/gravimetria/${g.id}`}>Ver detalhes</Link></Button>
+                      <div className="inline-flex items-center gap-1">
+                        <Button variant="link" asChild><Link to={`/gravimetria/${g.id}`}>Ver detalhes</Link></Button>
+                        {(isClientAdmin || isMasterAdmin) && (
+                          <ConfirmDialog
+                            trigger={
+                              <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" aria-label="Excluir gravimetria">
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            }
+                            title={`Excluir Gravimetria ${g.numero}?`}
+                            description="Esta ação removerá a gravimetria e todas as pesagens vinculadas. Não pode ser desfeita."
+                            destructive
+                            confirmLabel="Excluir"
+                            onConfirm={() => deleteGravimetria(g.id)}
+                          />
+                        )}
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
