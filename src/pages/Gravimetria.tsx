@@ -355,13 +355,18 @@ const Gravimetria = () => {
             if (grandTotal === 0) {
               return <div className="text-center text-muted-foreground py-6">Nenhuma pesagem registrada ainda</div>;
             }
+            const order = ["Orgânico", "Reciclável", "Perigoso", "Rejeito"];
+            const orderIdx = (name: string) => {
+              const i = order.findIndex((o) => o.toLowerCase() === name.toLowerCase());
+              return i === -1 ? 999 : i;
+            };
             const rows = categories
               .map((c) => ({
                 cat: c,
                 kg: categoryTotals.find((t) => t.category_id === c.id)?.peso_kg ?? 0,
               }))
               .filter((r) => r.kg > 0)
-              .sort((a, b) => b.kg - a.kg);
+              .sort((a, b) => orderIdx(a.cat.name) - orderIdx(b.cat.name));
             return (
               <div className="space-y-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
