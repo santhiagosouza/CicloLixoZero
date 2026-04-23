@@ -3,7 +3,7 @@ import { Navigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Scale, Calendar, Trash2, Play, Square, Pencil, Check, X } from "lucide-react";
+import { Scale, Calendar, Trash2, Play, Square, Pencil, Check, X, Leaf, Recycle, AlertTriangle, Ban } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -372,18 +372,30 @@ const Gravimetria = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                   {rows.map((r) => {
                     const pct = (r.kg / grandTotal) * 100;
+                    const color = r.cat.color ?? "hsl(var(--primary))";
+                    const n = r.cat.name.toLowerCase();
+                    const Icon = n.startsWith("orgân") ? Leaf
+                      : n.startsWith("recicl") ? Recycle
+                      : n.startsWith("perig") ? AlertTriangle
+                      : n.startsWith("rejeit") ? Ban
+                      : Scale;
                     return (
                       <div key={r.cat.id} className="rounded-md border p-3 space-y-2">
                         <div className="flex items-center justify-between gap-2">
                           <span className="flex items-center gap-2 text-sm font-medium">
-                            <span className="inline-block h-2.5 w-2.5 rounded-full" style={{ background: r.cat.color ?? "hsl(var(--primary))" }} />
+                            <span
+                              className="inline-flex h-7 w-7 items-center justify-center rounded-md"
+                              style={{ background: `${color}20`, color }}
+                            >
+                              <Icon className="h-4 w-4" />
+                            </span>
                             {r.cat.name}
                           </span>
                           <span className="text-xs text-muted-foreground tabular-nums">{pct.toFixed(1)}%</span>
                         </div>
                         <div className="text-xl font-semibold tabular-nums">{r.kg.toFixed(3)} <span className="text-xs text-muted-foreground font-normal">kg</span></div>
                         <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
-                          <div className="h-full rounded-full" style={{ width: `${pct}%`, background: r.cat.color ?? "hsl(var(--primary))" }} />
+                          <div className="h-full rounded-full" style={{ width: `${pct}%`, background: color }} />
                         </div>
                       </div>
                     );
