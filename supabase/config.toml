@@ -1,1 +1,4 @@
 project_id = "lhgmbeqphevtsxhiwkfc"
+
+[functions.create-client-admin]
+verify_jwt = true
