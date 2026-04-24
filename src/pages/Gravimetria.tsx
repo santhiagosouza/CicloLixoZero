@@ -75,7 +75,7 @@ const Gravimetria = () => {
         supabase.from("sectors").select("id, name").eq("client_id", clientId).eq("active", true).order("name"),
         supabase.from("categories").select("id, name, color").order("name"),
         supabase.from("subcategories").select("id, name, category_id").eq("client_id", clientId).eq("active", true).order("name"),
-        supabase.from("weighings").select("category_id, peso_kg, data").eq("client_id", clientId),
+        supabase.from("weighings").select("id, gravimetria_id, sector_id, category_id, subcategory_id, peso_kg, data").eq("client_id", clientId),
       ]);
       const all = (g.data ?? []) as Gravimetria[];
       const act = all.find((x) => !x.ended_at) ?? null;
@@ -85,10 +85,12 @@ const Gravimetria = () => {
       setCategories((c.data ?? []) as Category[]);
       setSubcategories((sc.data ?? []) as Subcategory[]);
 
+      const rows = (allW.data ?? []) as (Weighing & { gravimetria_id: string })[];
+      setAllWeighings(rows as Weighing[]);
       const totalsMap = new Map<string, number>();
       const dayset = new Set<string>();
       let totalKg = 0;
-      for (const w of (allW.data ?? []) as { category_id: string; peso_kg: number; data: string }[]) {
+      for (const w of rows) {
         const kg = Number(w.peso_kg);
         totalsMap.set(w.category_id, (totalsMap.get(w.category_id) ?? 0) + kg);
         if (w.data) dayset.add(w.data);
