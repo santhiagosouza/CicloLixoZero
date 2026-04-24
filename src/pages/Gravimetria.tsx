@@ -46,6 +46,8 @@ const Gravimetria = () => {
   const [weighings, setWeighings] = useState<Weighing[]>([]);
   const [categoryTotals, setCategoryTotals] = useState<CategoryTotal[]>([]);
   const [samplingStats, setSamplingStats] = useState<SamplingStats>({ days: 0, totalKg: 0 });
+  const [allWeighings, setAllWeighings] = useState<Weighing[]>([]);
+  const [reportFilter, setReportFilter] = useState<string>("all");
   const [reloadKey, setReloadKey] = useState(0);
 
   // form state
