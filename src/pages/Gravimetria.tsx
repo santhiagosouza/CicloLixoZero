@@ -32,6 +32,7 @@ interface Weighing {
   sector_id: string;
   category_id: string;
   subcategory_id: string;
+  gravimetria_id?: string;
 }
 interface CategoryTotal { category_id: string; peso_kg: number }
 interface SamplingStats { days: number; totalKg: number }
