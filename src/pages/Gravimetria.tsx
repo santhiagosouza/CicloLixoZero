@@ -239,14 +239,9 @@ const Gravimetria = () => {
         </div>
         {isClientAdmin && (
           active ? (
-            <ConfirmDialog
-              trigger={<Button variant="destructive"><Square className="h-4 w-4 mr-2" />Encerrar Gravimetria</Button>}
-              title="Encerrar gravimetria?"
-              description={`A Gravimetria ${active.numero} será encerrada. Você não poderá mais registrar pesagens nela.`}
-              destructive
-              confirmLabel="Encerrar"
-              onConfirm={endGravimetria}
-            />
+            <Button variant="destructive" onClick={() => { setEndDays(""); setEndOpen(true); }}>
+              <Square className="h-4 w-4 mr-2" />Encerrar Gravimetria
+            </Button>
           ) : (
             <Button onClick={startGravimetria} className="shadow-[var(--shadow-elegant)]">
               <Play className="h-4 w-4 mr-2" />Iniciar Gravimetria
