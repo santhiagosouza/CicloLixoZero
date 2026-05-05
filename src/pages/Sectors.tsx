@@ -47,6 +47,13 @@ const Sectors = () => {
     else { toast.success("Removido"); setReload((k) => k + 1); }
   };
 
+  const saveEdit = async () => {
+    if (!editing || !editName.trim()) return;
+    const { error } = await supabase.from("sectors").update({ name: editName.trim() }).eq("id", editing.id);
+    if (error) toast.error(error.message);
+    else { toast.success("Setor atualizado"); setEditing(null); setReload((k) => k + 1); }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
