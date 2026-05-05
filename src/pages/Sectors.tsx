@@ -89,12 +89,42 @@ const Sectors = () => {
                 <TableCell><Switch checked={s.active} onCheckedChange={() => toggle(s)} disabled={!isClientAdmin} /></TableCell>
                 <TableCell>
                   {isClientAdmin && (
-                    <ConfirmDialog
-                      trigger={<Button variant="ghost" size="icon"><Trash2 className="h-4 w-4" /></Button>}
-                      title="Remover setor?" destructive onConfirm={() => remove(s.id)}
-                    />
+                    <div className="flex items-center gap-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => { setEditing(s); setEditName(s.name); }}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <ConfirmDialog
+                        trigger={<Button variant="ghost" size="icon"><Trash2 className="h-4 w-4" /></Button>}
+                        title="Remover setor?" destructive onConfirm={() => remove(s.id)}
+                      />
+                    </div>
                   )}
                 </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </CardContent></Card>
+
+      <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Editar setor</DialogTitle></DialogHeader>
+          <div className="space-y-2">
+            <Label>Nome</Label>
+            <Input value={editName} onChange={(e) => setEditName(e.target.value)} />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditing(null)}>Cancelar</Button>
+            <Button onClick={saveEdit}>Salvar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
               </TableRow>
             ))}
           </TableBody>
