@@ -1,93 +1,42 @@
+# Dias de amostragem ao finalizar a gravimetria
 
-# Ciclo Lixo Zero — Sistema de Gestão de Resíduos
+## Objetivo
+Ao encerrar uma gravimetria, perguntar ao usuário **quantos dias de separação de materiais** foram considerados. Esse número (e não a quantidade de dias distintos das pesagens) será a base das previsões mensal e anual.
 
-Sistema multi-tenant para gestão de geração de resíduos por empresa, começando pelo módulo de **Gravimetria** (registro e análise de pesagens de resíduos por período).
+## O que muda
 
-## Backend — Supabase (conta externa)
+### 1. Banco de dados
+Adicionar a coluna `sample_days` (inteiro, opcional) na tabela `gravimetrias`.
 
-Será necessário conectar a integração nativa do Supabase do Lovable apontando para o seu projeto Supabase externo "Ciclo Lixo Zero". Após aprovar o plano, será solicitada a conexão.
+```sql
+ALTER TABLE public.gravimetrias
+  ADD COLUMN IF NOT EXISTS sample_days integer;
+```
 
-### Estrutura de dados
+### 2. Encerrar gravimetria (`src/pages/Gravimetria.tsx`)
+Substituir o atual `ConfirmDialog` do botão "Encerrar Gravimetria" por um diálogo dedicado contendo:
+- Mensagem de confirmação
+- Campo numérico obrigatório **"Dias de separação considerados"** (mín. 1)
+- Botões Cancelar / Encerrar
 
-**Multi-tenant + papéis**
-- `clients` — empresas clientes (nome, CNPJ, ativo)
-- `profiles` — dados do usuário (vinculado a `auth.users`, `client_id`, nome)
-- `app_role` enum: `master_admin`, `client_admin`, `client_user`
-- `user_roles` — papéis por usuário (tabela separada, com função `has_role()` SECURITY DEFINER, para evitar recursão em RLS)
+Ao confirmar, salva `sample_days` e `ended_at` no mesmo update.
 
-**Catálogos**
-- `categories` — global, gerenciada apenas por master_admin (seed: Orgânico, Reciclável, Perigoso, Rejeito)
-- `subcategories` — por cliente, gerenciada por client_admin (seed padrão por cliente novo: Alimento, Baterias, Eletrônicos, Lâmpadas, Metalizados, Óleo, Papel Branco), vinculada a uma categoria
-- `sectors` — por cliente, gerenciada por client_admin
+### 3. Permitir editar depois
+No **Histórico** de gravimetrias, ao lado de "Ver detalhes" e do botão excluir, adicionar um ícone de lápis que abre um diálogo "Editar dias de amostragem" — útil caso a pessoa tenha digitado errado.
 
-**Gravimetria**
-- `gravimetrias` — `client_id`, `numero` (sequencial por cliente: Gravimetria 1, 2…), `started_at`, `ended_at` (null = em andamento), `started_by`
-- `weighings` — pesagens: `gravimetria_id`, `data`, `sector_id`, `category_id`, `subcategory_id`, `peso_kg`, `created_by`
+Também mostrar o valor atual ("X dias amostrados") na linha do histórico.
 
-**RLS**
-- Master admin: acesso total
-- Client admin/user: apenas dados do próprio `client_id`
-- Apenas client_admin pode gerenciar setores/subcategorias do seu cliente
-- Apenas master_admin pode gerenciar categorias e clientes
+### 4. Novo cálculo de previsões
+No card **"Resumo geral por categoria"** (parte inferior da página de Gravimetria) e na exportação XLSX:
 
-## Autenticação
+- Hoje: `days = nº de datas distintas em todas as pesagens` → `dailyAvg = total / days` → `mensal = dailyAvg × 30`, `anual = dailyAvg × 365`.
+- Novo: `days = soma de sample_days de todas as gravimetrias encerradas do cliente` (ignora gravimetrias em andamento ou sem o campo preenchido).
+- Mesmas fórmulas de média diária × 30 / × 365.
+- O card "Dias de separação amostrados" passa a refletir esse total e o rótulo muda para deixar claro que vem da informação do usuário.
 
-- Email + senha (auto-confirm ligado para facilitar testes)
-- Tela de login única
-- Master admin criado manualmente após primeiro signup (atribuição de role via SQL)
-- Client admin convida usuários do seu cliente (cria conta + atribui role `client_user` ao mesmo `client_id`)
+### 5. Detalhes (`GravimetriaDetail.tsx`)
+Exibir no cabeçalho da gravimetria o valor `sample_days` quando presente ("X dias de separação considerados") — sem alterar gráficos existentes, já que o detail não calcula projeções hoje.
 
-## Telas e fluxos
-
-### 1. Login
-Email/senha, redireciona conforme papel.
-
-### 2. Painel Master Admin
-- **Clientes**: criar/editar/desativar empresas; ao criar, definir o primeiro client_admin (email + senha temporária)
-- **Categorias globais**: CRUD das 4 categorias
-- **Visão geral**: lista de gravimetrias de todos os clientes (somente leitura)
-
-### 3. Painel Cliente (admin e usuário)
-Sidebar com: Gravimetria, Setores, Subcategorias, Usuários (só admin), Relatórios.
-
-**Gravimetria (tela principal)**
-- Cabeçalho com botão grande **"Iniciar Gravimetria"** (desabilitado se já houver uma em andamento) e **"Encerrar Gravimetria"** quando ativa
-- Card destacando a gravimetria ativa: número, data/hora de início, total acumulado (kg), nº de pesagens
-- Formulário de **Nova Pesagem** (visível só com gravimetria ativa):
-  - Data (default: hoje)
-  - Setor (select)
-  - Categoria (select)
-  - Subcategoria (select filtrado pela categoria)
-  - Peso (kg, numérico com 3 decimais)
-  - Botão "Registrar pesagem"
-- Tabela de pesagens da gravimetria ativa (data, setor, categoria, subcategoria, peso, ação remover)
-- Histórico: lista de gravimetrias encerradas (número, período, total kg) com link para detalhes
-
-**Detalhe da Gravimetria**
-- Resumo: período, total kg, nº pesagens
-- Gráfico de pizza por categoria e barras por setor
-- Tabela completa de pesagens, com filtros por setor/categoria
-- Exportar CSV
-
-**Setores** (client_admin): CRUD simples
-**Subcategorias** (client_admin): CRUD, vinculando a uma categoria global
-**Usuários** (client_admin): listar, criar (email/senha/nome), remover usuários do mesmo cliente
-
-### 4. Relatórios (cliente)
-Comparativo entre gravimetrias: evolução de geração total, por categoria e por setor.
-
-## Design
-
-- Tema claro, paleta sustentável: verde primário (#16a34a), neutros suaves, acentos em âmbar para alertas
-- Layout com sidebar fixa + topbar (nome do cliente + usuário + logout)
-- Componentes shadcn já presentes (Card, Table, Dialog, Form, Select, Tabs, Badge)
-- Indicador visual claro de "Gravimetria em andamento" (badge pulsante verde)
-
-## Escopo desta primeira entrega
-
-1. Conexão com Supabase externo + schema completo + RLS + seeds
-2. Auth + papéis + multi-tenant
-3. CRUDs: clientes (master), categorias (master), setores e subcategorias (client_admin), usuários (client_admin)
-4. Módulo Gravimetria completo: iniciar/encerrar, registrar pesagens, listar ativa, histórico, detalhe com gráficos e export CSV
-
-Após aprovação do plano, peço a conexão com seu Supabase externo e a criação do primeiro master_admin.
+## Observações
+- Gravimetrias antigas ficarão com `sample_days = null`. Elas **não entram** no cálculo de previsões até que o admin edite e informe o valor (mostraremos um aviso no card quando nenhuma gravimetria tiver o campo preenchido).
+- Se não houver nenhum `sample_days` informado, as previsões aparecem como "—" com instrução de preencher.
