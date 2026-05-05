@@ -564,34 +564,53 @@ const Gravimetria = () => {
                   <TableHead>Número</TableHead>
                   <TableHead>Início</TableHead>
                   <TableHead>Encerramento</TableHead>
+                  <TableHead>Dias amostrados</TableHead>
                   <TableHead className="text-right">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {history.length === 0 && (
-                  <TableRow><TableCell colSpan={4} className="text-center text-muted-foreground py-6">Sem histórico</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-6">Sem histórico</TableCell></TableRow>
                 )}
                 {history.map((g) => (
                   <TableRow key={g.id}>
                     <TableCell>Gravimetria {g.numero}</TableCell>
                     <TableCell>{new Date(g.started_at).toLocaleString("pt-BR")}</TableCell>
                     <TableCell>{g.ended_at ? new Date(g.ended_at).toLocaleString("pt-BR") : "—"}</TableCell>
+                    <TableCell className="tabular-nums">
+                      {g.sample_days
+                        ? `${g.sample_days} ${g.sample_days === 1 ? "dia" : "dias"}`
+                        : <span className="text-muted-foreground italic">não informado</span>}
+                    </TableCell>
                     <TableCell className="text-right">
                       <div className="inline-flex items-center gap-1">
                         <Button variant="link" asChild><Link to={`/gravimetria/${g.id}`}>Ver detalhes</Link></Button>
                         {(isClientAdmin || isMasterAdmin) && (
-                          <ConfirmDialog
-                            trigger={
-                              <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" aria-label="Excluir gravimetria">
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            }
-                            title={`Excluir Gravimetria ${g.numero}?`}
-                            description="Esta ação removerá a gravimetria e todas as pesagens vinculadas. Não pode ser desfeita."
-                            destructive
-                            confirmLabel="Excluir"
-                            onConfirm={() => deleteGravimetria(g.id)}
-                          />
+                          <>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              aria-label="Editar dias amostrados"
+                              onClick={() => {
+                                setEditDaysOpen(g);
+                                setEditDaysValue(g.sample_days ? String(g.sample_days) : "");
+                              }}
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                            <ConfirmDialog
+                              trigger={
+                                <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" aria-label="Excluir gravimetria">
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              }
+                              title={`Excluir Gravimetria ${g.numero}?`}
+                              description="Esta ação removerá a gravimetria e todas as pesagens vinculadas. Não pode ser desfeita."
+                              destructive
+                              confirmLabel="Excluir"
+                              onConfirm={() => deleteGravimetria(g.id)}
+                            />
+                          </>
                         )}
                       </div>
                     </TableCell>
