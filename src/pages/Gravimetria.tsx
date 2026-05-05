@@ -69,6 +69,14 @@ const Gravimetria = () => {
   const [editSub, setEditSub] = useState("");
   const [editPeso, setEditPeso] = useState("");
 
+  // end gravimetria dialog
+  const [endOpen, setEndOpen] = useState(false);
+  const [endDays, setEndDays] = useState<string>("");
+
+  // edit sample_days dialog (history)
+  const [editDaysOpen, setEditDaysOpen] = useState<Gravimetria | null>(null);
+  const [editDaysValue, setEditDaysValue] = useState<string>("");
+
   useEffect(() => {
     if (!clientId) return;
     (async () => {
