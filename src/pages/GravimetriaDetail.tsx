@@ -121,6 +121,7 @@ const GravimetriaDetail = () => {
             <h1 className="text-2xl font-semibold">Gravimetria {grav.numero}</h1>
             <p className="text-sm text-muted-foreground">
               {new Date(grav.started_at).toLocaleString("pt-BR")} — {grav.ended_at ? new Date(grav.ended_at).toLocaleString("pt-BR") : "em andamento"}
+              {grav.sample_days ? ` · ${grav.sample_days} ${grav.sample_days === 1 ? "dia" : "dias"} de separação` : ""}
             </p>
           </div>
         </div>
