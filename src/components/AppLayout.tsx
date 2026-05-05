@@ -41,7 +41,7 @@ export const AppLayout = ({ children }: { children: ReactNode }) => {
   const clientItems: NavItem[] = [
     { to: "/", label: "Gravimetria", icon: Scale },
     { to: "/sectors", label: "Setores", icon: Layers },
-    { to: "/subcategories", label: "Subcategorias", icon: Tags },
+    { to: "/subcategories", label: "Categorias", icon: Tags },
     { to: "/reports", label: "Relatórios", icon: BarChart3 },
     ...(isClientAdmin ? [{ to: "/users", label: "Usuários", icon: Users }] : []),
   ];
