@@ -410,8 +410,13 @@ const Gravimetria = () => {
               </Button>
               <Button variant="outline" size="sm" onClick={() => {
                 const grandTotal = categoryTotals.reduce((s, t) => s + t.peso_kg, 0);
-                const days = samplingStats.days;
-                const dailyAvg = days > 0 ? grandTotal / days : 0;
+                const days = allGravimetrias
+                  .filter((g) => g.ended_at && g.sample_days)
+                  .reduce((s, g) => s + (g.sample_days ?? 0), 0);
+                const sampledKg = allWeighings
+                  .filter((w) => allGravimetrias.some((g) => g.id === w.gravimetria_id && g.ended_at && g.sample_days))
+                  .reduce((s, w) => s + Number(w.peso_kg), 0);
+                const dailyAvg = days > 0 ? sampledKg / days : 0;
                 const wb = XLSX.utils.book_new();
                 const resumo: any[][] = [
                   ["Resumo geral por categoria"],
@@ -423,7 +428,7 @@ const Gravimetria = () => {
                     .map((r) => [r.name, Number(r.kg.toFixed(1)), grandTotal ? Number(((r.kg / grandTotal) * 100).toFixed(1)) : 0]),
                   ["Total geral", Number(grandTotal.toFixed(1)), 100],
                   [],
-                  ["Dias amostrados", days],
+                  ["Dias de separação informados", days],
                   ["Média diária (kg)", Number(dailyAvg.toFixed(1))],
                   ["Previsão mensal (kg)", Number((dailyAvg * 30).toFixed(1))],
                   ["Previsão anual (kg)", Number((dailyAvg * 365).toFixed(1))],
