@@ -137,9 +137,34 @@ const Gravimetria = () => {
 
   const endGravimetria = async () => {
     if (!active) return;
-    const { error } = await supabase.from("gravimetrias").update({ ended_at: new Date().toISOString() }).eq("id", active.id);
+    const n = parseInt(endDays, 10);
+    if (!n || n < 1) { toast.error("Informe quantos dias de separação foram considerados"); return; }
+    const { error } = await supabase.from("gravimetrias")
+      .update({ ended_at: new Date().toISOString(), sample_days: n })
+      .eq("id", active.id);
     if (error) toast.error(error.message);
-    else { toast.success("Gravimetria encerrada"); setReloadKey((k) => k + 1); }
+    else {
+      toast.success("Gravimetria encerrada");
+      setEndOpen(false);
+      setEndDays("");
+      setReloadKey((k) => k + 1);
+    }
+  };
+
+  const saveSampleDays = async () => {
+    if (!editDaysOpen) return;
+    const n = parseInt(editDaysValue, 10);
+    if (!n || n < 1) { toast.error("Informe um número de dias válido"); return; }
+    const { error } = await supabase.from("gravimetrias")
+      .update({ sample_days: n })
+      .eq("id", editDaysOpen.id);
+    if (error) toast.error(error.message);
+    else {
+      toast.success("Dias atualizados");
+      setEditDaysOpen(null);
+      setEditDaysValue("");
+      setReloadKey((k) => k + 1);
+    }
   };
 
   const submitWeighing = async (e: React.FormEvent) => {
