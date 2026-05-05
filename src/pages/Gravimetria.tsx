@@ -790,6 +790,64 @@ const Gravimetria = () => {
           </Card>
         );
       })()}
+
+      {/* Dialog: encerrar gravimetria */}
+      <Dialog open={endOpen} onOpenChange={setEndOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Encerrar gravimetria?</DialogTitle>
+            <DialogDescription>
+              {active && `A Gravimetria ${active.numero} será encerrada e você não poderá mais registrar pesagens nela.`}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2">
+            <Label htmlFor="sample-days">Dias de separação considerados</Label>
+            <Input
+              id="sample-days"
+              type="number"
+              min={1}
+              step={1}
+              placeholder="Ex.: 7"
+              value={endDays}
+              onChange={(e) => setEndDays(e.target.value)}
+            />
+            <p className="text-xs text-muted-foreground">
+              Informe quantos dias de separação de materiais foram considerados nesta gravimetria. Esse valor será usado para calcular as previsões mensal e anual.
+            </p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEndOpen(false)}>Cancelar</Button>
+            <Button variant="destructive" onClick={endGravimetria}>Encerrar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog: editar dias de amostragem */}
+      <Dialog open={!!editDaysOpen} onOpenChange={(o) => { if (!o) { setEditDaysOpen(null); setEditDaysValue(""); } }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Editar dias de amostragem</DialogTitle>
+            <DialogDescription>
+              {editDaysOpen && `Atualize o número de dias de separação considerados para a Gravimetria ${editDaysOpen.numero}.`}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2">
+            <Label htmlFor="edit-sample-days">Dias de separação</Label>
+            <Input
+              id="edit-sample-days"
+              type="number"
+              min={1}
+              step={1}
+              value={editDaysValue}
+              onChange={(e) => setEditDaysValue(e.target.value)}
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setEditDaysOpen(null); setEditDaysValue(""); }}>Cancelar</Button>
+            <Button onClick={saveSampleDays}>Salvar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
