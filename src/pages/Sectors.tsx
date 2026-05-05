@@ -125,13 +125,6 @@ const Sectors = () => {
       </Dialog>
     </div>
   );
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </CardContent></Card>
-    </div>
-  );
 };
 
 export default Sectors;
