@@ -220,6 +220,7 @@ export type Database = {
           ended_at: string | null
           id: string
           numero: number
+          sample_days: number | null
           started_at: string
           started_by: string | null
           updated_at: string
@@ -230,6 +231,7 @@ export type Database = {
           ended_at?: string | null
           id?: string
           numero: number
+          sample_days?: number | null
           started_at?: string
           started_by?: string | null
           updated_at?: string
@@ -240,6 +242,7 @@ export type Database = {
           ended_at?: string | null
           id?: string
           numero?: number
+          sample_days?: number | null
           started_at?: string
           started_by?: string | null
           updated_at?: string

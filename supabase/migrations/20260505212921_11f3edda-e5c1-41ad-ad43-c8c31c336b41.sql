@@ -1,0 +1,1 @@
+ALTER TABLE public.gravimetrias ADD COLUMN IF NOT EXISTS sample_days integer;

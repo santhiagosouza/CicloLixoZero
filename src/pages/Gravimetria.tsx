@@ -21,6 +21,7 @@ interface Gravimetria {
   numero: number;
   started_at: string;
   ended_at: string | null;
+  sample_days: number | null;
 }
 interface Sector { id: string; name: string }
 interface Category { id: string; name: string; color: string | null }
