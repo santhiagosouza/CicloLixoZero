@@ -93,6 +93,7 @@ const Gravimetria = () => {
       const act = all.find((x) => !x.ended_at) ?? null;
       setActive(act);
       setHistory(all.filter((x) => x.ended_at));
+      setAllGravimetrias(all);
       setSectors((s.data ?? []) as Sector[]);
       setCategories((c.data ?? []) as Category[]);
       setSubcategories((sc.data ?? []) as Subcategory[]);
