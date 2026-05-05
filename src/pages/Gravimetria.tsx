@@ -43,6 +43,7 @@ const Gravimetria = () => {
   const { clientId, isClientAdmin, isMasterAdmin, user, loading } = useAuth();
   const [active, setActive] = useState<Gravimetria | null>(null);
   const [history, setHistory] = useState<Gravimetria[]>([]);
+  const [allGravimetrias, setAllGravimetrias] = useState<Gravimetria[]>([]);
   const [sectors, setSectors] = useState<Sector[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
