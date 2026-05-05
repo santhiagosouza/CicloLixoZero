@@ -114,7 +114,7 @@ const Subcategories = () => {
         )}
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="space-y-4">
         {orderedCats.map((cat) => {
           const subs = items
             .filter((i) => i.category_id === cat.id)
