@@ -9,7 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Switch } from "@/components/ui/switch";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
-import { Plus, Trash2 } from "lucide-react";
+import { Pencil, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 interface Sector { id: string; name: string; active: boolean; }
@@ -19,6 +19,8 @@ const Sectors = () => {
   const [items, setItems] = useState<Sector[]>([]);
   const [name, setName] = useState("");
   const [open, setOpen] = useState(false);
+  const [editing, setEditing] = useState<Sector | null>(null);
+  const [editName, setEditName] = useState("");
   const [reload, setReload] = useState(0);
 
   useEffect(() => {
@@ -43,6 +45,13 @@ const Sectors = () => {
     const { error } = await supabase.from("sectors").delete().eq("id", id);
     if (error) toast.error(error.message);
     else { toast.success("Removido"); setReload((k) => k + 1); }
+  };
+
+  const saveEdit = async () => {
+    if (!editing || !editName.trim()) return;
+    const { error } = await supabase.from("sectors").update({ name: editName.trim() }).eq("id", editing.id);
+    if (error) toast.error(error.message);
+    else { toast.success("Setor atualizado"); setEditing(null); setReload((k) => k + 1); }
   };
 
   return (
@@ -80,10 +89,19 @@ const Sectors = () => {
                 <TableCell><Switch checked={s.active} onCheckedChange={() => toggle(s)} disabled={!isClientAdmin} /></TableCell>
                 <TableCell>
                   {isClientAdmin && (
-                    <ConfirmDialog
-                      trigger={<Button variant="ghost" size="icon"><Trash2 className="h-4 w-4" /></Button>}
-                      title="Remover setor?" destructive onConfirm={() => remove(s.id)}
-                    />
+                    <div className="flex items-center gap-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => { setEditing(s); setEditName(s.name); }}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <ConfirmDialog
+                        trigger={<Button variant="ghost" size="icon"><Trash2 className="h-4 w-4" /></Button>}
+                        title="Remover setor?" destructive onConfirm={() => remove(s.id)}
+                      />
+                    </div>
                   )}
                 </TableCell>
               </TableRow>
@@ -91,6 +109,20 @@ const Sectors = () => {
           </TableBody>
         </Table>
       </CardContent></Card>
+
+      <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Editar setor</DialogTitle></DialogHeader>
+          <div className="space-y-2">
+            <Label>Nome</Label>
+            <Input value={editName} onChange={(e) => setEditName(e.target.value)} />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditing(null)}>Cancelar</Button>
+            <Button onClick={saveEdit}>Salvar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
