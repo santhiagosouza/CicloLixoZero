@@ -19,6 +19,8 @@ const Sectors = () => {
   const [items, setItems] = useState<Sector[]>([]);
   const [name, setName] = useState("");
   const [open, setOpen] = useState(false);
+  const [editing, setEditing] = useState<Sector | null>(null);
+  const [editName, setEditName] = useState("");
   const [reload, setReload] = useState(0);
 
   useEffect(() => {
