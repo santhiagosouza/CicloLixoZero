@@ -497,21 +497,31 @@ const Gravimetria = () => {
                   Total geral: <span className="ml-2 font-semibold text-foreground tabular-nums">{grandTotal.toFixed(1)} kg</span>
                 </div>
                 {(() => {
-                  const days = samplingStats.days;
-                  const daysInMonth = 30;
-                  const samplePct = (days / daysInMonth) * 100;
-                  const dailyAvg = days > 0 ? grandTotal / days : 0;
+                  const days = allGravimetrias
+                    .filter((g) => g.ended_at && g.sample_days)
+                    .reduce((s, g) => s + (g.sample_days ?? 0), 0);
+                  const sampledKg = allWeighings
+                    .filter((w) => allGravimetrias.some((g) => g.id === w.gravimetria_id && g.ended_at && g.sample_days))
+                    .reduce((s, w) => s + Number(w.peso_kg), 0);
+                  const dailyAvg = days > 0 ? sampledKg / days : 0;
                   const monthly = dailyAvg * 30;
                   const yearly = dailyAvg * 365;
+                  if (days === 0) {
+                    return (
+                      <div className="rounded-md border border-dashed p-4 text-sm text-muted-foreground">
+                        Para ver previsões mensal e anual, encerre uma gravimetria informando os <strong>dias de separação considerados</strong>. Você também pode editar esse valor no histórico abaixo.
+                      </div>
+                    );
+                  }
                   return (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 pt-2">
                       <div className="rounded-md border p-3">
-                        <div className="text-xs text-muted-foreground">Dias de separação amostrados</div>
+                        <div className="text-xs text-muted-foreground">Dias de separação considerados</div>
                         <div className="mt-1 text-xl font-semibold tabular-nums">
                           {days} <span className="text-xs text-muted-foreground font-normal">{days === 1 ? "dia" : "dias"}</span>
                         </div>
                         <div className="text-xs text-muted-foreground mt-1">
-                          {samplePct.toFixed(1)}% do mês (base 30 dias)
+                          Informado ao encerrar as gravimetrias
                         </div>
                       </div>
                       <div className="rounded-md border p-3">
