@@ -14,6 +14,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import * as XLSX from "xlsx";
 
 interface Gravimetria {
@@ -21,6 +22,7 @@ interface Gravimetria {
   numero: number;
   started_at: string;
   ended_at: string | null;
+  sample_days: number | null;
 }
 interface Sector { id: string; name: string }
 interface Category { id: string; name: string; color: string | null }
@@ -41,6 +43,7 @@ const Gravimetria = () => {
   const { clientId, isClientAdmin, isMasterAdmin, user, loading } = useAuth();
   const [active, setActive] = useState<Gravimetria | null>(null);
   const [history, setHistory] = useState<Gravimetria[]>([]);
+  const [allGravimetrias, setAllGravimetrias] = useState<Gravimetria[]>([]);
   const [sectors, setSectors] = useState<Sector[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
@@ -68,6 +71,14 @@ const Gravimetria = () => {
   const [editSub, setEditSub] = useState("");
   const [editPeso, setEditPeso] = useState("");
 
+  // end gravimetria dialog
+  const [endOpen, setEndOpen] = useState(false);
+  const [endDays, setEndDays] = useState<string>("");
+
+  // edit sample_days dialog (history)
+  const [editDaysOpen, setEditDaysOpen] = useState<Gravimetria | null>(null);
+  const [editDaysValue, setEditDaysValue] = useState<string>("");
+
   useEffect(() => {
     if (!clientId) return;
     (async () => {
@@ -82,6 +93,7 @@ const Gravimetria = () => {
       const act = all.find((x) => !x.ended_at) ?? null;
       setActive(act);
       setHistory(all.filter((x) => x.ended_at));
+      setAllGravimetrias(all);
       setSectors((s.data ?? []) as Sector[]);
       setCategories((c.data ?? []) as Category[]);
       setSubcategories((sc.data ?? []) as Subcategory[]);
@@ -128,9 +140,34 @@ const Gravimetria = () => {
 
   const endGravimetria = async () => {
     if (!active) return;
-    const { error } = await supabase.from("gravimetrias").update({ ended_at: new Date().toISOString() }).eq("id", active.id);
+    const n = parseInt(endDays, 10);
+    if (!n || n < 1) { toast.error("Informe quantos dias de separação foram considerados"); return; }
+    const { error } = await supabase.from("gravimetrias")
+      .update({ ended_at: new Date().toISOString(), sample_days: n })
+      .eq("id", active.id);
     if (error) toast.error(error.message);
-    else { toast.success("Gravimetria encerrada"); setReloadKey((k) => k + 1); }
+    else {
+      toast.success("Gravimetria encerrada");
+      setEndOpen(false);
+      setEndDays("");
+      setReloadKey((k) => k + 1);
+    }
+  };
+
+  const saveSampleDays = async () => {
+    if (!editDaysOpen) return;
+    const n = parseInt(editDaysValue, 10);
+    if (!n || n < 1) { toast.error("Informe um número de dias válido"); return; }
+    const { error } = await supabase.from("gravimetrias")
+      .update({ sample_days: n })
+      .eq("id", editDaysOpen.id);
+    if (error) toast.error(error.message);
+    else {
+      toast.success("Dias atualizados");
+      setEditDaysOpen(null);
+      setEditDaysValue("");
+      setReloadKey((k) => k + 1);
+    }
   };
 
   const submitWeighing = async (e: React.FormEvent) => {
@@ -205,14 +242,9 @@ const Gravimetria = () => {
         </div>
         {isClientAdmin && (
           active ? (
-            <ConfirmDialog
-              trigger={<Button variant="destructive"><Square className="h-4 w-4 mr-2" />Encerrar Gravimetria</Button>}
-              title="Encerrar gravimetria?"
-              description={`A Gravimetria ${active.numero} será encerrada. Você não poderá mais registrar pesagens nela.`}
-              destructive
-              confirmLabel="Encerrar"
-              onConfirm={endGravimetria}
-            />
+            <Button variant="destructive" onClick={() => { setEndDays(""); setEndOpen(true); }}>
+              <Square className="h-4 w-4 mr-2" />Encerrar Gravimetria
+            </Button>
           ) : (
             <Button onClick={startGravimetria} className="shadow-[var(--shadow-elegant)]">
               <Play className="h-4 w-4 mr-2" />Iniciar Gravimetria
@@ -378,8 +410,13 @@ const Gravimetria = () => {
               </Button>
               <Button variant="outline" size="sm" onClick={() => {
                 const grandTotal = categoryTotals.reduce((s, t) => s + t.peso_kg, 0);
-                const days = samplingStats.days;
-                const dailyAvg = days > 0 ? grandTotal / days : 0;
+                const days = allGravimetrias
+                  .filter((g) => g.ended_at && g.sample_days)
+                  .reduce((s, g) => s + (g.sample_days ?? 0), 0);
+                const sampledKg = allWeighings
+                  .filter((w) => allGravimetrias.some((g) => g.id === w.gravimetria_id && g.ended_at && g.sample_days))
+                  .reduce((s, w) => s + Number(w.peso_kg), 0);
+                const dailyAvg = days > 0 ? sampledKg / days : 0;
                 const wb = XLSX.utils.book_new();
                 const resumo: any[][] = [
                   ["Resumo geral por categoria"],
@@ -391,7 +428,7 @@ const Gravimetria = () => {
                     .map((r) => [r.name, Number(r.kg.toFixed(1)), grandTotal ? Number(((r.kg / grandTotal) * 100).toFixed(1)) : 0]),
                   ["Total geral", Number(grandTotal.toFixed(1)), 100],
                   [],
-                  ["Dias amostrados", days],
+                  ["Dias de separação informados", days],
                   ["Média diária (kg)", Number(dailyAvg.toFixed(1))],
                   ["Previsão mensal (kg)", Number((dailyAvg * 30).toFixed(1))],
                   ["Previsão anual (kg)", Number((dailyAvg * 365).toFixed(1))],
@@ -460,21 +497,31 @@ const Gravimetria = () => {
                   Total geral: <span className="ml-2 font-semibold text-foreground tabular-nums">{grandTotal.toFixed(1)} kg</span>
                 </div>
                 {(() => {
-                  const days = samplingStats.days;
-                  const daysInMonth = 30;
-                  const samplePct = (days / daysInMonth) * 100;
-                  const dailyAvg = days > 0 ? grandTotal / days : 0;
+                  const days = allGravimetrias
+                    .filter((g) => g.ended_at && g.sample_days)
+                    .reduce((s, g) => s + (g.sample_days ?? 0), 0);
+                  const sampledKg = allWeighings
+                    .filter((w) => allGravimetrias.some((g) => g.id === w.gravimetria_id && g.ended_at && g.sample_days))
+                    .reduce((s, w) => s + Number(w.peso_kg), 0);
+                  const dailyAvg = days > 0 ? sampledKg / days : 0;
                   const monthly = dailyAvg * 30;
                   const yearly = dailyAvg * 365;
+                  if (days === 0) {
+                    return (
+                      <div className="rounded-md border border-dashed p-4 text-sm text-muted-foreground">
+                        Para ver previsões mensal e anual, encerre uma gravimetria informando os <strong>dias de separação considerados</strong>. Você também pode editar esse valor no histórico abaixo.
+                      </div>
+                    );
+                  }
                   return (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 pt-2">
                       <div className="rounded-md border p-3">
-                        <div className="text-xs text-muted-foreground">Dias de separação amostrados</div>
+                        <div className="text-xs text-muted-foreground">Dias de separação considerados</div>
                         <div className="mt-1 text-xl font-semibold tabular-nums">
                           {days} <span className="text-xs text-muted-foreground font-normal">{days === 1 ? "dia" : "dias"}</span>
                         </div>
                         <div className="text-xs text-muted-foreground mt-1">
-                          {samplePct.toFixed(1)}% do mês (base 30 dias)
+                          Informado ao encerrar as gravimetrias
                         </div>
                       </div>
                       <div className="rounded-md border p-3">
@@ -517,34 +564,53 @@ const Gravimetria = () => {
                   <TableHead>Número</TableHead>
                   <TableHead>Início</TableHead>
                   <TableHead>Encerramento</TableHead>
+                  <TableHead>Dias amostrados</TableHead>
                   <TableHead className="text-right">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {history.length === 0 && (
-                  <TableRow><TableCell colSpan={4} className="text-center text-muted-foreground py-6">Sem histórico</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-6">Sem histórico</TableCell></TableRow>
                 )}
                 {history.map((g) => (
                   <TableRow key={g.id}>
                     <TableCell>Gravimetria {g.numero}</TableCell>
                     <TableCell>{new Date(g.started_at).toLocaleString("pt-BR")}</TableCell>
                     <TableCell>{g.ended_at ? new Date(g.ended_at).toLocaleString("pt-BR") : "—"}</TableCell>
+                    <TableCell className="tabular-nums">
+                      {g.sample_days
+                        ? `${g.sample_days} ${g.sample_days === 1 ? "dia" : "dias"}`
+                        : <span className="text-muted-foreground italic">não informado</span>}
+                    </TableCell>
                     <TableCell className="text-right">
                       <div className="inline-flex items-center gap-1">
                         <Button variant="link" asChild><Link to={`/gravimetria/${g.id}`}>Ver detalhes</Link></Button>
                         {(isClientAdmin || isMasterAdmin) && (
-                          <ConfirmDialog
-                            trigger={
-                              <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" aria-label="Excluir gravimetria">
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            }
-                            title={`Excluir Gravimetria ${g.numero}?`}
-                            description="Esta ação removerá a gravimetria e todas as pesagens vinculadas. Não pode ser desfeita."
-                            destructive
-                            confirmLabel="Excluir"
-                            onConfirm={() => deleteGravimetria(g.id)}
-                          />
+                          <>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              aria-label="Editar dias amostrados"
+                              onClick={() => {
+                                setEditDaysOpen(g);
+                                setEditDaysValue(g.sample_days ? String(g.sample_days) : "");
+                              }}
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                            <ConfirmDialog
+                              trigger={
+                                <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" aria-label="Excluir gravimetria">
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              }
+                              title={`Excluir Gravimetria ${g.numero}?`}
+                              description="Esta ação removerá a gravimetria e todas as pesagens vinculadas. Não pode ser desfeita."
+                              destructive
+                              confirmLabel="Excluir"
+                              onConfirm={() => deleteGravimetria(g.id)}
+                            />
+                          </>
                         )}
                       </div>
                     </TableCell>
@@ -724,6 +790,64 @@ const Gravimetria = () => {
           </Card>
         );
       })()}
+
+      {/* Dialog: encerrar gravimetria */}
+      <Dialog open={endOpen} onOpenChange={setEndOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Encerrar gravimetria?</DialogTitle>
+            <DialogDescription>
+              {active && `A Gravimetria ${active.numero} será encerrada e você não poderá mais registrar pesagens nela.`}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2">
+            <Label htmlFor="sample-days">Dias de separação considerados</Label>
+            <Input
+              id="sample-days"
+              type="number"
+              min={1}
+              step={1}
+              placeholder="Ex.: 7"
+              value={endDays}
+              onChange={(e) => setEndDays(e.target.value)}
+            />
+            <p className="text-xs text-muted-foreground">
+              Informe quantos dias de separação de materiais foram considerados nesta gravimetria. Esse valor será usado para calcular as previsões mensal e anual.
+            </p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEndOpen(false)}>Cancelar</Button>
+            <Button variant="destructive" onClick={endGravimetria}>Encerrar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog: editar dias de amostragem */}
+      <Dialog open={!!editDaysOpen} onOpenChange={(o) => { if (!o) { setEditDaysOpen(null); setEditDaysValue(""); } }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Editar dias de amostragem</DialogTitle>
+            <DialogDescription>
+              {editDaysOpen && `Atualize o número de dias de separação considerados para a Gravimetria ${editDaysOpen.numero}.`}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2">
+            <Label htmlFor="edit-sample-days">Dias de separação</Label>
+            <Input
+              id="edit-sample-days"
+              type="number"
+              min={1}
+              step={1}
+              value={editDaysValue}
+              onChange={(e) => setEditDaysValue(e.target.value)}
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setEditDaysOpen(null); setEditDaysValue(""); }}>Cancelar</Button>
+            <Button onClick={saveSampleDays}>Salvar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
