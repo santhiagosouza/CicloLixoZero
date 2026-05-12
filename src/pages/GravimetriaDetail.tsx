@@ -497,16 +497,66 @@ const GravimetriaDetail = () => {
                   <TableHead>Categoria</TableHead>
                   <TableHead>Subcategoria</TableHead>
                   <TableHead className="text-right">Peso (kg)</TableHead>
+                  {editLancOpen && canEdit && <TableHead className="w-24 text-right no-print">Ações</TableHead>}
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {weighings.map((w) => (
+                {weighings.length === 0 && (
+                  <TableRow><TableCell colSpan={editLancOpen && canEdit ? 6 : 5} className="text-center text-muted-foreground py-6">Sem pesagens</TableCell></TableRow>
+                )}
+                {weighings.map((w) => editLancOpen && canEdit && editId === w.id ? (
+                  <TableRow key={w.id}>
+                    <TableCell><Input type="date" value={editData} onChange={(e) => setEditData(e.target.value)} className="h-8" /></TableCell>
+                    <TableCell>
+                      <Select value={editSector} onValueChange={setEditSector}>
+                        <SelectTrigger className="h-8"><SelectValue /></SelectTrigger>
+                        <SelectContent>{sectors.map((s) => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}</SelectContent>
+                      </Select>
+                    </TableCell>
+                    <TableCell>
+                      <Select value={editCategory} onValueChange={(v) => { setEditCategory(v); setEditSub(""); }}>
+                        <SelectTrigger className="h-8"><SelectValue /></SelectTrigger>
+                        <SelectContent>{categories.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}</SelectContent>
+                      </Select>
+                    </TableCell>
+                    <TableCell>
+                      <Select value={editSub} onValueChange={setEditSub}>
+                        <SelectTrigger className="h-8"><SelectValue /></SelectTrigger>
+                        <SelectContent>{editFilteredSubs.map((s) => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}</SelectContent>
+                      </Select>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Input type="number" step="0.001" min="0.001" value={editPeso} onChange={(e) => setEditPeso(e.target.value)} className="h-8 text-right" />
+                    </TableCell>
+                    <TableCell className="text-right no-print">
+                      <div className="inline-flex gap-1">
+                        <Button variant="ghost" size="icon" onClick={() => saveEdit(w.id)}><Check className="h-4 w-4" /></Button>
+                        <Button variant="ghost" size="icon" onClick={cancelEdit}><X className="h-4 w-4" /></Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ) : (
                   <TableRow key={w.id}>
                     <TableCell>{new Date(w.data + "T00:00:00").toLocaleDateString("pt-BR")}</TableCell>
                     <TableCell>{sectorMap[w.sector_id] ?? "—"}</TableCell>
                     <TableCell>{categoryMap[w.category_id]?.name ?? "—"}</TableCell>
                     <TableCell>{subMap[w.subcategory_id] ?? "—"}</TableCell>
                     <TableCell className="text-right tabular-nums">{Number(w.peso_kg).toFixed(1)}</TableCell>
+                    {editLancOpen && canEdit && (
+                      <TableCell className="text-right no-print">
+                        <div className="inline-flex gap-1">
+                          <Button variant="ghost" size="icon" onClick={() => startEdit(w)}><Pencil className="h-4 w-4" /></Button>
+                          <ConfirmDialog
+                            trigger={<Button variant="ghost" size="icon" className="text-destructive hover:text-destructive"><Trash2 className="h-4 w-4" /></Button>}
+                            title="Remover pesagem?"
+                            description="Esta ação não pode ser desfeita."
+                            destructive
+                            confirmLabel="Remover"
+                            onConfirm={() => removeWeighing(w.id)}
+                          />
+                        </div>
+                      </TableCell>
+                    )}
                   </TableRow>
                 ))}
               </TableBody>
@@ -514,6 +564,25 @@ const GravimetriaDetail = () => {
           </div>
         </CardContent>
       </Card>
+
+      <Dialog open={editDaysOpen} onOpenChange={(o) => { if (!o) { setEditDaysOpen(false); setEditDaysValue(""); } }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Editar dias de amostragem</DialogTitle>
+            <DialogDescription>
+              Atualize o número de dias de separação considerados para a Gravimetria {grav?.numero}.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2">
+            <Label htmlFor="edit-sample-days">Dias de separação</Label>
+            <Input id="edit-sample-days" type="number" min={1} step={1} value={editDaysValue} onChange={(e) => setEditDaysValue(e.target.value)} />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setEditDaysOpen(false); setEditDaysValue(""); }}>Cancelar</Button>
+            <Button onClick={saveSampleDays}>Salvar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
