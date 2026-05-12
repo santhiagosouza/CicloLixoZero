@@ -46,10 +46,10 @@ const GravimetriaDetail = () => {
 
   const total = weighings.reduce((s, w) => s + Number(w.peso_kg), 0);
 
-  const byCategory = Object.values(weighings.reduce((acc: Record<string, { name: string; value: number; color: string }>, w) => {
+  const byCategory = Object.values(weighings.reduce((acc: Record<string, { id: string; name: string; value: number; color: string }>, w) => {
     const c = categoryMap[w.category_id];
     const key = w.category_id;
-    if (!acc[key]) acc[key] = { name: c?.name ?? "—", value: 0, color: c?.color ?? "#8884d8" };
+    if (!acc[key]) acc[key] = { id: key, name: c?.name ?? "—", value: 0, color: c?.color ?? "#8884d8" };
     acc[key].value += Number(w.peso_kg);
     return acc;
   }, {}));
@@ -174,7 +174,7 @@ const GravimetriaDetail = () => {
                       : n.startsWith("rejeit") ? Ban
                       : Scale;
                     return (
-                      <div key={r.name} className="rounded-md border p-3 space-y-2">
+                      <div key={r.id} className="rounded-md border p-3 space-y-2">
                         <div className="flex items-center justify-between gap-2">
                           <span className="flex items-center gap-2 text-sm font-medium">
                             <span
