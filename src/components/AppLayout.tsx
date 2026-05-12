@@ -92,6 +92,49 @@ export const AppLayout = ({ children }: { children: ReactNode }) => {
           );
         })}
 
+        {!(isMasterAdmin && location.pathname.startsWith("/master")) && settingsItems.length > 0 && (
+          <div>
+            <button
+              type="button"
+              onClick={() => setSettingsOpen((v) => !v)}
+              className={cn(
+                "w-full flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors",
+                settingsActive
+                  ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                  : "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+              )}
+              aria-expanded={settingsOpen}
+            >
+              <Settings className="h-4 w-4" />
+              <span className="flex-1 text-left">Configurações</span>
+              <ChevronDown className={cn("h-4 w-4 transition-transform", settingsOpen && "rotate-180")} />
+            </button>
+            {settingsOpen && (
+              <div className="mt-1 ml-3 pl-3 border-l border-sidebar-border space-y-1">
+                {settingsItems.map((item) => {
+                  const active = location.pathname === item.to;
+                  return (
+                    <Link
+                      key={item.to}
+                      to={item.to}
+                      onClick={() => setOpen(false)}
+                      className={cn(
+                        "flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors",
+                        active
+                          ? "bg-sidebar-primary text-sidebar-primary-foreground"
+                          : "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                      )}
+                    >
+                      <item.icon className="h-4 w-4" />
+                      {item.label}
+                    </Link>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
+
         {isMasterAdmin && (
           <div className="pt-3 mt-3 border-t border-sidebar-border space-y-1">
             <p className="px-3 pb-1 text-[10px] uppercase tracking-wider opacity-60">Mudar área</p>
