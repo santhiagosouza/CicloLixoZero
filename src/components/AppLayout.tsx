@@ -40,11 +40,18 @@ export const AppLayout = ({ children }: { children: ReactNode }) => {
 
   const clientItems: NavItem[] = [
     { to: "/", label: "Gravimetria", icon: Scale },
+    { to: "/reports", label: "Relatórios", icon: BarChart3 },
+  ];
+
+  const settingsItems: NavItem[] = [
     { to: "/sectors", label: "Setores", icon: Layers },
     { to: "/subcategories", label: "Categorias", icon: Tags },
-    { to: "/reports", label: "Relatórios", icon: BarChart3 },
     ...(isClientAdmin ? [{ to: "/users", label: "Usuários", icon: Users }] : []),
   ];
+
+  const settingsActive = settingsItems.some((i) => location.pathname === i.to);
+  const [settingsOpen, setSettingsOpen] = useState(settingsActive);
+  useEffect(() => { if (settingsActive) setSettingsOpen(true); }, [settingsActive]);
 
   const items = isMasterAdmin && location.pathname.startsWith("/master") ? masterItems : clientItems;
 
