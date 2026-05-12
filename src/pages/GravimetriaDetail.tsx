@@ -281,6 +281,13 @@ const GravimetriaDetail = () => {
         );
       })()}
 
+      <div className="flex justify-center no-print">
+        <Button variant={showDetailed ? "outline" : "default"} onClick={() => setShowDetailed((v) => !v)}>
+          {showDetailed ? "Ocultar relatório detalhado" : "Ver relatório detalhado"}
+        </Button>
+      </div>
+
+      {showDetailed && (<>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Card>
           <CardHeader><CardTitle>Por Categoria</CardTitle></CardHeader>
