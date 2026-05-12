@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import {
   Recycle, LogOut, Building2, Tags, Scale, LayoutDashboard,
-  Users, Layers, BarChart3, Menu, X, Briefcase, UserCog
+  Users, Layers, BarChart3, Menu, X, Briefcase, UserCog, Settings, ChevronDown
 } from "lucide-react";
 
 interface NavItem {
