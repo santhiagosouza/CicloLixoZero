@@ -46,10 +46,10 @@ const GravimetriaDetail = () => {
 
   const total = weighings.reduce((s, w) => s + Number(w.peso_kg), 0);
 
-  const byCategory = Object.values(weighings.reduce((acc: Record<string, { name: string; value: number; color: string }>, w) => {
+  const byCategory = Object.values(weighings.reduce((acc: Record<string, { id: string; name: string; value: number; color: string }>, w) => {
     const c = categoryMap[w.category_id];
     const key = w.category_id;
-    if (!acc[key]) acc[key] = { name: c?.name ?? "—", value: 0, color: c?.color ?? "#8884d8" };
+    if (!acc[key]) acc[key] = { id: key, name: c?.name ?? "—", value: 0, color: c?.color ?? "#8884d8" };
     acc[key].value += Number(w.peso_kg);
     return acc;
   }, {}));
