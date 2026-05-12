@@ -12,7 +12,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { toast } from "sonner";
-import { ArrowLeft, Download, Printer, FileSpreadsheet, Scale, Leaf, Recycle, AlertTriangle, Ban, Pencil, Check, X, Trash2, CalendarCog, ListChecks } from "lucide-react";
+import { ArrowLeft, Download, Printer, FileSpreadsheet, Scale, Leaf, Recycle, AlertTriangle, Ban, Pencil, Check, X, Trash2, CalendarCog } from "lucide-react";
 import * as XLSX from "xlsx";
 import * as Recharts from "recharts";
 const { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Legend } = Recharts as any;
@@ -37,7 +37,7 @@ const GravimetriaDetail = () => {
   const [reloadKey, setReloadKey] = useState(0);
 
   // edit modes
-  const [editLancOpen, setEditLancOpen] = useState(false);
+  // edit modes
   const [editId, setEditId] = useState<string | null>(null);
   const [editData, setEditData] = useState("");
   const [editSector, setEditSector] = useState("");
@@ -200,9 +200,6 @@ const GravimetriaDetail = () => {
             <>
               <Button variant="outline" onClick={() => { setEditDaysValue(grav.sample_days ? String(grav.sample_days) : ""); setEditDaysOpen(true); }}>
                 <CalendarCog className="h-4 w-4 mr-2" />Editar dias
-              </Button>
-              <Button variant={editLancOpen ? "default" : "outline"} onClick={() => { setEditLancOpen((v) => !v); setEditId(null); }}>
-                <ListChecks className="h-4 w-4 mr-2" />{editLancOpen ? "Concluir edição" : "Editar lançamentos"}
               </Button>
             </>
           )}
@@ -497,14 +494,14 @@ const GravimetriaDetail = () => {
                   <TableHead>Categoria</TableHead>
                   <TableHead>Subcategoria</TableHead>
                   <TableHead className="text-right">Peso (kg)</TableHead>
-                  {editLancOpen && canEdit && <TableHead className="w-24 text-right no-print">Ações</TableHead>}
+                  {canEdit && <TableHead className="w-24 text-right no-print">Ações</TableHead>}
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {weighings.length === 0 && (
-                  <TableRow><TableCell colSpan={editLancOpen && canEdit ? 6 : 5} className="text-center text-muted-foreground py-6">Sem pesagens</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={canEdit ? 6 : 5} className="text-center text-muted-foreground py-6">Sem pesagens</TableCell></TableRow>
                 )}
-                {weighings.map((w) => editLancOpen && canEdit && editId === w.id ? (
+                {weighings.map((w) => canEdit && editId === w.id ? (
                   <TableRow key={w.id}>
                     <TableCell><Input type="date" value={editData} onChange={(e) => setEditData(e.target.value)} className="h-8" /></TableCell>
                     <TableCell>
@@ -542,7 +539,7 @@ const GravimetriaDetail = () => {
                     <TableCell>{categoryMap[w.category_id]?.name ?? "—"}</TableCell>
                     <TableCell>{subMap[w.subcategory_id] ?? "—"}</TableCell>
                     <TableCell className="text-right tabular-nums">{Number(w.peso_kg).toFixed(1)}</TableCell>
-                    {editLancOpen && canEdit && (
+                    {canEdit && (
                       <TableCell className="text-right no-print">
                         <div className="inline-flex gap-1">
                           <Button variant="ghost" size="icon" onClick={() => startEdit(w)}><Pencil className="h-4 w-4" /></Button>
