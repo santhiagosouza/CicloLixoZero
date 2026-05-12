@@ -174,7 +174,7 @@ const GravimetriaDetail = () => {
                       : n.startsWith("rejeit") ? Ban
                       : Scale;
                     return (
-                      <div key={r.name} className="rounded-md border p-3 space-y-2">
+                      <div key={r.id} className="rounded-md border p-3 space-y-2">
                         <div className="flex items-center justify-between gap-2">
                           <span className="flex items-center gap-2 text-sm font-medium">
                             <span
