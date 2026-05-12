@@ -12,7 +12,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { toast } from "sonner";
-import { ArrowLeft, Download, Printer, FileSpreadsheet, Scale, Leaf, Recycle, AlertTriangle, Ban, Pencil, Check, X, Trash2, CalendarCog } from "lucide-react";
+import { ArrowLeft, Download, Printer, FileSpreadsheet, Scale, Leaf, Recycle, AlertTriangle, Ban, Pencil, Check, X, Trash2, CalendarCog, Search } from "lucide-react";
 import * as XLSX from "xlsx";
 import * as Recharts from "recharts";
 const { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Legend } = Recharts as any;
