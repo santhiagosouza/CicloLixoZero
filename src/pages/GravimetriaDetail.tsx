@@ -37,7 +37,7 @@ const GravimetriaDetail = () => {
   const [reloadKey, setReloadKey] = useState(0);
 
   // edit modes
-  // edit modes
+  const [showDetailed, setShowDetailed] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [editData, setEditData] = useState("");
   const [editSector, setEditSector] = useState("");
@@ -281,6 +281,13 @@ const GravimetriaDetail = () => {
         );
       })()}
 
+      <div className="flex justify-center no-print">
+        <Button variant={showDetailed ? "outline" : "default"} onClick={() => setShowDetailed((v) => !v)}>
+          {showDetailed ? "Ocultar relatório detalhado" : "Ver relatório detalhado"}
+        </Button>
+      </div>
+
+      {showDetailed && (<>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Card>
           <CardHeader><CardTitle>Por Categoria</CardTitle></CardHeader>
@@ -561,6 +568,7 @@ const GravimetriaDetail = () => {
           </div>
         </CardContent>
       </Card>
+      </>)}
 
       <Dialog open={editDaysOpen} onOpenChange={(o) => { if (!o) { setEditDaysOpen(false); setEditDaysValue(""); } }}>
         <DialogContent>
