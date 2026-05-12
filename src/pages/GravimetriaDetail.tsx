@@ -201,9 +201,6 @@ const GravimetriaDetail = () => {
               <Button variant="outline" onClick={() => { setEditDaysValue(grav.sample_days ? String(grav.sample_days) : ""); setEditDaysOpen(true); }}>
                 <CalendarCog className="h-4 w-4 mr-2" />Editar dias
               </Button>
-              <Button variant={editLancOpen ? "default" : "outline"} onClick={() => { setEditLancOpen((v) => !v); setEditId(null); }}>
-                <ListChecks className="h-4 w-4 mr-2" />{editLancOpen ? "Concluir edição" : "Editar lançamentos"}
-              </Button>
             </>
           )}
           <Button variant="outline" onClick={() => window.print()}><Printer className="h-4 w-4 mr-2" />Imprimir</Button>
