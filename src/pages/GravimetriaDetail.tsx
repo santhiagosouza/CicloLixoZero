@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { ArrowLeft, Download, Printer, FileSpreadsheet } from "lucide-react";
+import { ArrowLeft, Download, Printer, FileSpreadsheet, Scale, Leaf, Recycle, AlertTriangle, Ban } from "lucide-react";
 import * as XLSX from "xlsx";
 import * as Recharts from "recharts";
 const { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Legend } = Recharts as any;
@@ -140,6 +140,66 @@ const GravimetriaDetail = () => {
         <Card><CardHeader><CardTitle className="text-sm font-medium text-muted-foreground">Categorias</CardTitle></CardHeader>
           <CardContent><p className="text-3xl font-semibold">{byCategory.length}</p></CardContent></Card>
       </div>
+
+      {(() => {
+        const grandTotal = total;
+        if (grandTotal === 0) return null;
+        const order = ["Orgânico", "Reciclável", "Perigoso", "Rejeito"];
+        const orderIdx = (name: string) => {
+          const i = order.findIndex((o) => o.toLowerCase() === name.toLowerCase());
+          return i === -1 ? 999 : i;
+        };
+        const rows = (byCategory as any[])
+          .filter((r) => r.value > 0)
+          .sort((a, b) => orderIdx(a.name) - orderIdx(b.name));
+        return (
+          <Card className="print-area">
+            <CardHeader>
+              <CardTitle>Resumo por categoria</CardTitle>
+              <p className="text-sm text-muted-foreground">Geração desta gravimetria</p>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                  {rows.map((r: any) => {
+                    const pct = (r.value / grandTotal) * 100;
+                    const color = r.color ?? "hsl(var(--primary))";
+                    const n = String(r.name).toLowerCase();
+                    const Icon = n.startsWith("orgân") ? Leaf
+                      : n.startsWith("recicl") ? Recycle
+                      : n.startsWith("perig") ? AlertTriangle
+                      : n.startsWith("rejeit") ? Ban
+                      : Scale;
+                    return (
+                      <div key={r.name} className="rounded-md border p-3 space-y-2">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="flex items-center gap-2 text-sm font-medium">
+                            <span
+                              className="inline-flex h-7 w-7 items-center justify-center rounded-md"
+                              style={{ background: `${color}20`, color }}
+                            >
+                              <Icon className="h-4 w-4" />
+                            </span>
+                            {r.name}
+                          </span>
+                          <span className="text-xs text-muted-foreground tabular-nums">{pct.toFixed(1)}%</span>
+                        </div>
+                        <div className="text-xl font-semibold tabular-nums">{r.value.toFixed(1)} <span className="text-xs text-muted-foreground font-normal">kg</span></div>
+                        <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
+                          <div className="h-full rounded-full" style={{ width: `${pct}%`, background: color }} />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+                <div className="flex justify-end text-sm text-muted-foreground">
+                  Total geral: <span className="ml-2 font-semibold text-foreground tabular-nums">{grandTotal.toFixed(1)} kg</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        );
+      })()}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Card>
