@@ -494,14 +494,14 @@ const GravimetriaDetail = () => {
                   <TableHead>Categoria</TableHead>
                   <TableHead>Subcategoria</TableHead>
                   <TableHead className="text-right">Peso (kg)</TableHead>
-                  {editLancOpen && canEdit && <TableHead className="w-24 text-right no-print">Ações</TableHead>}
+                  {canEdit && <TableHead className="w-24 text-right no-print">Ações</TableHead>}
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {weighings.length === 0 && (
-                  <TableRow><TableCell colSpan={editLancOpen && canEdit ? 6 : 5} className="text-center text-muted-foreground py-6">Sem pesagens</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={canEdit ? 6 : 5} className="text-center text-muted-foreground py-6">Sem pesagens</TableCell></TableRow>
                 )}
-                {weighings.map((w) => editLancOpen && canEdit && editId === w.id ? (
+                {weighings.map((w) => canEdit && editId === w.id ? (
                   <TableRow key={w.id}>
                     <TableCell><Input type="date" value={editData} onChange={(e) => setEditData(e.target.value)} className="h-8" /></TableCell>
                     <TableCell>
@@ -539,7 +539,7 @@ const GravimetriaDetail = () => {
                     <TableCell>{categoryMap[w.category_id]?.name ?? "—"}</TableCell>
                     <TableCell>{subMap[w.subcategory_id] ?? "—"}</TableCell>
                     <TableCell className="text-right tabular-nums">{Number(w.peso_kg).toFixed(1)}</TableCell>
-                    {editLancOpen && canEdit && (
+                    {canEdit && (
                       <TableCell className="text-right no-print">
                         <div className="inline-flex gap-1">
                           <Button variant="ghost" size="icon" onClick={() => startEdit(w)}><Pencil className="h-4 w-4" /></Button>
