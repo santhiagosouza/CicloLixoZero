@@ -437,13 +437,10 @@ const Gravimetria = () => {
                             <Button
                               variant="ghost"
                               size="icon"
-                              aria-label="Editar dias amostrados"
-                              onClick={() => {
-                                setEditDaysOpen(g);
-                                setEditDaysValue(g.sample_days ? String(g.sample_days) : "");
-                              }}
+                              asChild
+                              aria-label="Editar lançamentos"
                             >
-                              <Pencil className="h-4 w-4" />
+                              <Link to={`/gravimetria/${g.id}`}><Pencil className="h-4 w-4" /></Link>
                             </Button>
                             <ConfirmDialog
                               trigger={
