@@ -135,8 +135,8 @@ const GravimetriaDetail = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card><CardHeader><CardTitle className="text-sm font-medium text-muted-foreground">Total</CardTitle></CardHeader>
           <CardContent><p className="text-3xl font-semibold">{total.toFixed(1)} <span className="text-base text-muted-foreground">kg</span></p></CardContent></Card>
-        <Card><CardHeader><CardTitle className="text-sm font-medium text-muted-foreground">Pesagens</CardTitle></CardHeader>
-          <CardContent><p className="text-3xl font-semibold">{weighings.length}</p></CardContent></Card>
+        <Card><CardHeader><CardTitle className="text-sm font-medium text-muted-foreground">Dias</CardTitle></CardHeader>
+          <CardContent><p className="text-3xl font-semibold">{new Set(weighings.map((w) => w.data)).size}</p></CardContent></Card>
         <Card><CardHeader><CardTitle className="text-sm font-medium text-muted-foreground">Categorias</CardTitle></CardHeader>
           <CardContent><p className="text-3xl font-semibold">{byCategory.length}</p></CardContent></Card>
       </div>
