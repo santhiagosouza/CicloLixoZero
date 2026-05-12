@@ -568,6 +568,7 @@ const GravimetriaDetail = () => {
           </div>
         </CardContent>
       </Card>
+      </>)}
 
       <Dialog open={editDaysOpen} onOpenChange={(o) => { if (!o) { setEditDaysOpen(false); setEditDaysValue(""); } }}>
         <DialogContent>
