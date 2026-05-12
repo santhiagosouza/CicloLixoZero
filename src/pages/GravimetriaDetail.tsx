@@ -1,11 +1,18 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { ArrowLeft, Download, Printer, FileSpreadsheet, Scale, Leaf, Recycle, AlertTriangle, Ban } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
+import { toast } from "sonner";
+import { ArrowLeft, Download, Printer, FileSpreadsheet, Scale, Leaf, Recycle, AlertTriangle, Ban, Pencil, Check, X, Trash2, CalendarCog, ListChecks } from "lucide-react";
 import * as XLSX from "xlsx";
 import * as Recharts from "recharts";
 const { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Legend } = Recharts as any;
@@ -17,11 +24,30 @@ interface Weighing {
 
 const GravimetriaDetail = () => {
   const { id } = useParams<{ id: string }>();
+  const { isClientAdmin, isMasterAdmin } = useAuth();
+  const canEdit = isClientAdmin || isMasterAdmin;
   const [grav, setGrav] = useState<any>(null);
   const [weighings, setWeighings] = useState<Weighing[]>([]);
+  const [sectors, setSectors] = useState<{ id: string; name: string }[]>([]);
+  const [categories, setCategories] = useState<{ id: string; name: string; color: string | null }[]>([]);
+  const [subcategories, setSubcategories] = useState<{ id: string; name: string; category_id: string }[]>([]);
   const [sectorMap, setSectorMap] = useState<Record<string, string>>({});
   const [categoryMap, setCategoryMap] = useState<Record<string, { name: string; color: string | null }>>({});
   const [subMap, setSubMap] = useState<Record<string, string>>({});
+  const [reloadKey, setReloadKey] = useState(0);
+
+  // edit modes
+  const [editLancOpen, setEditLancOpen] = useState(false);
+  const [editId, setEditId] = useState<string | null>(null);
+  const [editData, setEditData] = useState("");
+  const [editSector, setEditSector] = useState("");
+  const [editCategory, setEditCategory] = useState("");
+  const [editSub, setEditSub] = useState("");
+  const [editPeso, setEditPeso] = useState("");
+
+  // edit days dialog
+  const [editDaysOpen, setEditDaysOpen] = useState(false);
+  const [editDaysValue, setEditDaysValue] = useState("");
 
   useEffect(() => {
     if (!id) return;
@@ -33,16 +59,60 @@ const GravimetriaDetail = () => {
       setWeighings(ws);
       if (g) {
         const [sec, cat, sub] = await Promise.all([
-          supabase.from("sectors").select("id, name").eq("client_id", g.client_id),
-          supabase.from("categories").select("id, name, color"),
-          supabase.from("subcategories").select("id, name").eq("client_id", g.client_id),
+          supabase.from("sectors").select("id, name").eq("client_id", g.client_id).eq("active", true).order("name"),
+          supabase.from("categories").select("id, name, color").order("name"),
+          supabase.from("subcategories").select("id, name, category_id").eq("client_id", g.client_id).eq("active", true).order("name"),
         ]);
-        setSectorMap(Object.fromEntries((sec.data ?? []).map((s: any) => [s.id, s.name])));
-        setCategoryMap(Object.fromEntries((cat.data ?? []).map((c: any) => [c.id, { name: c.name, color: c.color }])));
-        setSubMap(Object.fromEntries((sub.data ?? []).map((s: any) => [s.id, s.name])));
+        const secs = (sec.data ?? []) as any[];
+        const cats = (cat.data ?? []) as any[];
+        const subs = (sub.data ?? []) as any[];
+        setSectors(secs);
+        setCategories(cats);
+        setSubcategories(subs);
+        setSectorMap(Object.fromEntries(secs.map((s: any) => [s.id, s.name])));
+        setCategoryMap(Object.fromEntries(cats.map((c: any) => [c.id, { name: c.name, color: c.color }])));
+        setSubMap(Object.fromEntries(subs.map((s: any) => [s.id, s.name])));
       }
     })();
-  }, [id]);
+  }, [id, reloadKey]);
+
+  const startEdit = (w: Weighing) => {
+    setEditId(w.id);
+    setEditData(w.data);
+    setEditSector(w.sector_id);
+    setEditCategory(w.category_id);
+    setEditSub(w.subcategory_id);
+    setEditPeso(String(w.peso_kg));
+  };
+  const cancelEdit = () => setEditId(null);
+  const saveEdit = async (wid: string) => {
+    if (!editSector || !editCategory || !editSub || !editPeso) {
+      toast.error("Preencha todos os campos"); return;
+    }
+    const { error } = await supabase.from("weighings").update({
+      data: editData,
+      sector_id: editSector,
+      category_id: editCategory,
+      subcategory_id: editSub,
+      peso_kg: Number(editPeso),
+    }).eq("id", wid);
+    if (error) toast.error(error.message);
+    else { toast.success("Pesagem atualizada"); setEditId(null); setReloadKey((k) => k + 1); }
+  };
+  const removeWeighing = async (wid: string) => {
+    const { error } = await supabase.from("weighings").delete().eq("id", wid);
+    if (error) toast.error(error.message);
+    else { toast.success("Pesagem removida"); setReloadKey((k) => k + 1); }
+  };
+  const saveSampleDays = async () => {
+    const n = parseInt(editDaysValue, 10);
+    if (!n || n < 1) { toast.error("Informe um número de dias válido"); return; }
+    const { error } = await supabase.from("gravimetrias").update({ sample_days: n }).eq("id", id);
+    if (error) toast.error(error.message);
+    else { toast.success("Dias atualizados"); setEditDaysOpen(false); setEditDaysValue(""); setReloadKey((k) => k + 1); }
+  };
+
+  const editFilteredSubs = subcategories.filter((s) => !editCategory || s.category_id === editCategory);
 
   const total = weighings.reduce((s, w) => s + Number(w.peso_kg), 0);
 
@@ -125,7 +195,17 @@ const GravimetriaDetail = () => {
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-2 no-print">
+        <div className="flex items-center gap-2 no-print flex-wrap">
+          {canEdit && (
+            <>
+              <Button variant="outline" onClick={() => { setEditDaysValue(grav.sample_days ? String(grav.sample_days) : ""); setEditDaysOpen(true); }}>
+                <CalendarCog className="h-4 w-4 mr-2" />Editar dias
+              </Button>
+              <Button variant={editLancOpen ? "default" : "outline"} onClick={() => { setEditLancOpen((v) => !v); setEditId(null); }}>
+                <ListChecks className="h-4 w-4 mr-2" />{editLancOpen ? "Concluir edição" : "Editar lançamentos"}
+              </Button>
+            </>
+          )}
           <Button variant="outline" onClick={() => window.print()}><Printer className="h-4 w-4 mr-2" />Imprimir</Button>
           <Button variant="outline" onClick={exportXLSX}><FileSpreadsheet className="h-4 w-4 mr-2" />Exportar XLSX</Button>
           <Button variant="outline" onClick={exportCSV}><Download className="h-4 w-4 mr-2" />CSV</Button>
@@ -417,16 +497,66 @@ const GravimetriaDetail = () => {
                   <TableHead>Categoria</TableHead>
                   <TableHead>Subcategoria</TableHead>
                   <TableHead className="text-right">Peso (kg)</TableHead>
+                  {editLancOpen && canEdit && <TableHead className="w-24 text-right no-print">Ações</TableHead>}
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {weighings.map((w) => (
+                {weighings.length === 0 && (
+                  <TableRow><TableCell colSpan={editLancOpen && canEdit ? 6 : 5} className="text-center text-muted-foreground py-6">Sem pesagens</TableCell></TableRow>
+                )}
+                {weighings.map((w) => editLancOpen && canEdit && editId === w.id ? (
+                  <TableRow key={w.id}>
+                    <TableCell><Input type="date" value={editData} onChange={(e) => setEditData(e.target.value)} className="h-8" /></TableCell>
+                    <TableCell>
+                      <Select value={editSector} onValueChange={setEditSector}>
+                        <SelectTrigger className="h-8"><SelectValue /></SelectTrigger>
+                        <SelectContent>{sectors.map((s) => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}</SelectContent>
+                      </Select>
+                    </TableCell>
+                    <TableCell>
+                      <Select value={editCategory} onValueChange={(v) => { setEditCategory(v); setEditSub(""); }}>
+                        <SelectTrigger className="h-8"><SelectValue /></SelectTrigger>
+                        <SelectContent>{categories.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}</SelectContent>
+                      </Select>
+                    </TableCell>
+                    <TableCell>
+                      <Select value={editSub} onValueChange={setEditSub}>
+                        <SelectTrigger className="h-8"><SelectValue /></SelectTrigger>
+                        <SelectContent>{editFilteredSubs.map((s) => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}</SelectContent>
+                      </Select>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Input type="number" step="0.001" min="0.001" value={editPeso} onChange={(e) => setEditPeso(e.target.value)} className="h-8 text-right" />
+                    </TableCell>
+                    <TableCell className="text-right no-print">
+                      <div className="inline-flex gap-1">
+                        <Button variant="ghost" size="icon" onClick={() => saveEdit(w.id)}><Check className="h-4 w-4" /></Button>
+                        <Button variant="ghost" size="icon" onClick={cancelEdit}><X className="h-4 w-4" /></Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ) : (
                   <TableRow key={w.id}>
                     <TableCell>{new Date(w.data + "T00:00:00").toLocaleDateString("pt-BR")}</TableCell>
                     <TableCell>{sectorMap[w.sector_id] ?? "—"}</TableCell>
                     <TableCell>{categoryMap[w.category_id]?.name ?? "—"}</TableCell>
                     <TableCell>{subMap[w.subcategory_id] ?? "—"}</TableCell>
                     <TableCell className="text-right tabular-nums">{Number(w.peso_kg).toFixed(1)}</TableCell>
+                    {editLancOpen && canEdit && (
+                      <TableCell className="text-right no-print">
+                        <div className="inline-flex gap-1">
+                          <Button variant="ghost" size="icon" onClick={() => startEdit(w)}><Pencil className="h-4 w-4" /></Button>
+                          <ConfirmDialog
+                            trigger={<Button variant="ghost" size="icon" className="text-destructive hover:text-destructive"><Trash2 className="h-4 w-4" /></Button>}
+                            title="Remover pesagem?"
+                            description="Esta ação não pode ser desfeita."
+                            destructive
+                            confirmLabel="Remover"
+                            onConfirm={() => removeWeighing(w.id)}
+                          />
+                        </div>
+                      </TableCell>
+                    )}
                   </TableRow>
                 ))}
               </TableBody>
@@ -434,6 +564,25 @@ const GravimetriaDetail = () => {
           </div>
         </CardContent>
       </Card>
+
+      <Dialog open={editDaysOpen} onOpenChange={(o) => { if (!o) { setEditDaysOpen(false); setEditDaysValue(""); } }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Editar dias de amostragem</DialogTitle>
+            <DialogDescription>
+              Atualize o número de dias de separação considerados para a Gravimetria {grav?.numero}.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2">
+            <Label htmlFor="edit-sample-days">Dias de separação</Label>
+            <Input id="edit-sample-days" type="number" min={1} step={1} value={editDaysValue} onChange={(e) => setEditDaysValue(e.target.value)} />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setEditDaysOpen(false); setEditDaysValue(""); }}>Cancelar</Button>
+            <Button onClick={saveSampleDays}>Salvar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
