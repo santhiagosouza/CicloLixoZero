@@ -206,11 +206,26 @@ const GravimetriaDetail = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card><CardHeader><CardTitle className="text-sm font-medium text-muted-foreground">Total</CardTitle></CardHeader>
           <CardContent><p className="text-3xl font-semibold">{total.toFixed(1)} <span className="text-base text-muted-foreground">kg</span></p></CardContent></Card>
-        <Card><CardHeader><CardTitle className="text-sm font-medium text-muted-foreground">Pesagens</CardTitle></CardHeader>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Pesagens</CardTitle>
+            {canEdit && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7 no-print"
+                aria-label="Editar dias"
+                onClick={() => { setEditDaysValue(grav.sample_days ? String(grav.sample_days) : ""); setEditDaysOpen(true); }}
+              >
+                <Pencil className="h-3.5 w-3.5" />
+              </Button>
+            )}
+          </CardHeader>
           <CardContent>
             <p className="text-3xl font-semibold tabular-nums">{grav.sample_days ?? "—"} <span className="text-base text-muted-foreground font-normal">{grav.sample_days === 1 ? "dia" : "dias"}</span></p>
             <p className="text-xs text-muted-foreground mt-1">Dias de separação informados</p>
-          </CardContent></Card>
+          </CardContent>
+        </Card>
         <Card><CardHeader><CardTitle className="text-sm font-medium text-muted-foreground">Categorias</CardTitle></CardHeader>
           <CardContent><p className="text-3xl font-semibold">{byCategory.length}</p></CardContent></Card>
       </div>
