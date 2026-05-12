@@ -15,7 +15,7 @@ import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import * as XLSX from "xlsx";
+
 
 interface Gravimetria {
   id: string;
