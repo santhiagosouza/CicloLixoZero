@@ -214,8 +214,8 @@ const GravimetriaDetail = () => {
           <CardContent><p className="text-3xl font-semibold">{total.toFixed(1)} <span className="text-base text-muted-foreground">kg</span></p></CardContent></Card>
         <Card><CardHeader><CardTitle className="text-sm font-medium text-muted-foreground">Pesagens</CardTitle></CardHeader>
           <CardContent>
-            <p className="text-3xl font-semibold tabular-nums">{new Set(weighings.map((w) => w.data)).size} <span className="text-base text-muted-foreground font-normal">dias</span></p>
-            <p className="text-xs text-muted-foreground mt-1">Dias distintos com pesagem</p>
+            <p className="text-3xl font-semibold tabular-nums">{grav.sample_days ?? "—"} <span className="text-base text-muted-foreground font-normal">{grav.sample_days === 1 ? "dia" : "dias"}</span></p>
+            <p className="text-xs text-muted-foreground mt-1">Dias de separação informados</p>
           </CardContent></Card>
         <Card><CardHeader><CardTitle className="text-sm font-medium text-muted-foreground">Categorias</CardTitle></CardHeader>
           <CardContent><p className="text-3xl font-semibold">{byCategory.length}</p></CardContent></Card>
