@@ -493,6 +493,9 @@ const GravimetriaDetail = () => {
         );
       })()}
 
+      </>)}
+
+      {showLanc && (
       <Card>
         <CardHeader><CardTitle>Pesagens</CardTitle></CardHeader>
         <CardContent>
@@ -572,7 +575,7 @@ const GravimetriaDetail = () => {
           </div>
         </CardContent>
       </Card>
-      </>)}
+      )}
 
       <Dialog open={editDaysOpen} onOpenChange={(o) => { if (!o) { setEditDaysOpen(false); setEditDaysValue(""); } }}>
         <DialogContent>
