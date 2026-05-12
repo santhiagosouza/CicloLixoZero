@@ -12,7 +12,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { toast } from "sonner";
-import { ArrowLeft, Download, Printer, FileSpreadsheet, Scale, Leaf, Recycle, AlertTriangle, Ban, Pencil, Check, X, Trash2, CalendarCog } from "lucide-react";
+import { ArrowLeft, Download, Printer, FileSpreadsheet, Scale, Leaf, Recycle, AlertTriangle, Ban, Pencil, Check, X, Trash2, CalendarCog, Search } from "lucide-react";
 import * as XLSX from "xlsx";
 import * as Recharts from "recharts";
 const { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Legend } = Recharts as any;
@@ -284,10 +284,10 @@ const GravimetriaDetail = () => {
 
       <div className="flex justify-center gap-2 no-print flex-wrap">
         <Button variant={showDetailed ? "outline" : "default"} onClick={() => setShowDetailed((v) => !v)}>
-          {showDetailed ? "Ocultar relatório detalhado" : "Ver relatório detalhado"}
+          <Search className="h-4 w-4 mr-2" />{showDetailed ? "Ocultar Relatório Detalhado" : "Relatório Detalhado"}
         </Button>
         <Button variant={showLanc ? "outline" : "default"} onClick={() => setShowLanc((v) => !v)}>
-          {showLanc ? "Ocultar lançamentos" : "Ver lançamentos"}
+          <Pencil className="h-4 w-4 mr-2" />{showLanc ? "Ocultar Lançamentos de Resíduos" : "Lançamentos de Resíduos"}
         </Button>
       </div>
 
