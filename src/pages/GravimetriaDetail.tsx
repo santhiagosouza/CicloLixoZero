@@ -197,13 +197,6 @@ const GravimetriaDetail = () => {
           </div>
         </div>
         <div className="flex items-center gap-2 no-print flex-wrap">
-          {canEdit && (
-            <>
-              <Button variant="outline" onClick={() => { setEditDaysValue(grav.sample_days ? String(grav.sample_days) : ""); setEditDaysOpen(true); }}>
-                <CalendarCog className="h-4 w-4 mr-2" />Editar dias
-              </Button>
-            </>
-          )}
           <Button variant="outline" onClick={() => window.print()}><Printer className="h-4 w-4 mr-2" />Imprimir</Button>
           <Button variant="outline" onClick={exportXLSX}><FileSpreadsheet className="h-4 w-4 mr-2" />Exportar XLSX</Button>
           <Button variant="outline" onClick={exportCSV}><Download className="h-4 w-4 mr-2" />CSV</Button>
