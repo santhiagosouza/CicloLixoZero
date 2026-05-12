@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import {
   Recycle, LogOut, Building2, Tags, Scale, LayoutDashboard,
-  Users, Layers, BarChart3, Menu, X, Briefcase, UserCog
+  Users, Layers, BarChart3, Menu, X, Briefcase, UserCog, Settings, ChevronDown
 } from "lucide-react";
 
 interface NavItem {
@@ -40,11 +40,18 @@ export const AppLayout = ({ children }: { children: ReactNode }) => {
 
   const clientItems: NavItem[] = [
     { to: "/", label: "Gravimetria", icon: Scale },
+    { to: "/reports", label: "Relatórios", icon: BarChart3 },
+  ];
+
+  const settingsItems: NavItem[] = [
     { to: "/sectors", label: "Setores", icon: Layers },
     { to: "/subcategories", label: "Categorias", icon: Tags },
-    { to: "/reports", label: "Relatórios", icon: BarChart3 },
     ...(isClientAdmin ? [{ to: "/users", label: "Usuários", icon: Users }] : []),
   ];
+
+  const settingsActive = settingsItems.some((i) => location.pathname === i.to);
+  const [settingsOpen, setSettingsOpen] = useState(settingsActive);
+  useEffect(() => { if (settingsActive) setSettingsOpen(true); }, [settingsActive]);
 
   const items = isMasterAdmin && location.pathname.startsWith("/master") ? masterItems : clientItems;
 
@@ -84,6 +91,49 @@ export const AppLayout = ({ children }: { children: ReactNode }) => {
             </Link>
           );
         })}
+
+        {!(isMasterAdmin && location.pathname.startsWith("/master")) && settingsItems.length > 0 && (
+          <div>
+            <button
+              type="button"
+              onClick={() => setSettingsOpen((v) => !v)}
+              className={cn(
+                "w-full flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors",
+                settingsActive
+                  ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                  : "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+              )}
+              aria-expanded={settingsOpen}
+            >
+              <Settings className="h-4 w-4" />
+              <span className="flex-1 text-left">Configurações</span>
+              <ChevronDown className={cn("h-4 w-4 transition-transform", settingsOpen && "rotate-180")} />
+            </button>
+            {settingsOpen && (
+              <div className="mt-1 ml-3 pl-3 border-l border-sidebar-border space-y-1">
+                {settingsItems.map((item) => {
+                  const active = location.pathname === item.to;
+                  return (
+                    <Link
+                      key={item.to}
+                      to={item.to}
+                      onClick={() => setOpen(false)}
+                      className={cn(
+                        "flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors",
+                        active
+                          ? "bg-sidebar-primary text-sidebar-primary-foreground"
+                          : "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                      )}
+                    >
+                      <item.icon className="h-4 w-4" />
+                      {item.label}
+                    </Link>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
 
         {isMasterAdmin && (
           <div className="pt-3 mt-3 border-t border-sidebar-border space-y-1">
