@@ -38,6 +38,7 @@ const GravimetriaDetail = () => {
 
   // edit modes
   const [showDetailed, setShowDetailed] = useState(false);
+  const [showLanc, setShowLanc] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [editData, setEditData] = useState("");
   const [editSector, setEditSector] = useState("");
