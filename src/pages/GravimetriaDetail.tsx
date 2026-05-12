@@ -172,6 +172,45 @@ const GravimetriaDetail = () => {
       </div>
 
       {(() => {
+        const days = grav.sample_days ?? 0;
+        if (days === 0) {
+          return (
+            <div className="rounded-md border border-dashed p-4 text-sm text-muted-foreground">
+              Para ver previsões mensal e anual desta gravimetria, informe os <strong>dias de separação considerados</strong> (no histórico, botão de editar).
+            </div>
+          );
+        }
+        const dailyAvg = total / days;
+        const monthly = dailyAvg * 30;
+        const yearly = dailyAvg * 365;
+        return (
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <Card>
+              <CardHeader><CardTitle className="text-sm font-medium text-muted-foreground">Dias de separação</CardTitle></CardHeader>
+              <CardContent>
+                <p className="text-3xl font-semibold tabular-nums">{days} <span className="text-base text-muted-foreground">{days === 1 ? "dia" : "dias"}</span></p>
+                <p className="text-xs text-muted-foreground mt-1">Média diária: {dailyAvg.toFixed(1)} kg</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader><CardTitle className="text-sm font-medium text-muted-foreground">Previsão mensal</CardTitle></CardHeader>
+              <CardContent>
+                <p className="text-3xl font-semibold tabular-nums">{monthly.toFixed(1)} <span className="text-base text-muted-foreground">kg</span></p>
+                <p className="text-xs text-muted-foreground mt-1">{dailyAvg.toFixed(1)} kg/dia × 30</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader><CardTitle className="text-sm font-medium text-muted-foreground">Previsão anual</CardTitle></CardHeader>
+              <CardContent>
+                <p className="text-3xl font-semibold tabular-nums">{yearly.toFixed(1)} <span className="text-base text-muted-foreground">kg</span></p>
+                <p className="text-xs text-muted-foreground mt-1">{dailyAvg.toFixed(1)} kg/dia × 365</p>
+              </CardContent>
+            </Card>
+          </div>
+        );
+      })()}
+
+      {(() => {
         type Agg = { sectorId: string; sectorName: string; total: number; byCat: Record<string, { name: string; color: string; total: number; subs: Record<string, { name: string; total: number }> }> };
         const map = new Map<string, Agg>();
         for (const w of weighings) {
