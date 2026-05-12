@@ -282,9 +282,12 @@ const GravimetriaDetail = () => {
         );
       })()}
 
-      <div className="flex justify-center no-print">
+      <div className="flex justify-center gap-2 no-print flex-wrap">
         <Button variant={showDetailed ? "outline" : "default"} onClick={() => setShowDetailed((v) => !v)}>
           {showDetailed ? "Ocultar relatório detalhado" : "Ver relatório detalhado"}
+        </Button>
+        <Button variant={showLanc ? "outline" : "default"} onClick={() => setShowLanc((v) => !v)}>
+          {showLanc ? "Ocultar lançamentos" : "Ver lançamentos"}
         </Button>
       </div>
 
