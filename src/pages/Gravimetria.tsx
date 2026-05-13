@@ -242,9 +242,23 @@ const Gravimetria = () => {
         </div>
         {isClientAdmin && (
           active ? (
-            <Button variant="destructive" onClick={() => { setEndDays(""); setEndOpen(true); }}>
-              <Square className="h-4 w-4 mr-2" />Encerrar Gravimetria
-            </Button>
+            <div className="flex gap-2">
+              <Button variant="destructive" onClick={() => { setEndDays(""); setEndOpen(true); }}>
+                <Square className="h-4 w-4 mr-2" />Encerrar Gravimetria
+              </Button>
+              <ConfirmDialog
+                trigger={
+                  <Button variant="outline">
+                    <X className="h-4 w-4 mr-2" />Cancelar Gravimetria
+                  </Button>
+                }
+                title="Cancelar gravimetria?"
+                description="Esta ação irá excluir a gravimetria atual e todas as pesagens registradas. Não é possível desfazer."
+                confirmLabel="Cancelar gravimetria"
+                destructive
+                onConfirm={() => deleteGravimetria(active.id)}
+              />
+            </div>
           ) : (
             <Button onClick={startGravimetria} className="shadow-[var(--shadow-elegant)]">
               <Play className="h-4 w-4 mr-2" />Iniciar Gravimetria
