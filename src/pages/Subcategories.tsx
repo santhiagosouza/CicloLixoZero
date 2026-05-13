@@ -95,9 +95,9 @@ const Subcategories = () => {
         </div>
         {isClientAdmin && (
           <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild><Button><Plus className="h-4 w-4 mr-2" />Nova categoria</Button></DialogTrigger>
+            <DialogTrigger asChild><Button><Plus className="h-4 w-4 mr-2" />Nova subcategoria</Button></DialogTrigger>
             <DialogContent>
-              <DialogHeader><DialogTitle>Nova categoria</DialogTitle></DialogHeader>
+              <DialogHeader><DialogTitle>Nova subcategoria</DialogTitle></DialogHeader>
               <div className="space-y-3">
                 <div className="space-y-2"><Label>Nome</Label><Input value={name} onChange={(e) => setName(e.target.value)} /></div>
                 <div className="space-y-2">
