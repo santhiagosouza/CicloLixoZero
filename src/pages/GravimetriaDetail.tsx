@@ -304,28 +304,68 @@ const GravimetriaDetail = () => {
         <Card>
           <CardHeader><CardTitle>Por Categoria</CardTitle></CardHeader>
           <CardContent style={{ height: 280 }}>
-            <ResponsiveContainer>
-              <PieChart>
-                <Pie data={byCategory} dataKey="value" nameKey="name" outerRadius={90} label={(e: any) => `${e.name}: ${e.value.toFixed(1)}kg`}>
-                  {byCategory.map((e, i) => <Cell key={i} fill={e.color} />)}
-                </Pie>
-                <Tooltip formatter={(v: any) => `${Number(v).toFixed(1)} kg`} />
-              </PieChart>
-            </ResponsiveContainer>
+            {(() => {
+              const totalCat = byCategory.reduce((s: number, e: any) => s + Number(e.value), 0);
+              return (
+                <ResponsiveContainer>
+                  <PieChart>
+                    <Pie
+                      data={byCategory}
+                      dataKey="value"
+                      nameKey="name"
+                      outerRadius={90}
+                      label={(e: any) => {
+                        const pct = totalCat > 0 ? (e.value / totalCat) * 100 : 0;
+                        return `${e.name}: ${e.value.toFixed(1)}kg (${pct.toFixed(1)}%)`;
+                      }}
+                    >
+                      {byCategory.map((e, i) => <Cell key={i} fill={e.color} />)}
+                    </Pie>
+                    <Tooltip
+                      formatter={(v: any) => {
+                        const pct = totalCat > 0 ? (Number(v) / totalCat) * 100 : 0;
+                        return `${Number(v).toFixed(1)} kg (${pct.toFixed(1)}%)`;
+                      }}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+              );
+            })()}
           </CardContent>
         </Card>
         <Card>
           <CardHeader><CardTitle>Por Setor</CardTitle></CardHeader>
           <CardContent style={{ height: 280 }}>
-            <ResponsiveContainer>
-              <BarChart data={bySector}>
-                <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip formatter={(v: any) => `${Number(v).toFixed(1)} kg`} />
-                <Legend />
-                <Bar dataKey="value" name="kg" fill="hsl(var(--primary))" />
-              </BarChart>
-            </ResponsiveContainer>
+            {(() => {
+              const totalSec = bySector.reduce((s: number, e: any) => s + Number(e.value), 0);
+              const dataWithPct = bySector.map((e: any) => ({
+                ...e,
+                pct: totalSec > 0 ? (Number(e.value) / totalSec) * 100 : 0,
+              }));
+              return (
+                <ResponsiveContainer>
+                  <BarChart data={dataWithPct} margin={{ top: 24, right: 16, left: 0, bottom: 0 }}>
+                    <XAxis dataKey="name" />
+                    <YAxis />
+                    <Tooltip
+                      formatter={(v: any, _n: any, item: any) =>
+                        `${Number(v).toFixed(1)} kg (${Number(item?.payload?.pct ?? 0).toFixed(1)}%)`
+                      }
+                    />
+                    <Legend />
+                    <Bar dataKey="value" name="kg" fill="hsl(var(--primary))">
+                      <LabelList
+                        dataKey="pct"
+                        position="top"
+                        formatter={(v: any) => `${Number(v).toFixed(1)}%`}
+                        className="fill-foreground"
+                        style={{ fontSize: 12 }}
+                      />
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              );
+            })()}
           </CardContent>
         </Card>
       </div>
