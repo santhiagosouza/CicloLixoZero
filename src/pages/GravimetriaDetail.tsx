@@ -49,6 +49,7 @@ const GravimetriaDetail = () => {
   // edit days dialog
   const [editDaysOpen, setEditDaysOpen] = useState(false);
   const [editDaysValue, setEditDaysValue] = useState("");
+  const [expandedSectors, setExpandedSectors] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (!id) return;
