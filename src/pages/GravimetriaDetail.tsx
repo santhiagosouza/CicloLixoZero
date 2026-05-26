@@ -577,7 +577,7 @@ const GravimetriaDetail = () => {
                               </TableCell>
                             </TableRow>
                           )}
-                        </>
+                        </React.Fragment>
                       );
                     })}
                     <TableRow className="bg-muted/40">
