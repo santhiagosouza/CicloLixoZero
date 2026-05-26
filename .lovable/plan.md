@@ -1,21 +1,30 @@
 ## Objetivo
 
-Mover a porcentagem para **dentro das fatias** do gráfico de pizza "Por Categoria" (como na imagem de referência), mantendo o nome + kg como rótulo externo.
+Unificar a tabela "Relatório por Setor" com a seção "Detalhamento por setor": ao clicar em uma linha da tabela, o detalhamento daquele setor (categorias + subcategorias) abre logo abaixo, dentro da própria tabela.
 
-## Mudanças (src/pages/GravimetriaDetail.tsx, gráfico "Por Categoria")
+## Mudanças (src/pages/GravimetriaDetail.tsx)
 
-1. **Rótulo externo** do `Pie`: passa a mostrar apenas `Nome valor kg` (sem a %).
-2. **Rótulo interno** (nova `Label` customizada renderizada dentro de cada fatia):
-   - Calcula a posição no centro da fatia usando `midAngle`, `innerRadius` e `outerRadius` (padrão do Recharts).
-   - Mostra `XX,X %` em negrito, branco, centralizado.
-   - **Tratamento de fatias pequenas:** se `pct < 5%`, o texto interno é omitido (ficaria ilegível/sobreposto). Nesse caso a % continua visível no rótulo externo entre parênteses como fallback, ex.: `Resíduo 1,2 kg (1,2%)`.
-3. Gráfico "Por Setor" (barras) permanece como está — a % no topo da barra já funciona bem ali.
+1. **Tornar as linhas clicáveis** na tabela "Relatório por Setor":
+   - Adicionar `cursor-pointer hover:bg-muted/50` na `TableRow` do setor.
+   - Adicionar um ícone chevron (▸ / ▾) na primeira coluna que rotaciona quando aberto.
+   - Estado local `expandedSectors: Set<string>` controlando quais linhas estão abertas.
+   - Toggle ao clicar na linha. Permitir múltiplos abertos (como o accordion atual).
 
-## Resposta sobre a quebra
+2. **Renderizar linha de detalhamento** logo após a linha do setor quando expandida:
+   - Uma `TableRow` extra com `<TableCell colSpan={allCats.length + 2}>` contendo o mesmo conteúdo que hoje está dentro de `AccordionContent` (cards por categoria com tabela de subcategorias, mostrando kg e % do setor).
+   - Mostrar também o resumo "X kg · Y% do total" no cabeçalho da linha de detalhe para não perder a informação que estava no accordion.
 
-Sim, fatias muito pequenas quebram (texto sai da fatia ou sobrepõe vizinhos). O threshold de 5% com fallback para o rótulo externo resolve isso de forma limpa, sem precisar de linhas-guia extras.
+3. **Remover** o bloco `<div>` de "Detalhamento por setor" inteiro (linhas 529-579) com o `Accordion`.
+
+4. **Linha "Total geral"** continua no final, sem ser clicável.
+
+## Detalhes técnicos
+
+- Sem mudanças em dados, queries ou agregação (`sectorsAgg`, `allCats`, `total` permanecem iguais).
+- Reaproveitar o JSX dos cards de categoria/subcategoria que já existe — só mover para dentro da `TableRow` expandida.
+- Imports do `Accordion*` podem ser removidos se não forem usados em outros lugares do arquivo.
+- Ícone chevron via `lucide-react` (`ChevronRight` com `rotate-90` quando aberto).
 
 ## Observações
 
-- Sem mudanças em dados, queries ou lógica de negócio. Apenas apresentação do `PieChart`.
-- Sem novas dependências.
+- Comportamento de impressão: linhas expandidas continuam visíveis ao imprimir. Se quiser sempre imprimir tudo aberto, posso forçar `expandedSectors` = todos os setores durante print — me avise se quiser isso.
