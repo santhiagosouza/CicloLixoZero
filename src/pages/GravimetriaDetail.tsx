@@ -514,9 +514,8 @@ const GravimetriaDetail = () => {
                         return n;
                       });
                       return (
-                        <>
+                        <React.Fragment key={s.sectorId}>
                           <TableRow
-                            key={s.sectorId}
                             onClick={toggle}
                             className="cursor-pointer hover:bg-muted/40"
                           >
