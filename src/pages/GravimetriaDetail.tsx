@@ -314,12 +314,40 @@ const GravimetriaDetail = () => {
                       dataKey="value"
                       nameKey="name"
                       outerRadius={90}
+                      labelLine={true}
                       label={(e: any) => {
                         const pct = totalCat > 0 ? (e.value / totalCat) * 100 : 0;
-                        return `${e.name}: ${e.value.toFixed(1)}kg (${pct.toFixed(1)}%)`;
+                        return pct < 5
+                          ? `${e.name}: ${e.value.toFixed(1)}kg (${pct.toFixed(1)}%)`
+                          : `${e.name}: ${e.value.toFixed(1)}kg`;
                       }}
                     >
                       {byCategory.map((e, i) => <Cell key={i} fill={e.color} />)}
+                      <LabelList
+                        dataKey="value"
+                        position="inside"
+                        content={(props: any) => {
+                          const { cx, cy, midAngle, innerRadius, outerRadius, value } = props;
+                          const pct = totalCat > 0 ? (Number(value) / totalCat) * 100 : 0;
+                          if (pct < 5) return null;
+                          const RAD = Math.PI / 180;
+                          const r = innerRadius + (outerRadius - innerRadius) * 0.55;
+                          const x = cx + r * Math.cos(-midAngle * RAD);
+                          const y = cy + r * Math.sin(-midAngle * RAD);
+                          return (
+                            <text
+                              x={x}
+                              y={y}
+                              fill="#fff"
+                              textAnchor="middle"
+                              dominantBaseline="central"
+                              style={{ fontSize: 13, fontWeight: 700 }}
+                            >
+                              {pct.toFixed(1)}%
+                            </text>
+                          );
+                        }}
+                      />
                     </Pie>
                     <Tooltip
                       formatter={(v: any) => {
