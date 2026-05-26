@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -6,13 +7,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 
 interface Cat { id: string; name: string; color: string | null; }
 
 const Categories = () => {
+  const navigate = useNavigate();
   const [items, setItems] = useState<Cat[]>([]);
   const [name, setName] = useState("");
   const [color, setColor] = useState("#16a34a");
@@ -59,10 +61,14 @@ const Categories = () => {
 
       <Card><CardContent className="p-0">
         <Table>
-          <TableHeader><TableRow><TableHead>Nome</TableHead><TableHead>Cor</TableHead><TableHead className="w-16" /></TableRow></TableHeader>
+          <TableHeader><TableRow><TableHead>Nome</TableHead><TableHead>Cor</TableHead><TableHead className="w-24" /></TableRow></TableHeader>
           <TableBody>
             {items.map((c) => (
-              <TableRow key={c.id}>
+              <TableRow
+                key={c.id}
+                className="cursor-pointer hover:bg-muted/40"
+                onClick={() => navigate(`/master/categories/${c.id}`)}
+              >
                 <TableCell className="font-medium">{c.name}</TableCell>
                 <TableCell>
                   <div className="flex items-center gap-2">
@@ -70,10 +76,13 @@ const Categories = () => {
                     <span className="text-xs text-muted-foreground">{c.color}</span>
                   </div>
                 </TableCell>
-                <TableCell>
-                  <ConfirmDialog trigger={<Button variant="ghost" size="icon"><Trash2 className="h-4 w-4" /></Button>}
-                    title="Remover categoria?" description="Só é possível se nenhuma subcategoria estiver vinculada." destructive
-                    onConfirm={() => remove(c.id)} />
+                <TableCell onClick={(e) => e.stopPropagation()}>
+                  <div className="flex items-center gap-1 justify-end">
+                    <ConfirmDialog trigger={<Button variant="ghost" size="icon"><Trash2 className="h-4 w-4" /></Button>}
+                      title="Remover categoria?" description="Só é possível se nenhuma subcategoria estiver vinculada." destructive
+                      onConfirm={() => remove(c.id)} />
+                    <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                  </div>
                 </TableCell>
               </TableRow>
             ))}
