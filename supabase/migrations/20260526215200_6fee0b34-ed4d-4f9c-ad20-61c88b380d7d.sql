@@ -1,0 +1,1 @@
+UPDATE public.categories SET color = CASE name WHEN 'Orgânico' THEN '#8B5A2B' WHEN 'Reciclável' THEN '#16A34A' WHEN 'Rejeito' THEN '#6B7280' WHEN 'Perigoso' THEN '#E8590C' ELSE color END;
