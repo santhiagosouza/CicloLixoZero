@@ -314,40 +314,53 @@ const GravimetriaDetail = () => {
                       dataKey="value"
                       nameKey="name"
                       outerRadius={90}
-                      labelLine={true}
-                      label={(e: any) => {
-                        const pct = totalCat > 0 ? (e.value / totalCat) * 100 : 0;
-                        return pct < 5
-                          ? `${e.name}: ${e.value.toFixed(1)}kg (${pct.toFixed(1)}%)`
-                          : `${e.name}: ${e.value.toFixed(1)}kg`;
+                      labelLine={false}
+                      label={(props: any) => {
+                        const { cx, cy, midAngle, innerRadius, outerRadius, value, name, fill } = props;
+                        const pct = totalCat > 0 ? (Number(value) / totalCat) * 100 : 0;
+                        const RAD = Math.PI / 180;
+                        const cos = Math.cos(-midAngle * RAD);
+                        const sin = Math.sin(-midAngle * RAD);
+                        // inner label position
+                        const rIn = innerRadius + (outerRadius - innerRadius) * 0.6;
+                        const xIn = cx + rIn * cos;
+                        const yIn = cy + rIn * sin;
+                        // outer label position
+                        const rOut = outerRadius + 18;
+                        const xOut = cx + rOut * cos;
+                        const yOut = cy + rOut * sin;
+                        const anchor = cos >= 0 ? "start" : "end";
+                        return (
+                          <g>
+                            {pct >= 5 && (
+                              <text
+                                x={xIn}
+                                y={yIn}
+                                fill="#fff"
+                                textAnchor="middle"
+                                dominantBaseline="central"
+                                style={{ fontSize: 13, fontWeight: 700 }}
+                              >
+                                {pct.toFixed(1)}%
+                              </text>
+                            )}
+                            <text
+                              x={xOut}
+                              y={yOut}
+                              fill={fill}
+                              textAnchor={anchor}
+                              dominantBaseline="central"
+                              style={{ fontSize: 12 }}
+                            >
+                              {pct < 5
+                                ? `${name}: ${Number(value).toFixed(1)}kg (${pct.toFixed(1)}%)`
+                                : `${name}: ${Number(value).toFixed(1)}kg`}
+                            </text>
+                          </g>
+                        );
                       }}
                     >
                       {byCategory.map((e, i) => <Cell key={i} fill={e.color} />)}
-                      <LabelList
-                        dataKey="value"
-                        position="inside"
-                        content={(props: any) => {
-                          const { cx, cy, midAngle, innerRadius, outerRadius, value } = props;
-                          const pct = totalCat > 0 ? (Number(value) / totalCat) * 100 : 0;
-                          if (pct < 5) return null;
-                          const RAD = Math.PI / 180;
-                          const r = innerRadius + (outerRadius - innerRadius) * 0.55;
-                          const x = cx + r * Math.cos(-midAngle * RAD);
-                          const y = cy + r * Math.sin(-midAngle * RAD);
-                          return (
-                            <text
-                              x={x}
-                              y={y}
-                              fill="#fff"
-                              textAnchor="middle"
-                              dominantBaseline="central"
-                              style={{ fontSize: 13, fontWeight: 700 }}
-                            >
-                              {pct.toFixed(1)}%
-                            </text>
-                          );
-                        }}
-                      />
                     </Pie>
                     <Tooltip
                       formatter={(v: any) => {
