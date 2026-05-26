@@ -150,48 +150,6 @@ export type Database = {
           },
         ]
       }
-      company_type_default_subcategories: {
-        Row: {
-          category_id: string
-          company_type_id: string
-          created_at: string
-          id: string
-          name: string
-          updated_at: string
-        }
-        Insert: {
-          category_id: string
-          company_type_id: string
-          created_at?: string
-          id?: string
-          name: string
-          updated_at?: string
-        }
-        Update: {
-          category_id?: string
-          company_type_id?: string
-          created_at?: string
-          id?: string
-          name?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "company_type_default_subcategories_category_id_fkey"
-            columns: ["category_id"]
-            isOneToOne: false
-            referencedRelation: "categories"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "company_type_default_subcategories_company_type_id_fkey"
-            columns: ["company_type_id"]
-            isOneToOne: false
-            referencedRelation: "company_types"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       company_types: {
         Row: {
           created_at: string
@@ -212,6 +170,38 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      default_subcategories: {
+        Row: {
+          category_id: string
+          created_at: string
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          category_id: string
+          created_at?: string
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          category_id?: string
+          created_at?: string
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "default_subcategories_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       gravimetrias: {
         Row: {
