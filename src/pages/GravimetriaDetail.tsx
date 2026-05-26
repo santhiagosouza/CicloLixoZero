@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -8,11 +8,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { toast } from "sonner";
-import { ArrowLeft, Download, Printer, FileSpreadsheet, Scale, Leaf, Recycle, AlertTriangle, Ban, Pencil, Check, X, Trash2, CalendarCog, Search } from "lucide-react";
+import { ArrowLeft, Download, Printer, FileSpreadsheet, Scale, Leaf, Recycle, AlertTriangle, Ban, Pencil, Check, X, Trash2, CalendarCog, Search, ChevronRight } from "lucide-react";
 import * as XLSX from "xlsx";
 import * as Recharts from "recharts";
 const { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Legend, LabelList } = Recharts as any;
@@ -49,6 +49,7 @@ const GravimetriaDetail = () => {
   // edit days dialog
   const [editDaysOpen, setEditDaysOpen] = useState(false);
   const [editDaysValue, setEditDaysValue] = useState("");
+  const [expandedSectors, setExpandedSectors] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (!id) return;
@@ -505,16 +506,80 @@ const GravimetriaDetail = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {sectorsAgg.map((s) => (
-                      <TableRow key={s.sectorId}>
-                        <TableCell className="font-medium">{s.sectorName}</TableCell>
-                        {allCats.map((c) => {
-                          const v = s.byCat[c.id]?.total ?? 0;
-                          return <TableCell key={c.id} className="text-right tabular-nums">{v ? v.toFixed(1) : "—"}</TableCell>;
-                        })}
-                        <TableCell className="text-right tabular-nums font-semibold">{s.total.toFixed(1)}</TableCell>
-                      </TableRow>
-                    ))}
+                    {sectorsAgg.map((s) => {
+                      const isOpen = expandedSectors.has(s.sectorId);
+                      const toggle = () => setExpandedSectors((prev) => {
+                        const n = new Set(prev);
+                        n.has(s.sectorId) ? n.delete(s.sectorId) : n.add(s.sectorId);
+                        return n;
+                      });
+                      return (
+                        <React.Fragment key={s.sectorId}>
+                          <TableRow
+                            onClick={toggle}
+                            className="cursor-pointer hover:bg-muted/40"
+                          >
+                            <TableCell className="font-medium">
+                              <span className="inline-flex items-center gap-2">
+                                <ChevronRight
+                                  className={`h-4 w-4 text-muted-foreground transition-transform ${isOpen ? "rotate-90" : ""}`}
+                                />
+                                {s.sectorName}
+                              </span>
+                            </TableCell>
+                            {allCats.map((c) => {
+                              const v = s.byCat[c.id]?.total ?? 0;
+                              return <TableCell key={c.id} className="text-right tabular-nums">{v ? v.toFixed(1) : "—"}</TableCell>;
+                            })}
+                            <TableCell className="text-right tabular-nums font-semibold">{s.total.toFixed(1)}</TableCell>
+                          </TableRow>
+                          {isOpen && (
+                            <TableRow key={`${s.sectorId}-detail`} className="bg-muted/20 hover:bg-muted/20">
+                              <TableCell colSpan={allCats.length + 2} className="p-4">
+                                <div className="flex items-center justify-between mb-3">
+                                  <span className="text-sm font-medium">Detalhamento de {s.sectorName}</span>
+                                  <span className="text-sm text-muted-foreground tabular-nums">
+                                    {s.total.toFixed(1)} kg · {total ? ((s.total / total) * 100).toFixed(1) : "0.0"}% do total
+                                  </span>
+                                </div>
+                                <div className="space-y-3">
+                                  {allCats
+                                    .filter((c) => s.byCat[c.id])
+                                    .map((c) => {
+                                      const cAgg = s.byCat[c.id];
+                                      const subs = Object.values(cAgg.subs).sort((a, b) => b.total - a.total);
+                                      return (
+                                        <div key={c.id} className="rounded-md border bg-background p-3">
+                                          <div className="flex items-center justify-between mb-2">
+                                            <span className="flex items-center gap-2 text-sm font-medium">
+                                              <span className="inline-block h-2.5 w-2.5 rounded-full" style={{ background: c.color }} />
+                                              {c.name}
+                                            </span>
+                                            <span className="text-sm tabular-nums text-muted-foreground">
+                                              {cAgg.total.toFixed(1)} kg · {((cAgg.total / s.total) * 100).toFixed(1)}% do setor
+                                            </span>
+                                          </div>
+                                          <Table>
+                                            <TableBody>
+                                              {subs.map((sub, i) => (
+                                                <TableRow key={i}>
+                                                  <TableCell className="py-1.5">{sub.name}</TableCell>
+                                                  <TableCell className="py-1.5 text-right tabular-nums w-32">{sub.total.toFixed(1)} kg</TableCell>
+                                                  <TableCell className="py-1.5 text-right tabular-nums w-20 text-muted-foreground">{((sub.total / cAgg.total) * 100).toFixed(1)}%</TableCell>
+                                                </TableRow>
+                                              ))}
+                                            </TableBody>
+                                          </Table>
+                                        </div>
+                                      );
+                                    })}
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          )}
+                        </React.Fragment>
+                      );
+                    })}
                     <TableRow className="bg-muted/40">
                       <TableCell className="font-semibold">Total geral</TableCell>
                       {allCats.map((c) => (
@@ -524,58 +589,6 @@ const GravimetriaDetail = () => {
                     </TableRow>
                   </TableBody>
                 </Table>
-              </div>
-
-              <div>
-                <p className="text-sm font-medium mb-2">Detalhamento por setor</p>
-                <Accordion type="multiple" className="border rounded-md">
-                  {sectorsAgg.map((s) => (
-                    <AccordionItem key={s.sectorId} value={s.sectorId} className="px-4">
-                      <AccordionTrigger>
-                        <div className="flex items-center justify-between w-full pr-4">
-                          <span className="font-medium">{s.sectorName}</span>
-                          <span className="text-sm text-muted-foreground tabular-nums">
-                            {s.total.toFixed(1)} kg · {total ? ((s.total / total) * 100).toFixed(1) : "0.0"}%
-                          </span>
-                        </div>
-                      </AccordionTrigger>
-                      <AccordionContent>
-                        <div className="space-y-4 pb-2">
-                          {allCats
-                            .filter((c) => s.byCat[c.id])
-                            .map((c) => {
-                              const cAgg = s.byCat[c.id];
-                              const subs = Object.values(cAgg.subs).sort((a, b) => b.total - a.total);
-                              return (
-                                <div key={c.id} className="rounded-md border p-3">
-                                  <div className="flex items-center justify-between mb-2">
-                                    <span className="flex items-center gap-2 text-sm font-medium">
-                                      <span className="inline-block h-2.5 w-2.5 rounded-full" style={{ background: c.color }} />
-                                      {c.name}
-                                    </span>
-                                    <span className="text-sm tabular-nums text-muted-foreground">
-                                      {cAgg.total.toFixed(1)} kg · {((cAgg.total / s.total) * 100).toFixed(1)}% do setor
-                                    </span>
-                                  </div>
-                                  <Table>
-                                    <TableBody>
-                                      {subs.map((sub, i) => (
-                                        <TableRow key={i}>
-                                          <TableCell className="py-1.5">{sub.name}</TableCell>
-                                          <TableCell className="py-1.5 text-right tabular-nums w-32">{sub.total.toFixed(1)} kg</TableCell>
-                                          <TableCell className="py-1.5 text-right tabular-nums w-20 text-muted-foreground">{((sub.total / cAgg.total) * 100).toFixed(1)}%</TableCell>
-                                        </TableRow>
-                                      ))}
-                                    </TableBody>
-                                  </Table>
-                                </div>
-                              );
-                            })}
-                        </div>
-                      </AccordionContent>
-                    </AccordionItem>
-                  ))}
-                </Accordion>
               </div>
             </CardContent>
           </Card>
