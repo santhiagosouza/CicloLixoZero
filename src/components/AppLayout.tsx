@@ -1,202 +1,386 @@
-import { ReactNode, useEffect, useState } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
-import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
-import {
-  Recycle, LogOut, Building2, Tags, Scale, LayoutDashboard,
-  Users, Layers, BarChart3, Menu, X, Briefcase, UserCog, Settings, ChevronDown
-} from "lucide-react";
+import React, { useEffect, useState } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
+import { supabase } from '../integrations/supabase/client';
+import { 
+  Scale, 
+  Layers, 
+  Grid, 
+  Users, 
+  BarChart2, 
+  ShieldAlert, 
+  Briefcase, 
+  Tag, 
+  Building2, 
+  LogOut, 
+  User as UserIcon,
+  Menu,
+  X,
+  ChevronRight,
+  EyeOff
+} from 'lucide-react';
 
-interface NavItem {
-  to: string;
-  label: string;
-  icon: typeof Recycle;
-}
+export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { 
+    user, 
+    profile, 
+    isMasterAdmin, 
+    clientId, 
+    impersonatedClientId, 
+    setImpersonatedClient, 
+    signOut 
+  } = useAuth();
 
-export const AppLayout = ({ children }: { children: ReactNode }) => {
-  const { isMasterAdmin, isClientAdmin, clientId, fullName, signOut, impersonatedClientId, setImpersonatedClient } = useAuth();
-  const location = useLocation();
   const navigate = useNavigate();
-  const [clientName, setClientName] = useState<string>("");
-  const [open, setOpen] = useState(false);
+  const location = useLocation();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [clientName, setClientName] = useState<string>('');
 
+  // Fetch client name if clientId exists
   useEffect(() => {
     if (clientId) {
-      supabase.from("clients").select("name").eq("id", clientId).maybeSingle()
-        .then(({ data }) => setClientName(data?.name ?? ""));
+      supabase
+        .from('clients')
+        .select('name')
+        .eq('id', clientId)
+        .maybeSingle()
+        .then(({ data }) => {
+          if (data) setClientName(data.name);
+        });
     } else {
-      setClientName("");
+      setClientName('');
     }
   }, [clientId]);
 
-  const masterItems: NavItem[] = [
-    { to: "/master", label: "Visão Geral", icon: LayoutDashboard },
-    { to: "/master/clients", label: "Clientes", icon: Building2 },
-    { to: "/master/company-types", label: "Tipos de Empresa", icon: Briefcase },
-    { to: "/master/categories", label: "Categorias", icon: Tags },
-  ];
-
-  const clientItems: NavItem[] = [
-    { to: "/", label: "Gravimetria", icon: Scale },
-    { to: "/reports", label: "Relatórios", icon: BarChart3 },
-  ];
-
-  const settingsItems: NavItem[] = [
-    { to: "/sectors", label: "Setores", icon: Layers },
-    { to: "/subcategories", label: "Categorias", icon: Tags },
-    ...(isClientAdmin ? [{ to: "/users", label: "Usuários", icon: Users }] : []),
-  ];
-
-  const settingsActive = settingsItems.some((i) => location.pathname === i.to);
-  const [settingsOpen, setSettingsOpen] = useState(settingsActive);
-  useEffect(() => { if (settingsActive) setSettingsOpen(true); }, [settingsActive]);
-
-  const items = isMasterAdmin && location.pathname.startsWith("/master") ? masterItems : clientItems;
-
-  const handleSignOut = async () => {
-    await signOut();
-    navigate("/auth", { replace: true });
+  const handleStopImpersonation = () => {
+    setImpersonatedClient(null);
+    navigate('/master');
   };
 
-  const SidebarContent = (
-    <div className="flex h-full flex-col bg-sidebar text-sidebar-foreground">
-      <div className="flex items-center gap-2 px-6 py-5 border-b border-sidebar-border">
-        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-          <Recycle className="h-5 w-5" />
-        </div>
-        <div className="flex-1">
-          <p className="text-sm font-semibold leading-tight">Ciclo Lixo Zero</p>
-          <p className="text-xs opacity-70 leading-tight">{isMasterAdmin && location.pathname.startsWith("/master") ? "Master Admin" : clientName || "Cliente"}</p>
-        </div>
-      </div>
-      <nav className="flex-1 space-y-1 p-3 overflow-y-auto">
-        {items.map((item) => {
-          const active = location.pathname === item.to;
-          return (
-            <Link
-              key={item.to}
-              to={item.to}
-              onClick={() => setOpen(false)}
-              className={cn(
-                "flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors",
-                active
-                  ? "bg-sidebar-primary text-sidebar-primary-foreground"
-                  : "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-              )}
-            >
-              <item.icon className="h-4 w-4" />
-              {item.label}
-            </Link>
-          );
-        })}
+  const menuItems = [];
 
-        {!(isMasterAdmin && location.pathname.startsWith("/master")) && settingsItems.length > 0 && (
-          <div>
-            <button
-              type="button"
-              onClick={() => setSettingsOpen((v) => !v)}
-              className={cn(
-                "w-full flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors",
-                settingsActive
-                  ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                  : "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-              )}
-              aria-expanded={settingsOpen}
-            >
-              <Settings className="h-4 w-4" />
-              <span className="flex-1 text-left">Configurações</span>
-              <ChevronDown className={cn("h-4 w-4 transition-transform", settingsOpen && "rotate-180")} />
-            </button>
-            {settingsOpen && (
-              <div className="mt-1 ml-3 pl-3 border-l border-sidebar-border space-y-1">
-                {settingsItems.map((item) => {
-                  const active = location.pathname === item.to;
-                  return (
-                    <Link
-                      key={item.to}
-                      to={item.to}
-                      onClick={() => setOpen(false)}
-                      className={cn(
-                        "flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors",
-                        active
-                          ? "bg-sidebar-primary text-sidebar-primary-foreground"
-                          : "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-                      )}
-                    >
-                      <item.icon className="h-4 w-4" />
-                      {item.label}
-                    </Link>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        )}
+  // 1. Regular Client/Impersonated Client Menu
+  if (clientId) {
+    menuItems.push(
+      { path: '/', label: 'Gravimetria', icon: Scale },
+      { path: '/sectors', label: 'Setores', icon: Grid },
+      { path: '/subcategories', label: 'Subcategorias', icon: Layers },
+      { path: '/users', label: 'Usuários', icon: Users },
+      { path: '/reports', label: 'Relatórios', icon: BarChart2 }
+    );
+  }
 
-        {isMasterAdmin && (
-          <div className="pt-3 mt-3 border-t border-sidebar-border space-y-1">
-            <p className="px-3 pb-1 text-[10px] uppercase tracking-wider opacity-60">Mudar área</p>
-            <Link
-              to="/master"
-              onClick={() => setOpen(false)}
-              className="flex items-center gap-3 rounded-md px-3 py-2 text-sm hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-            >
-              <LayoutDashboard className="h-4 w-4" />
-              Área Master
-            </Link>
-            {impersonatedClientId && !location.pathname.startsWith("/master") && (
-              <button
-                onClick={() => { setImpersonatedClient(null); setOpen(false); navigate("/master/clients"); }}
-                className="w-full flex items-center gap-3 rounded-md px-3 py-2 text-sm hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-              >
-                <X className="h-4 w-4" />
-                Sair da personificação
-              </button>
-            )}
-          </div>
-        )}
-      </nav>
-      <div className="border-t border-sidebar-border p-3">
-        <p className="px-2 py-1 text-xs opacity-70 truncate">{fullName || "Usuário"}</p>
-        <Button variant="ghost" size="sm" onClick={handleSignOut} className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground">
-          <LogOut className="h-4 w-4 mr-2" /> Sair
-        </Button>
-      </div>
-    </div>
-  );
+  // 2. Master Admin Menu
+  if (isMasterAdmin) {
+    // Add spacer/header for administration
+    menuItems.push({ isHeader: true, label: 'Painel Master' });
+    menuItems.push(
+      { path: '/master', label: 'Dashboard Master', icon: ShieldAlert },
+      { path: '/master/clients', label: 'Clientes', icon: Briefcase },
+      { path: '/master/categories', label: 'Categorias Globais', icon: Tag },
+      { path: '/master/company-types', label: 'Tipos de Empresa', icon: Building2 }
+    );
+  }
+
+  const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
 
   return (
-    <div className="flex min-h-screen">
-      {/* Desktop sidebar */}
-      <aside className="hidden md:block w-64 shrink-0">{SidebarContent}</aside>
-
-      {/* Mobile sidebar */}
-      {open && (
-        <div className="md:hidden fixed inset-0 z-40 flex">
-          <div className="absolute inset-0 bg-black/40" onClick={() => setOpen(false)} />
-          <aside className="relative w-64">{SidebarContent}</aside>
+    <div style={{ display: 'flex', minHeight: '100vh', flexDirection: 'column' }}>
+      
+      {/* Impersonation Banner */}
+      {isMasterAdmin && impersonatedClientId && (
+        <div 
+          style={{
+            backgroundColor: '#fbbf24',
+            color: '#78350f',
+            padding: '0.5rem 1.5rem',
+            fontSize: '0.875rem',
+            fontWeight: 600,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            zIndex: 1100,
+            boxShadow: 'var(--shadow-sm)',
+            borderBottom: '1px solid #d97706',
+          }}
+        >
+          <div className="flex items-center gap-2">
+            <EyeOff size={16} />
+            <span>Você está acessando o sistema como: <strong>{clientName || 'Carregando...'}</strong></span>
+          </div>
+          <button 
+            onClick={handleStopImpersonation}
+            className="btn"
+            style={{
+              padding: '0.25rem 0.75rem',
+              fontSize: '0.75rem',
+              backgroundColor: '#78350f',
+              color: '#fef3c7',
+              borderRadius: 'var(--radius-sm)'
+            }}
+          >
+            Sair do acesso simulado
+          </button>
         </div>
       )}
 
-      <div className="flex-1 flex flex-col min-w-0">
-        <header className="flex items-center justify-between border-b bg-card px-4 md:px-6 py-3">
-          <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setOpen((v) => !v)}>
-            {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-          </Button>
-          <div className="flex-1 md:flex-initial flex items-center gap-2">
-            <h1 className="text-sm md:text-base font-medium">{clientName || (isMasterAdmin ? "Painel Master" : "")}</h1>
-            {isMasterAdmin && impersonatedClientId && !location.pathname.startsWith("/master") && (
-              <span className="inline-flex items-center gap-1 text-[10px] md:text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">
-                <UserCog className="h-3 w-3" /> Visualizando como cliente
-              </span>
-            )}
+      <div style={{ display: 'flex', flex: 1, position: 'relative' }}>
+        
+        {/* Mobile Header */}
+        <header 
+          style={{
+            display: 'none',
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            height: '60px',
+            backgroundColor: 'var(--glass-bg)',
+            backdropFilter: 'blur(var(--glass-blur))',
+            borderBottom: '1px solid hsl(var(--card-border))',
+            padding: '0 1rem',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            zIndex: 900,
+          }}
+          className="mobile-header-el"
+        >
+          <button 
+            onClick={toggleSidebar} 
+            className="btn btn-ghost btn-icon"
+            aria-label="Abrir menu"
+          >
+            <Menu size={20} />
+          </button>
+          <div className="flex items-center gap-2">
+            <img src="/logo.png" alt="Logo" style={{ width: '1.75rem', height: '1.75rem', borderRadius: '4px' }} />
+            <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 700, fontSize: '1.1rem' }}>
+              Ciclo Lixo Zero
+            </span>
           </div>
-          <div className="text-xs text-muted-foreground hidden sm:block">{fullName}</div>
+          <div style={{ width: '36px' }} /> {/* Spacer */}
         </header>
-        <main className="flex-1 p-4 md:p-6 bg-background overflow-x-hidden">{children}</main>
+
+        {/* Sidebar Navigation */}
+        <aside 
+          style={{
+            width: '260px',
+            backgroundColor: 'hsl(var(--card))',
+            borderRight: '1px solid hsl(var(--card-border))',
+            display: 'flex',
+            flexDirection: 'column',
+            position: 'fixed',
+            top: isMasterAdmin && impersonatedClientId ? '45px' : 0,
+            bottom: 0,
+            left: 0,
+            zIndex: 950,
+            transition: 'transform 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+          }}
+          className={`sidebar-nav-el ${sidebarOpen ? 'open' : ''}`}
+        >
+          {/* Sidebar Header */}
+          <div 
+            style={{
+              padding: '1.5rem 1.25rem',
+              borderBottom: '1px solid hsl(var(--card-border))',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between'
+            }}
+          >
+             <div className="flex items-center gap-2">
+              <img 
+                src="/logo.png" 
+                alt="Ciclo Lixo Zero Logo" 
+                style={{
+                  width: '2.25rem',
+                  height: '2.25rem',
+                  borderRadius: 'var(--radius-sm)',
+                  objectFit: 'cover'
+                }}
+              />
+              <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 700, fontSize: '1.15rem', letterSpacing: '-0.02em' }}>
+                Ciclo Lixo Zero
+              </span>
+            </div>
+            <button 
+              onClick={toggleSidebar} 
+              className="btn btn-ghost btn-icon mobile-close-btn"
+              style={{ display: 'none' }}
+              aria-label="Fechar menu"
+            >
+              <X size={18} />
+            </button>
+          </div>
+
+          {/* User/Client Details */}
+          {clientName && (
+            <div 
+              style={{
+                padding: '0.875rem 1.25rem',
+                borderBottom: '1px solid hsl(var(--card-border))',
+                backgroundColor: 'rgba(34, 197, 94, 0.02)',
+              }}
+            >
+              <p className="text-muted text-xs font-medium uppercase" style={{ letterSpacing: '0.05em' }}>Cliente Ativo</p>
+              <p className="font-semibold text-sm truncate" style={{ marginTop: '0.125rem' }}>{clientName}</p>
+            </div>
+          )}
+
+          {/* Navigation Links */}
+          <nav style={{ flex: 1, padding: '1.25rem 0.75rem', overflowY: 'auto' }} className="flex flex-col gap-1">
+            {menuItems.map((item, idx) => {
+              if ('isHeader' in item) {
+                return (
+                  <div 
+                    key={`header-${idx}`} 
+                    style={{ 
+                      padding: '1.25rem 0.5rem 0.5rem', 
+                      fontSize: '0.75rem', 
+                      fontWeight: 700, 
+                      textTransform: 'uppercase', 
+                      color: 'hsl(var(--muted-foreground))',
+                      letterSpacing: '0.08em'
+                    }}
+                  >
+                    {item.label}
+                  </div>
+                );
+              }
+
+              const Icon = item.icon!;
+              const isActive = location.pathname === item.path;
+
+              return (
+                <Link
+                  key={item.path}
+                  to={item.path!}
+                  onClick={() => setSidebarOpen(false)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '0.75rem 0.875rem',
+                    borderRadius: 'var(--radius-md)',
+                    fontWeight: 500,
+                    fontSize: '0.925rem',
+                    color: isActive ? 'hsl(var(--primary-foreground))' : 'hsl(var(--foreground))',
+                    backgroundColor: isActive ? 'hsl(var(--primary))' : 'transparent',
+                    transition: 'all 0.2s ease',
+                  }}
+                  className={`menu-link ${isActive ? '' : 'hoverable'}`}
+                >
+                  <div className="flex items-center gap-3">
+                    <Icon size={18} opacity={isActive ? 1 : 0.75} />
+                    <span>{item.label}</span>
+                  </div>
+                  {isActive && <ChevronRight size={14} />}
+                </Link>
+              );
+            })}
+          </nav>
+
+          {/* Sidebar Footer (Logout) */}
+          <div 
+            style={{
+              padding: '1rem 0.75rem',
+              borderTop: '1px solid hsl(var(--card-border))',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '0.75rem',
+            }}
+          >
+            <div className="flex items-center gap-3" style={{ padding: '0 0.5rem' }}>
+              <div 
+                style={{
+                  width: '2.25rem',
+                  height: '2.25rem',
+                  borderRadius: '50%',
+                  backgroundColor: 'hsl(var(--secondary))',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: 'hsl(var(--secondary-foreground))'
+                }}
+              >
+                <UserIcon size={16} />
+              </div>
+              <div style={{ overflow: 'hidden' }}>
+                <p className="font-semibold text-xs truncate">{profile?.full_name || user?.email}</p>
+                <p className="text-muted text-xs truncate" style={{ fontSize: '0.7rem' }}>{user?.email}</p>
+              </div>
+            </div>
+            <button 
+              onClick={signOut}
+              className="btn btn-outline"
+              style={{ width: '100%', padding: '0.5rem 1rem', fontSize: '0.85rem' }}
+            >
+              <LogOut size={16} />
+              <span>Sair do sistema</span>
+            </button>
+          </div>
+        </aside>
+
+        {/* Backdrop for mobile */}
+        {sidebarOpen && (
+          <div 
+            onClick={toggleSidebar}
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: 'rgba(0,0,0,0.3)',
+              backdropFilter: 'blur(2px)',
+              zIndex: 920,
+            }}
+            className="sidebar-backdrop"
+          />
+        )}
+
+        {/* Main Content Area */}
+        <main 
+          style={{
+            flex: 1,
+            padding: '2rem 2.5rem',
+            marginLeft: '260px',
+            backgroundColor: 'hsl(var(--background))',
+            minHeight: '100vh',
+            transition: 'margin-left 0.3s ease',
+          }}
+          className="main-content-el"
+        >
+          {children}
+        </main>
       </div>
+
+      {/* CSS adjustments in JSX for responsive styling */}
+      <style>{`
+        @media (max-width: 991px) {
+          .mobile-header-el {
+            display: flex !important;
+          }
+          .sidebar-nav-el {
+            transform: translateX(-260px);
+            top: 60px !important;
+          }
+          .sidebar-nav-el.open {
+            transform: translateX(0);
+          }
+          .main-content-el {
+            margin-left: 0 !important;
+            padding: 5.5rem 1rem 2rem !important;
+          }
+          .mobile-close-btn {
+            display: inline-flex !important;
+          }
+        }
+        .menu-link.hoverable:hover {
+          background-color: hsl(var(--muted));
+          color: hsl(var(--primary));
+        }
+      `}</style>
     </div>
   );
 };

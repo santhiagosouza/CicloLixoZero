@@ -1,197 +1,334 @@
-import { useEffect, useMemo, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/contexts/AuthContext";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
-import { ConfirmDialog } from "@/components/ConfirmDialog";
-import { Pencil, Plus, Trash2 } from "lucide-react";
-import { toast } from "sonner";
+import React, { useEffect, useState } from 'react';
+import { useAuth } from '../contexts/AuthContext';
+import { supabase } from '../integrations/supabase/client';
+import { Plus, Trash2, ShieldAlert, ToggleLeft, ToggleRight } from 'lucide-react';
 
-interface Sub { id: string; name: string; active: boolean; category_id: string; }
-interface Category { id: string; name: string; color: string | null; }
+interface Category { id: string; name: string }
+interface Type { id: string; category_id: string; name: string }
+interface Subcategory {
+  id: string;
+  type_id: string;
+  name: string;
+  active: boolean;
+  client_id: string | null;
+}
 
-const CATEGORY_ORDER = ["Orgânico", "Reciclável", "Perigoso", "Rejeito"];
+const Subcategories: React.FC = () => {
+  const { clientId, isClientAdmin, isMasterAdmin } = useAuth();
+  const canManage = isClientAdmin || isMasterAdmin;
 
-const Subcategories = () => {
-  const { clientId, isClientAdmin } = useAuth();
-  const [items, setItems] = useState<Sub[]>([]);
-  const [cats, setCats] = useState<Category[]>([]);
-  const [reload, setReload] = useState(0);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [types, setTypes] = useState<Type[]>([]);
+  const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // create dialog
-  const [open, setOpen] = useState(false);
-  const [name, setName] = useState("");
-  const [catId, setCatId] = useState("");
+  // Form state
+  const [selectedCatId, setSelectedCatId] = useState('');
+  const [selectedTypeId, setSelectedTypeId] = useState('');
+  const [name, setName] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  // edit dialog
-  const [editing, setEditing] = useState<Sub | null>(null);
-  const [editName, setEditName] = useState("");
-  const [editCatId, setEditCatId] = useState("");
+  // Mappings
+  const [typeMap, setTypeMap] = useState<Record<string, { name: string; catName: string }>>({});
+
+  // Modal delete state
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+
+  const fetchData = async () => {
+    if (!clientId) return;
+    setLoading(true);
+    try {
+      const [catRes, typeRes, subRes] = await Promise.all([
+        supabase.from('categories').select('id, name').order('name'),
+        supabase.from('types').select('id, category_id, name').order('name'),
+        supabase.from('subcategories')
+          .select('id, type_id, name, active, client_id')
+          .or(`client_id.is.null,client_id.eq.${clientId}`)
+          .order('name')
+      ]);
+
+      if (catRes.error) throw catRes.error;
+      if (typeRes.error) throw typeRes.error;
+      if (subRes.error) throw subRes.error;
+
+      const cats = (catRes.data || []) as Category[];
+      const typs = (typeRes.data || []) as Type[];
+      const subs = (subRes.data || []) as Subcategory[];
+
+      setCategories(cats);
+      setTypes(typs);
+      setSubcategories(subs);
+
+      // Build mapping for display
+      const catMap = Object.fromEntries(cats.map(c => [c.id, c.name]));
+      const tMap: Record<string, { name: string; catName: string }> = {};
+      typs.forEach(t => {
+        tMap[t.id] = { name: t.name, catName: catMap[t.category_id] || '—' };
+      });
+      setTypeMap(tMap);
+    } catch (err: any) {
+      console.error('Erro ao buscar subcategorias:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    if (!clientId) return;
-    Promise.all([
-      supabase.from("subcategories").select("*").eq("client_id", clientId).order("name"),
-      supabase.from("categories").select("id, name, color").order("name"),
-    ]).then(([s, c]) => {
-      setItems((s.data ?? []) as Sub[]);
-      setCats((c.data ?? []) as Category[]);
-    });
-  }, [clientId, reload]);
+    fetchData();
+  }, [clientId]);
 
-  const orderedCats = useMemo(() => {
-    return [...cats].sort((a, b) => {
-      const ia = CATEGORY_ORDER.indexOf(a.name);
-      const ib = CATEGORY_ORDER.indexOf(b.name);
-      if (ia === -1 && ib === -1) return a.name.localeCompare(b.name);
-      if (ia === -1) return 1;
-      if (ib === -1) return -1;
-      return ia - ib;
-    });
-  }, [cats]);
+  // Reset Type selection when Category changes
+  useEffect(() => {
+    setSelectedTypeId('');
+  }, [selectedCatId]);
 
-  const create = async () => {
-    if (!name.trim() || !catId) return;
-    const { error } = await supabase.from("subcategories").insert({ client_id: clientId!, name: name.trim(), category_id: catId });
-    if (error) toast.error(error.message);
-    else { toast.success("Categoria criada"); setName(""); setCatId(""); setOpen(false); setReload((k) => k + 1); }
+  const handleCreateSubcategory = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!name.trim() || !selectedTypeId || !clientId) return;
+
+    setSubmitting(true);
+    setErrorMsg(null);
+
+    try {
+      const { error } = await supabase
+        .from('subcategories')
+        .insert({
+          client_id: clientId,
+          type_id: selectedTypeId,
+          name: name.trim(),
+          active: true
+        });
+
+      if (error) {
+        if (error.message.includes('unique')) {
+          throw new Error('Já existe uma subcategoria com este nome para este tipo de material.');
+        }
+        throw error;
+      }
+
+      setName('');
+      fetchData();
+    } catch (err: any) {
+      setErrorMsg(err.message || 'Erro ao criar subcategoria.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
-  const saveEdit = async () => {
-    if (!editing || !editName.trim() || !editCatId) return;
-    const { error } = await supabase.from("subcategories").update({ name: editName.trim(), category_id: editCatId }).eq("id", editing.id);
-    if (error) toast.error(error.message);
-    else { toast.success("Atualizada"); setEditing(null); setReload((k) => k + 1); }
+  const handleToggleActive = async (sub: Subcategory) => {
+    if (!canManage || !sub.client_id) return; // Cannot alter global default subcategories
+    try {
+      const { error } = await supabase
+        .from('subcategories')
+        .update({ active: !sub.active })
+        .eq('id', sub.id);
+
+      if (error) throw error;
+      fetchData();
+    } catch (err: any) {
+      alert('Erro ao alterar status: ' + err.message);
+    }
   };
 
-  const toggle = async (s: Sub) => {
-    const { error } = await supabase.from("subcategories").update({ active: !s.active }).eq("id", s.id);
-    if (error) toast.error(error.message); else setReload((k) => k + 1);
+  const handleDeleteSubcategory = async (sid: string) => {
+    try {
+      const { error } = await supabase
+        .from('subcategories')
+        .delete()
+        .eq('id', sid);
+
+      if (error) {
+        if (error.message.includes('foreign key')) {
+          throw new Error('Não é possível excluir esta subcategoria pois já existem pesagens vinculadas a ela. Tente desativá-la.');
+        }
+        throw error;
+      }
+
+      setDeleteConfirmId(null);
+      fetchData();
+    } catch (err: any) {
+      alert(err.message || 'Erro ao excluir subcategoria.');
+    }
   };
 
-  const remove = async (id: string) => {
-    const { error } = await supabase.from("subcategories").delete().eq("id", id);
-    if (error) toast.error(error.message);
-    else { toast.success("Removido"); setReload((k) => k + 1); }
-  };
+  if (loading && subcategories.length === 0) {
+    return (
+      <div className="flex items-center justify-center" style={{ minHeight: '60vh' }}>
+        <p className="text-muted font-medium pulse-active">Carregando subcategorias...</p>
+      </div>
+    );
+  }
 
-  const openEdit = (s: Sub) => {
-    setEditing(s);
-    setEditName(s.name);
-    setEditCatId(s.category_id);
-  };
+  const filteredTypes = types.filter(t => t.category_id === selectedCatId);
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold">Categorias</h1>
-          <p className="text-sm text-muted-foreground">Tipos específicos de resíduos da sua operação, agrupados por categoria principal</p>
-        </div>
-        {isClientAdmin && (
-          <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild><Button><Plus className="h-4 w-4 mr-2" />Nova subcategoria</Button></DialogTrigger>
-            <DialogContent>
-              <DialogHeader><DialogTitle>Nova subcategoria</DialogTitle></DialogHeader>
-              <div className="space-y-3">
-                <div className="space-y-2"><Label>Nome</Label><Input value={name} onChange={(e) => setName(e.target.value)} /></div>
-                <div className="space-y-2">
-                  <Label>Categoria principal</Label>
-                  <Select value={catId} onValueChange={setCatId}>
-                    <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
-                    <SelectContent>{orderedCats.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}</SelectContent>
-                  </Select>
+    <div className="flex flex-col gap-4">
+      <div>
+        <h1 style={{ fontSize: '2rem', margin: 0 }}>Gerenciamento de Subcategorias</h1>
+        <p className="text-muted text-sm font-medium">Cadastre subcategorias personalizadas vinculadas aos tipos globais</p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4" style={{ alignItems: 'start' }}>
+        {/* CREATE SUBCATEGORY FORM */}
+        {canManage ? (
+          <div className="card">
+            <h2 className="card-title mb-4">Nova Subcategoria</h2>
+            <form onSubmit={handleCreateSubcategory} className="flex flex-col gap-3">
+              {errorMsg && (
+                <div style={{ backgroundColor: 'rgba(239,68,68,0.08)', color: 'hsl(var(--destructive))', border: '1px solid rgba(239,68,68,0.15)', borderRadius: 'var(--radius-md)', padding: '0.75rem', fontSize: '0.85rem', fontWeight: 500 }}>
+                  {errorMsg}
                 </div>
+              )}
+              
+              <div className="form-group">
+                <label className="form-label">Categoria</label>
+                <select className="form-select" value={selectedCatId} onChange={e => setSelectedCatId(e.target.value)} required>
+                  <option value="">Selecione...</option>
+                  {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                </select>
               </div>
-              <DialogFooter><Button onClick={create}>Criar</Button></DialogFooter>
-            </DialogContent>
-          </Dialog>
+
+              <div className="form-group">
+                <label className="form-label">Tipo de Material</label>
+                <select 
+                  className="form-select" 
+                  value={selectedTypeId} 
+                  onChange={e => setSelectedTypeId(e.target.value)} 
+                  disabled={!selectedCatId} 
+                  required
+                >
+                  <option value="">Selecione...</option>
+                  {filteredTypes.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Nome da Subcategoria</label>
+                <input 
+                  type="text" 
+                  className="form-input" 
+                  placeholder="Ex: Copo PP, Papel Kraft" 
+                  value={name} 
+                  onChange={e => setName(e.target.value)} 
+                  required 
+                  disabled={submitting || !selectedTypeId}
+                />
+              </div>
+
+              <button type="submit" className="btn btn-primary" style={{ width: '100%' }} disabled={submitting || !selectedTypeId}>
+                <Plus size={16} />
+                <span>Adicionar</span>
+              </button>
+            </form>
+          </div>
+        ) : (
+          <div className="card">
+            <p className="text-muted text-sm">Apenas administradores podem cadastrar novas subcategorias de materiais.</p>
+          </div>
         )}
-      </div>
 
-      <div className="space-y-4">
-        {orderedCats.map((cat) => {
-          const subs = items
-            .filter((i) => i.category_id === cat.id)
-            .sort((a, b) => a.name.localeCompare(b.name));
-          return (
-            <Card key={cat.id}>
-              <CardHeader className="pb-3">
-                <CardTitle className="flex items-center gap-2 text-base">
-                  <span
-                    className="inline-block h-3 w-3 rounded-full border"
-                    style={{ backgroundColor: cat.color ?? "transparent" }}
-                  />
-                  {cat.name}
-                  <span className="ml-auto text-xs font-normal text-muted-foreground">
-                    {subs.length} {subs.length === 1 ? "item" : "itens"}
-                  </span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="pt-0">
-                {subs.length === 0 ? (
-                  <p className="text-sm text-muted-foreground py-4 text-center">Nenhuma categoria cadastrada</p>
+        {/* LIST TABLE OF SUBCATEGORIES */}
+        <div className="card md:col-span-2">
+          <h2 className="card-title">Subcategorias Disponíveis</h2>
+          <p className="card-description mb-4">Lista que engloba as subcategorias padrões globais e as personalizadas criadas por você</p>
+
+          <div className="table-container">
+            <table className="table">
+              <thead>
+                <tr>
+                  <th>Nome</th>
+                  <th>Categoria</th>
+                  <th>Tipo</th>
+                  <th>Origem</th>
+                  <th>Status</th>
+                  {canManage && <th style={{ width: '120px', textAlign: 'right' }} />}
+                </tr>
+              </thead>
+              <tbody>
+                {subcategories.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className="text-center text-muted" style={{ padding: '2.5rem 0' }}>
+                      Nenhuma subcategoria cadastrada.
+                    </td>
+                  </tr>
                 ) : (
-                  <ul className="divide-y">
-                    {subs.map((s) => (
-                      <li key={s.id} className="flex items-center justify-between py-2 gap-2">
-                        <span className={`text-sm ${s.active ? "" : "text-muted-foreground line-through"}`}>
-                          {s.name}
-                        </span>
-                        <div className="flex items-center gap-1">
-                          <Switch
-                            checked={s.active}
-                            onCheckedChange={() => toggle(s)}
-                            disabled={!isClientAdmin}
-                          />
-                          {isClientAdmin && (
-                            <>
-                              <Button variant="ghost" size="icon" onClick={() => openEdit(s)}>
-                                <Pencil className="h-4 w-4" />
-                              </Button>
-                              <ConfirmDialog
-                                trigger={<Button variant="ghost" size="icon"><Trash2 className="h-4 w-4" /></Button>}
-                                title="Remover categoria?"
-                                destructive
-                                onConfirm={() => remove(s.id)}
-                              />
-                            </>
-                          )}
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
+                  subcategories.map(s => {
+                    const isGlobal = s.client_id === null;
+                    const typeInfo = typeMap[s.type_id] || { name: '—', catName: '—' };
+                    
+                    return (
+                      <tr key={s.id}>
+                        <td className="font-semibold">{s.name}</td>
+                        <td><span className="text-sm font-medium">{typeInfo.catName}</span></td>
+                        <td>{typeInfo.name}</td>
+                        <td>
+                          <span className={`badge ${isGlobal ? 'badge-info' : 'badge-default'}`}>
+                            {isGlobal ? 'Padrão Sistema' : 'Personalizada'}
+                          </span>
+                        </td>
+                        <td>
+                          <span className={`badge ${s.active ? 'badge-success' : 'badge-default'}`}>
+                            {s.active ? 'Ativa' : 'Inativa'}
+                          </span>
+                        </td>
+                        {canManage && (
+                          <td>
+                            {!isGlobal ? (
+                              <div className="flex gap-2 justify-end">
+                                <button 
+                                  onClick={() => handleToggleActive(s)} 
+                                  className="btn btn-ghost btn-icon"
+                                  title={s.active ? 'Desativar' : 'Ativar'}
+                                >
+                                  {s.active ? <ToggleRight size={20} style={{ color: 'hsl(var(--primary))' }} /> : <ToggleLeft size={20} />}
+                                </button>
+                                <button 
+                                  onClick={() => setDeleteConfirmId(s.id)} 
+                                  className="btn btn-ghost btn-icon"
+                                  style={{ color: 'hsl(var(--destructive))' }}
+                                  title="Excluir"
+                                >
+                                  <Trash2 size={16} />
+                                </button>
+                              </div>
+                            ) : (
+                              <div className="text-right text-muted text-xs font-semibold" style={{ paddingRight: '0.75rem' }}>
+                                Bloqueada
+                              </div>
+                            )}
+                          </td>
+                        )}
+                      </tr>
+                    );
+                  })
                 )}
-              </CardContent>
-            </Card>
-          );
-        })}
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
 
-      <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
-        <DialogContent>
-          <DialogHeader><DialogTitle>Editar categoria</DialogTitle></DialogHeader>
-          <div className="space-y-3">
-            <div className="space-y-2"><Label>Nome</Label><Input value={editName} onChange={(e) => setEditName(e.target.value)} /></div>
-            <div className="space-y-2">
-              <Label>Categoria principal</Label>
-              <Select value={editCatId} onValueChange={setEditCatId}>
-                <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
-                <SelectContent>{orderedCats.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}</SelectContent>
-              </Select>
+      {/* CONFIRM MODAL: DELETE SUBCATEGORY */}
+      {deleteConfirmId && (
+        <div className="modal-overlay">
+          <div className="modal-content" style={{ maxWidth: '400px' }}>
+            <div className="modal-header">
+              <h3 className="modal-title flex items-center gap-2" style={{ color: 'hsl(var(--destructive))' }}>
+                <ShieldAlert size={20} />
+                Excluir Subcategoria
+              </h3>
+            </div>
+            <p className="text-sm text-muted" style={{ margin: '0.75rem 0' }}>
+              Tem certeza que deseja excluir esta subcategoria personalizada permanentemente? Esta ação só terá sucesso se não houverem pesagens vinculadas.
+            </p>
+            <div className="modal-footer">
+              <button onClick={() => setDeleteConfirmId(null)} className="btn btn-secondary">Cancelar</button>
+              <button onClick={() => handleDeleteSubcategory(deleteConfirmId)} className="btn btn-danger">Excluir</button>
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setEditing(null)}>Cancelar</Button>
-            <Button onClick={saveEdit}>Salvar</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        </div>
+      )}
     </div>
   );
 };

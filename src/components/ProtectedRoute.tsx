@@ -1,16 +1,30 @@
-import { Navigate } from "react-router-dom";
-import { ReactNode } from "react";
-import { useAuth } from "@/contexts/AuthContext";
+import React from 'react';
+import { Navigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 
-export const ProtectedRoute = ({ children, requireMaster, requireClient }: { children: ReactNode; requireMaster?: boolean; requireClient?: boolean }) => {
-  const { user, loading, isMasterAdmin, clientId } = useAuth();
+interface ProtectedRouteProps {
+  children: React.ReactNode;
+  requireMaster?: boolean;
+}
+
+export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requireMaster = false }) => {
+  const { user, isMasterAdmin, loading } = useAuth();
 
   if (loading) {
-    return <div className="flex min-h-screen items-center justify-center text-muted-foreground">Carregando...</div>;
+    return (
+      <div className="flex items-center justify-center" style={{ minHeight: '100vh' }}>
+        <p className="text-muted font-medium pulse-active">Carregando permissões...</p>
+      </div>
+    );
   }
-  if (!user) return <Navigate to="/auth" replace />;
-  if (requireMaster && !isMasterAdmin) return <Navigate to="/" replace />;
-  if (requireClient && !clientId && !isMasterAdmin) return <Navigate to="/" replace />;
+
+  if (!user) {
+    return <Navigate to="/auth" replace />;
+  }
+
+  if (requireMaster && !isMasterAdmin) {
+    return <Navigate to="/" replace />;
+  }
 
   return <>{children}</>;
 };

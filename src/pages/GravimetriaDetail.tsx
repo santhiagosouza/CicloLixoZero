@@ -1,702 +1,1160 @@
-import React, { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/contexts/AuthContext";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import React, { useEffect, useState } from 'react';
+import { useParams, Link } from 'react-router-dom';
+import { supabase } from '../integrations/supabase/client';
+import { useAuth } from '../contexts/AuthContext';
+import { 
+  ArrowLeft, 
+  Printer, 
+  FileSpreadsheet, 
+  Download, 
+  Pencil, 
+  Scale, 
+  Leaf, 
+  Recycle, 
+  AlertTriangle, 
+  Ban, 
+  ChevronRight, 
+  Check, 
+  X, 
+  Trash2,
+  Calendar,
+  Eye,
+  Settings
+} from 'lucide-react';
+import * as XLSX from 'xlsx';
+import * as Recharts from 'recharts';
+import { residuosFinanceiro } from '../data/residuosFinanceiro';
 
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { ConfirmDialog } from "@/components/ConfirmDialog";
-import { toast } from "sonner";
-import { ArrowLeft, Download, Printer, FileSpreadsheet, Scale, Leaf, Recycle, AlertTriangle, Ban, Pencil, Check, X, Trash2, CalendarCog, Search, ChevronRight } from "lucide-react";
-import * as XLSX from "xlsx";
-import * as Recharts from "recharts";
-const { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Legend, LabelList } = Recharts as any;
+const { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, LabelList } = Recharts as any;
 
 interface Weighing {
-  id: string; data: string; peso_kg: number;
-  sector_id: string; category_id: string; subcategory_id: string;
+  id: string;
+  data: string;
+  peso_kg: number;
+  sector_id: string;
+  category_id: string;
+  type_id: string;
+  subcategory_id: string;
+  classification_id: string;
 }
 
-const GravimetriaDetail = () => {
+interface Sector { id: string; name: string }
+interface Classification { id: string; name: string }
+interface Category { id: string; name: string; color: string | null }
+interface Type { id: string; name: string; color: string | null; category_id?: string; default_classification_id?: string | null }
+interface Subcategory { id: string; name: string; type_id?: string }
+
+const GravimetriaDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const { isClientAdmin, isMasterAdmin } = useAuth();
   const canEdit = isClientAdmin || isMasterAdmin;
+
   const [grav, setGrav] = useState<any>(null);
   const [weighings, setWeighings] = useState<Weighing[]>([]);
-  const [sectors, setSectors] = useState<{ id: string; name: string }[]>([]);
-  const [categories, setCategories] = useState<{ id: string; name: string; color: string | null }[]>([]);
-  const [subcategories, setSubcategories] = useState<{ id: string; name: string; category_id: string }[]>([]);
-  const [sectorMap, setSectorMap] = useState<Record<string, string>>({});
-  const [categoryMap, setCategoryMap] = useState<Record<string, { name: string; color: string | null }>>({});
-  const [subMap, setSubMap] = useState<Record<string, string>>({});
+  const [loading, setLoading] = useState(true);
   const [reloadKey, setReloadKey] = useState(0);
 
-  // edit modes
-  const [showDetailed, setShowDetailed] = useState(false);
-  const [showLanc, setShowLanc] = useState(false);
-  const [editId, setEditId] = useState<string | null>(null);
-  const [editData, setEditData] = useState("");
-  const [editSector, setEditSector] = useState("");
-  const [editCategory, setEditCategory] = useState("");
-  const [editSub, setEditSub] = useState("");
-  const [editPeso, setEditPeso] = useState("");
+  // Aux configuration
+  const [sectors, setSectors] = useState<Sector[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [types, setTypes] = useState<Type[]>([]);
+  const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
 
-  // edit days dialog
-  const [editDaysOpen, setEditDaysOpen] = useState(false);
-  const [editDaysValue, setEditDaysValue] = useState("");
+  // Maps
+  const [sectorMap, setSectorMap] = useState<Record<string, string>>({});
+  const [categoryMap, setCategoryMap] = useState<Record<string, Category>>({});
+  const [typeMap, setTypeMap] = useState<Record<string, Type>>({});
+  const [subMap, setSubMap] = useState<Record<string, string>>({});
+  const [classMap, setClassMap] = useState<Record<string, string>>({});
+
+  // View state
+  const [showDetailed, setShowDetailed] = useState(true);
+  const [showWeighings, setShowWeighings] = useState(false);
   const [expandedSectors, setExpandedSectors] = useState<Set<string>>(new Set());
+
+  // Edit states
+  const [editId, setEditId] = useState<string | null>(null);
+  const [editData, setEditData] = useState('');
+  const [editSector, setEditSector] = useState('');
+  const [editCategory, setEditCategory] = useState('');
+  const [editType, setEditType] = useState('');
+  const [editSub, setEditSub] = useState('');
+  const [editClass, setEditClass] = useState('');
+  const [editPeso, setEditPeso] = useState('');
+
+  // Edit Days dialog state
+  const [editDaysOpen, setEditDaysOpen] = useState(false);
+  const [editDaysValue, setEditDaysValue] = useState('');
+
+  // Delete dialog state
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!id) return;
-    (async () => {
-      const { data: g } = await supabase.from("gravimetrias").select("*").eq("id", id).maybeSingle();
-      setGrav(g);
-      const { data: w } = await supabase.from("weighings").select("*").eq("gravimetria_id", id).order("data");
-      const ws = (w ?? []) as Weighing[];
-      setWeighings(ws);
-      if (g) {
-        const [sec, cat, sub] = await Promise.all([
-          supabase.from("sectors").select("id, name").eq("client_id", g.client_id).eq("active", true).order("name"),
-          supabase.from("categories").select("id, name, color").order("name"),
-          supabase.from("subcategories").select("id, name, category_id").eq("client_id", g.client_id).eq("active", true).order("name"),
-        ]);
-        const secs = (sec.data ?? []) as any[];
-        const cats = (cat.data ?? []) as any[];
-        const subs = (sub.data ?? []) as any[];
-        setSectors(secs);
-        setCategories(cats);
-        setSubcategories(subs);
-        setSectorMap(Object.fromEntries(secs.map((s: any) => [s.id, s.name])));
-        setCategoryMap(Object.fromEntries(cats.map((c: any) => [c.id, { name: c.name, color: c.color }])));
-        setSubMap(Object.fromEntries(subs.map((s: any) => [s.id, s.name])));
+
+    const fetchDetail = async () => {
+      setLoading(true);
+      try {
+        let gRes = await supabase
+          .from('gravimetrias')
+          .select('*, clients(name, uf)')
+          .eq('id', id)
+          .maybeSingle();
+
+        if (gRes.error && (gRes.error.message?.includes('uf') || gRes.error.code === '42703')) {
+          console.warn('Coluna clients.uf não existe no banco de dados remoto. Buscando sem UF e usando fallback...');
+          gRes = await supabase
+            .from('gravimetrias')
+            .select('*, clients(name)')
+            .eq('id', id)
+            .maybeSingle();
+          
+          if (gRes.data) {
+            (gRes.data as any).clients = {
+              ...(gRes.data as any).clients,
+              uf: 'SP'
+            };
+          }
+        }
+
+        if (gRes.error) throw gRes.error;
+        const g = gRes.data;
+        setGrav(g);
+
+        if (g) {
+          const [wRes, secRes, classRes, catRes, typeRes, subRes] = await Promise.all([
+            supabase.from('weighings').select('*').eq('gravimetria_id', id).order('data'),
+            supabase.from('sectors').select('id, name').eq('client_id', g.client_id).eq('active', true).order('name'),
+            supabase.from('classifications').select('id, name'),
+            supabase.from('categories').select('id, name, color').order('name'),
+            supabase.from('types').select('id, category_id, name, color, default_classification_id').order('name'),
+            supabase.from('subcategories').select('id, type_id, name').or(`client_id.is.null,client_id.eq.${g.client_id}`).order('name')
+          ]);
+
+          const ws = (wRes.data || []) as Weighing[];
+          setWeighings(ws);
+
+          const secs = (secRes.data || []) as Sector[];
+          const classes = (classRes.data || []) as Classification[];
+          const cats = (catRes.data || []) as Category[];
+          const typs = (typeRes.data || []) as Type[];
+          const subs = (subRes.data || []) as Subcategory[];
+
+          setSectors(secs);
+          setCategories(cats);
+          setTypes(typs);
+          setSubcategories(subs);
+
+          setSectorMap(Object.fromEntries(secs.map(s => [s.id, s.name])));
+          setCategoryMap(Object.fromEntries(cats.map(c => [c.id, c])));
+          setTypeMap(Object.fromEntries(typs.map(t => [t.id, t])));
+          setSubMap(Object.fromEntries(subs.map(s => [s.id, s.name])));
+          setClassMap(Object.fromEntries(classes.map(c => [c.id, c.name])));
+        }
+      } catch (err: any) {
+        console.error('Erro ao buscar detalhes da gravimetria:', err);
+      } finally {
+        setLoading(false);
       }
-    })();
+    };
+
+    fetchDetail();
   }, [id, reloadKey]);
 
-  const startEdit = (w: Weighing) => {
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center" style={{ minHeight: '80vh' }}>
+        <p className="text-muted font-medium pulse-active">Carregando relatório analítico...</p>
+      </div>
+    );
+  }
+
+  if (!grav) {
+    return (
+      <div className="card text-center" style={{ margin: '3rem auto', maxWidth: '500px' }}>
+        <h2 style={{ color: 'hsl(var(--destructive))' }}>Gravimetria não encontrada</h2>
+        <p className="text-muted mt-2">O código do estudo especificado não existe ou você não possui permissão de leitura.</p>
+        <Link to="/" className="btn btn-primary mt-4">Voltar</Link>
+      </div>
+    );
+  }
+
+  // Calculations
+  const totalWeight = weighings.reduce((sum, w) => sum + Number(w.peso_kg), 0);
+
+  // Group weighings by Category
+  const byCategory = Object.values(
+    weighings.reduce((acc: Record<string, { id: string; name: string; value: number; color: string }>, w) => {
+      const c = categoryMap[w.category_id];
+      const key = w.category_id;
+      if (!acc[key]) {
+        acc[key] = { id: key, name: c?.name || '—', value: 0, color: c?.color || '#888' };
+      }
+      acc[key].value += Number(w.peso_kg);
+      return acc;
+    }, {})
+  ).sort((a, b) => b.value - a.value);
+
+  // Group weighings by Sector
+  const bySector = Object.values(
+    weighings.reduce((acc: Record<string, { id: string; name: string; value: number }>, w) => {
+      const key = w.sector_id;
+      if (!acc[key]) {
+        acc[key] = { id: key, name: sectorMap[w.sector_id] || '—', value: 0 };
+      }
+      acc[key].value += Number(w.peso_kg);
+      return acc;
+    }, {})
+  ).sort((a, b) => b.value - a.value);
+
+  // Calculate Landfill Diversion Rate (Orgânico + Reciclável) / Total * 100
+  const recyclableWeight = weighings
+    .filter(w => {
+      const catName = categoryMap[w.category_id]?.name || '';
+      return catName.toLowerCase() === 'reciclável';
+    })
+    .reduce((sum, w) => sum + Number(w.peso_kg), 0);
+
+  const organicWeight = weighings
+    .filter(w => {
+      const catName = categoryMap[w.category_id]?.name || '';
+      return catName.toLowerCase() === 'orgânico';
+    })
+    .reduce((sum, w) => sum + Number(w.peso_kg), 0);
+
+  const diversionRate = totalWeight > 0 
+    ? ((recyclableWeight + organicWeight) / totalWeight) * 100 
+    : 0;
+
+  // Projections
+  const days = grav.sample_days || 0;
+  const dailyAvg = days > 0 ? totalWeight / days : 0;
+  const monthlyProjection = dailyAvg * 30;
+  const yearlyProjection = dailyAvg * 365;
+
+  // Valoração Financeira
+  const clientUf = (grav?.clients?.uf || 'SP').toUpperCase();
+  const custoRejeitoKg = (residuosFinanceiro.custo_rejeito as any)[clientUf] ?? 0.36;
+  const economiaAterro = (recyclableWeight + organicWeight) * custoRejeitoKg;
+
+  let receitaMateriais = 0;
+  weighings.forEach(w => {
+    const subName = subMap[w.subcategory_id];
+    if (subName) {
+      const precosUF = (residuosFinanceiro.precos as any)[clientUf] || {};
+      let precoUnitario = 0;
+      const keys = Object.keys(precosUF);
+      const matchKey = keys.find(
+        k => k.toLowerCase() === subName.toLowerCase() || 
+             subName.toLowerCase().startsWith(k.toLowerCase()) || 
+             k.toLowerCase().startsWith(subName.toLowerCase())
+      );
+      
+      if (matchKey) {
+        precoUnitario = precosUF[matchKey] ?? 0;
+      }
+      receitaMateriais += Number(w.peso_kg) * precoUnitario;
+    }
+  });
+  const impactoTotal = economiaAterro + receitaMateriais;
+
+  // Matrix calculations: Sector vs Category
+  // We want to build: Sector -> Record<CategoryId, weight>
+  const orderRef = ['Orgânico', 'Reciclável', 'Perigoso', 'Rejeito'];
+  const allCatIds = Array.from(new Set(weighings.map(w => w.category_id)));
+  const sortedCategories = allCatIds
+    .map(id => ({ id, name: categoryMap[id]?.name || '—', color: categoryMap[id]?.color || '#888' }))
+    .sort((a, b) => {
+      const ai = orderRef.findIndex(o => o.toLowerCase() === a.name.toLowerCase());
+      const bi = orderRef.findIndex(o => o.toLowerCase() === b.name.toLowerCase());
+      return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
+    });
+
+  type MatrixRow = {
+    sectorId: string;
+    sectorName: string;
+    total: number;
+    byCat: Record<string, { total: number; types: Record<string, { name: string; total: number; subs: Record<string, { name: string; total: number }> }> }>;
+  };
+
+  const matrixMap = new Map<string, MatrixRow>();
+  weighings.forEach(w => {
+    let row = matrixMap.get(w.sector_id);
+    if (!row) {
+      row = {
+        sectorId: w.sector_id,
+        sectorName: sectorMap[w.sector_id] || '—',
+        total: 0,
+        byCat: {}
+      };
+      matrixMap.set(w.sector_id, row);
+    }
+    const kg = Number(w.peso_kg);
+    row.total += kg;
+
+    if (!row.byCat[w.category_id]) {
+      row.byCat[w.category_id] = { total: 0, types: {} };
+    }
+    row.byCat[w.category_id].total += kg;
+
+    // Deep nesting for expanded details: Type
+    if (!row.byCat[w.category_id].types[w.type_id]) {
+      row.byCat[w.category_id].types[w.type_id] = { name: typeMap[w.type_id]?.name || '—', total: 0, subs: {} };
+    }
+    row.byCat[w.category_id].types[w.type_id].total += kg;
+
+    // Subcategory
+    if (!row.byCat[w.category_id].types[w.type_id].subs[w.subcategory_id]) {
+      row.byCat[w.category_id].types[w.type_id].subs[w.subcategory_id] = { name: subMap[w.subcategory_id] || '—', total: 0 };
+    }
+    row.byCat[w.category_id].types[w.type_id].subs[w.subcategory_id].total += kg;
+  });
+
+  const matrixRows = Array.from(matrixMap.values()).sort((a, b) => b.total - a.total);
+
+  // Column totals
+  const columnTotals: Record<string, number> = {};
+  sortedCategories.forEach(c => {
+    columnTotals[c.id] = matrixRows.reduce((sum, row) => sum + (row.byCat[c.id]?.total || 0), 0);
+  });
+
+  const editFilteredTypes = types.filter(t => t.category_id === editCategory);
+  const editFilteredSubs = subcategories.filter(s => s.type_id === editType);
+
+  const handleToggleSectorExpand = (secId: string) => {
+    setExpandedSectors(prev => {
+      const next = new Set(prev);
+      if (next.has(secId)) next.delete(secId);
+      else next.add(secId);
+      return next;
+    });
+  };
+
+  const handleStartInlineEdit = (w: Weighing) => {
     setEditId(w.id);
     setEditData(w.data);
     setEditSector(w.sector_id);
     setEditCategory(w.category_id);
+    setEditType(w.type_id);
     setEditSub(w.subcategory_id);
+    setEditClass(w.classification_id);
     setEditPeso(String(w.peso_kg));
   };
-  const cancelEdit = () => setEditId(null);
-  const saveEdit = async (wid: string) => {
-    if (!editSector || !editCategory || !editSub || !editPeso) {
-      toast.error("Preencha todos os campos"); return;
+
+  const handleSaveInlineEdit = async (wid: string) => {
+    if (!editSector || !editCategory || !editType || !editSub || !editClass || !editPeso) {
+      alert('Preencha todos os campos obrigatórios.');
+      return;
     }
-    const { error } = await supabase.from("weighings").update({
-      data: editData,
-      sector_id: editSector,
-      category_id: editCategory,
-      subcategory_id: editSub,
-      peso_kg: Number(editPeso),
-    }).eq("id", wid);
-    if (error) toast.error(error.message);
-    else { toast.success("Pesagem atualizada"); setEditId(null); setReloadKey((k) => k + 1); }
+
+    try {
+      const { error } = await supabase
+        .from('weighings')
+        .update({
+          data: editData,
+          sector_id: editSector,
+          category_id: editCategory,
+          type_id: editType,
+          subcategory_id: editSub,
+          classification_id: editClass,
+          peso_kg: Number(editPeso)
+        })
+        .eq('id', wid);
+
+      if (error) throw error;
+
+      setEditId(null);
+      setReloadKey(k => k + 1);
+    } catch (err: any) {
+      alert('Erro ao atualizar pesagem: ' + err.message);
+    }
   };
-  const removeWeighing = async (wid: string) => {
-    const { error } = await supabase.from("weighings").delete().eq("id", wid);
-    if (error) toast.error(error.message);
-    else { toast.success("Pesagem removida"); setReloadKey((k) => k + 1); }
+
+  const handleRemoveWeighing = async (wid: string) => {
+    try {
+      const { error } = await supabase
+        .from('weighings')
+        .delete()
+        .eq('id', wid);
+
+      if (error) throw error;
+      setDeleteConfirmId(null);
+      setReloadKey(k => k + 1);
+    } catch (err: any) {
+      alert('Erro ao remover pesagem: ' + err.message);
+    }
   };
-  const saveSampleDays = async () => {
+
+  const handleSaveSampleDays = async () => {
     const n = parseInt(editDaysValue, 10);
-    if (!n || n < 1) { toast.error("Informe um número de dias válido"); return; }
-    const { error } = await supabase.from("gravimetrias").update({ sample_days: n }).eq("id", id);
-    if (error) toast.error(error.message);
-    else { toast.success("Dias atualizados"); setEditDaysOpen(false); setEditDaysValue(""); setReloadKey((k) => k + 1); }
+    if (isNaN(n) || n < 1) {
+      alert('Informe um número de dias válido.');
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('gravimetrias')
+        .update({ sample_days: n })
+        .eq('id', id);
+
+      if (error) throw error;
+
+      setEditDaysOpen(false);
+      setEditDaysValue('');
+      setReloadKey(k => k + 1);
+    } catch (err: any) {
+      alert('Erro ao atualizar dias amostrados: ' + err.message);
+    }
   };
 
-  const editFilteredSubs = subcategories.filter((s) => !editCategory || s.category_id === editCategory);
+  // Export to Excel (XLSX)
+  const exportToXLSX = () => {
+    const wb = XLSX.utils.book_new();
 
-  const total = weighings.reduce((s, w) => s + Number(w.peso_kg), 0);
+    // 1. Resumo Sheet
+    const summaryData: any[][] = [
+      ['RELATÓRIO DE GRAVIMETRIA - RESUMO'],
+      ['Estudo Código', id],
+      ['Estudo Número', grav.numero],
+      ['Data de Início', new Date(grav.started_at).toLocaleString('pt-BR')],
+      ['Data de Fim', grav.ended_at ? new Date(grav.ended_at).toLocaleString('pt-BR') : 'Em andamento'],
+      ['Dias Amostrados', grav.sample_days || 'Não informado'],
+      ['Massa Total (kg)', Number(totalWeight.toFixed(2))],
+      ['Taxa de Desvio de Aterro (%)', Number(diversionRate.toFixed(1)) + '%'],
+      [],
+      ['GERAÇÃO POR CATEGORIA'],
+      ['Categoria', 'Massa Gerada (kg)', 'Porcentagem (%)'],
+      ...byCategory.map(c => [
+        c.name, 
+        Number(c.value.toFixed(2)), 
+        Number(((c.value / (totalWeight || 1)) * 100).toFixed(1))
+      ]),
+      [],
+      ['GERAÇÃO POR SETOR'],
+      ['Setor', 'Massa Gerada (kg)', 'Porcentagem (%)'],
+      ...bySector.map(s => [
+        s.name, 
+        Number(s.value.toFixed(2)), 
+        Number(((s.value / (totalWeight || 1)) * 100).toFixed(1))
+      ])
+    ];
 
-  const byCategory = Object.values(weighings.reduce((acc: Record<string, { id: string; name: string; value: number; color: string }>, w) => {
-    const c = categoryMap[w.category_id];
-    const key = w.category_id;
-    if (!acc[key]) acc[key] = { id: key, name: c?.name ?? "—", value: 0, color: c?.color ?? "#8884d8" };
-    acc[key].value += Number(w.peso_kg);
-    return acc;
-  }, {}));
+    const wsSummary = XLSX.utils.aoa_to_sheet(summaryData);
+    XLSX.utils.book_append_sheet(wb, wsSummary, 'Resumo');
 
-  const bySector = Object.values(weighings.reduce((acc: Record<string, { name: string; value: number }>, w) => {
-    const key = w.sector_id;
-    if (!acc[key]) acc[key] = { name: sectorMap[w.sector_id] ?? "—", value: 0 };
-    acc[key].value += Number(w.peso_kg);
-    return acc;
-  }, {}));
-
-  const exportCSV = () => {
-    const rows = [["Data", "Setor", "Categoria", "Subcategoria", "Peso (kg)"]];
-    weighings.forEach((w) => {
-      rows.push([
+    // 2. Detalhes Sheet
+    const detailsData: any[][] = [
+      ['Data', 'Setor', 'Categoria', 'Tipo', 'Subcategoria', 'Classificação', 'Peso (kg)']
+    ];
+    weighings.forEach(w => {
+      detailsData.push([
         w.data,
-        sectorMap[w.sector_id] ?? "",
-        categoryMap[w.category_id]?.name ?? "",
-        subMap[w.subcategory_id] ?? "",
-        Number(w.peso_kg).toFixed(1),
+        sectorMap[w.sector_id] || '',
+        categoryMap[w.category_id]?.name || '',
+        typeMap[w.type_id]?.name || '',
+        subMap[w.subcategory_id] || '',
+        classMap[w.classification_id] || '',
+        Number(Number(w.peso_kg).toFixed(2))
       ]);
     });
-    const csv = rows.map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(";")).join("\n");
-    const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8" });
+
+    const wsDetails = XLSX.utils.aoa_to_sheet(detailsData);
+    XLSX.utils.book_append_sheet(wb, wsDetails, 'Pesagens Detalhadas');
+
+    XLSX.writeFile(wb, `analise-gravimetrica-${grav.numero}.xlsx`);
+  };
+
+  // Export to CSV
+  const exportToCSV = () => {
+    const rows = [
+      ['Data', 'Setor', 'Categoria', 'Tipo', 'Subcategoria', 'Classificação', 'Peso (kg)']
+    ];
+    weighings.forEach(w => {
+      rows.push([
+        w.data,
+        sectorMap[w.sector_id] || '',
+        categoryMap[w.category_id]?.name || '',
+        typeMap[w.type_id]?.name || '',
+        subMap[w.subcategory_id] || '',
+        classMap[w.classification_id] || '',
+        Number(w.peso_kg).toFixed(3)
+      ]);
+    });
+    const csvContent = rows
+      .map(r => r.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(';'))
+      .join('\n');
+    const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8' });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url; a.download = `gravimetria-${grav?.numero ?? id}.csv`; a.click();
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `analise-gravimetrica-${grav.numero}.csv`;
+    link.click();
     URL.revokeObjectURL(url);
   };
 
-  const exportXLSX = () => {
-    const wb = XLSX.utils.book_new();
-    const resumo = [
-      ["Gravimetria", grav?.numero ?? ""],
-      ["Início", grav?.started_at ? new Date(grav.started_at).toLocaleString("pt-BR") : ""],
-      ["Encerramento", grav?.ended_at ? new Date(grav.ended_at).toLocaleString("pt-BR") : "em andamento"],
-      ["Total (kg)", Number(total.toFixed(1))],
-      ["Pesagens", weighings.length],
-      [],
-      ["Categoria", "Peso (kg)"],
-      ...byCategory.map((c: any) => [c.name, Number(c.value.toFixed(1))]),
-      [],
-      ["Setor", "Peso (kg)"],
-      ...bySector.map((s: any) => [s.name, Number(s.value.toFixed(1))]),
-    ];
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(resumo), "Resumo");
-    const detalhe = [
-      ["Data", "Setor", "Categoria", "Subcategoria", "Peso (kg)"],
-      ...weighings.map((w) => [
-        w.data,
-        sectorMap[w.sector_id] ?? "",
-        categoryMap[w.category_id]?.name ?? "",
-        subMap[w.subcategory_id] ?? "",
-        Number(Number(w.peso_kg).toFixed(1)),
-      ]),
-    ];
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(detalhe), "Pesagens");
-    XLSX.writeFile(wb, `gravimetria-${grav?.numero ?? id}.xlsx`);
-  };
-
-  if (!grav) return <div className="text-muted-foreground">Carregando...</div>;
-
   return (
-    <div className="space-y-6 print-area">
-      <div className="flex items-center justify-between flex-wrap gap-2">
+    <div className="flex flex-col gap-4 print-area">
+      
+      {/* HEADER SECTION */}
+      <div className="flex items-center justify-between flex-wrap gap-2 no-print" style={{ borderBottom: '1px solid hsl(var(--card-border))', paddingBottom: '1rem' }}>
         <div className="flex items-center gap-3">
-          <Button variant="ghost" size="icon" asChild className="no-print"><Link to="/"><ArrowLeft className="h-4 w-4" /></Link></Button>
+          <Link to="/" className="btn btn-ghost btn-icon" style={{ borderRadius: 'var(--radius-md)' }}>
+            <ArrowLeft size={18} />
+          </Link>
           <div>
-            <h1 className="text-2xl font-semibold">Gravimetria {grav.numero}</h1>
-            <p className="text-sm text-muted-foreground">
-              {new Date(grav.started_at).toLocaleString("pt-BR")} — {grav.ended_at ? new Date(grav.ended_at).toLocaleString("pt-BR") : "em andamento"}
-              {grav.sample_days ? ` · ${grav.sample_days} ${grav.sample_days === 1 ? "dia" : "dias"} de separação` : ""}
+            <h1 style={{ fontSize: '1.75rem', margin: 0 }}>Análise Gravimétrica #{grav.numero}</h1>
+            <p className="text-muted text-sm flex items-center gap-2 mt-1">
+              <Calendar size={14} />
+              {new Date(grav.started_at).toLocaleDateString('pt-BR')} — {grav.ended_at ? new Date(grav.ended_at).toLocaleDateString('pt-BR') : 'Em andamento'}
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-2 no-print flex-wrap">
-          <Button variant="outline" onClick={() => window.print()}><Printer className="h-4 w-4 mr-2" />Imprimir</Button>
-          <Button variant="outline" onClick={exportXLSX}><FileSpreadsheet className="h-4 w-4 mr-2" />Exportar XLSX</Button>
-          <Button variant="outline" onClick={exportCSV}><Download className="h-4 w-4 mr-2" />CSV</Button>
+
+        <div className="flex items-center gap-2 flex-wrap">
+          <button onClick={() => window.print()} className="btn btn-outline">
+            <Printer size={16} />
+            <span>Imprimir Relatório</span>
+          </button>
+          <button onClick={exportToXLSX} className="btn btn-outline">
+            <FileSpreadsheet size={16} />
+            <span>Excel (XLSX)</span>
+          </button>
+          <button onClick={exportToCSV} className="btn btn-outline">
+            <Download size={16} />
+            <span>CSV</span>
+          </button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card><CardHeader><CardTitle className="text-sm font-medium text-muted-foreground">Total</CardTitle></CardHeader>
-          <CardContent><p className="text-3xl font-semibold">{total.toFixed(1)} <span className="text-base text-muted-foreground">kg</span></p></CardContent></Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Pesagens</CardTitle>
-            {canEdit && (
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-7 w-7 no-print"
-                aria-label="Editar dias"
-                onClick={() => { setEditDaysValue(grav.sample_days ? String(grav.sample_days) : ""); setEditDaysOpen(true); }}
-              >
-                <Pencil className="h-3.5 w-3.5" />
-              </Button>
-            )}
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-semibold tabular-nums">{grav.sample_days ?? "—"} <span className="text-base text-muted-foreground font-normal">{grav.sample_days === 1 ? "dia" : "dias"}</span></p>
-            <p className="text-xs text-muted-foreground mt-1">Dias de separação informados</p>
-          </CardContent>
-        </Card>
-        <Card><CardHeader><CardTitle className="text-sm font-medium text-muted-foreground">Categorias</CardTitle></CardHeader>
-          <CardContent><p className="text-3xl font-semibold">{byCategory.length}</p></CardContent></Card>
-      </div>
+      {/* METRIC CARDS GRID */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4" style={{ marginTop: '0.5rem' }}>
+        
+        {/* Total Weight */}
+        <div className="card flex flex-col justify-between" style={{ minHeight: '110px' }}>
+          <div>
+            <p className="text-muted text-xs font-semibold uppercase tracking-wider">Massa Amostrada</p>
+            <p className="font-semibold mt-1" style={{ fontSize: '2rem', lineHeight: '1.15', fontFamily: 'var(--font-heading)' }}>
+              {totalWeight.toFixed(2)} <span className="text-sm text-muted font-normal">kg</span>
+            </p>
+          </div>
+          <p className="text-muted text-xs mt-2 flex items-center gap-1">
+            <Scale size={14} />
+            Soma de todas as pesagens
+          </p>
+        </div>
 
-      {(() => {
-        const grandTotal = total;
-        if (grandTotal === 0) return null;
-        const order = ["Orgânico", "Reciclável", "Perigoso", "Rejeito"];
-        const orderIdx = (name: string) => {
-          const i = order.findIndex((o) => o.toLowerCase() === name.toLowerCase());
-          return i === -1 ? 999 : i;
-        };
-        const rows = (byCategory as any[])
-          .filter((r) => r.value > 0)
-          .sort((a, b) => orderIdx(a.name) - orderIdx(b.name));
-        return (
-          <Card className="print-area">
-            <CardHeader>
-              <CardTitle>Resumo por categoria</CardTitle>
-              <p className="text-sm text-muted-foreground">Geração desta gravimetria</p>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                  {rows.map((r: any) => {
-                    const pct = (r.value / grandTotal) * 100;
-                    const color = r.color ?? "hsl(var(--primary))";
-                    const n = String(r.name).toLowerCase();
-                    const Icon = n.startsWith("orgân") ? Leaf
-                      : n.startsWith("recicl") ? Recycle
-                      : n.startsWith("perig") ? AlertTriangle
-                      : n.startsWith("rejeit") ? Ban
-                      : Scale;
-                    return (
-                      <div key={r.id} className="rounded-md border p-3 space-y-2">
-                        <div className="flex items-center justify-between gap-2">
-                          <span className="flex items-center gap-2 text-sm font-medium">
-                            <span
-                              className="inline-flex h-7 w-7 items-center justify-center rounded-md"
-                              style={{ background: `${color}20`, color }}
-                            >
-                              <Icon className="h-4 w-4" />
-                            </span>
-                            {r.name}
-                          </span>
-                          <span className="text-xs text-muted-foreground tabular-nums">{pct.toFixed(1)}%</span>
-                        </div>
-                        <div className="text-xl font-semibold tabular-nums">{r.value.toFixed(1)} <span className="text-xs text-muted-foreground font-normal">kg</span></div>
-                        <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
-                          <div className="h-full rounded-full" style={{ width: `${pct}%`, background: color }} />
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-                <div className="flex justify-end text-sm text-muted-foreground">
-                  Total geral: <span className="ml-2 font-semibold text-foreground tabular-nums">{grandTotal.toFixed(1)} kg</span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        );
-      })()}
+        {/* Landfill Diversion Rate */}
+        <div className="card flex flex-col justify-between" style={{ minHeight: '110px' }}>
+          <div>
+            <p className="text-muted text-xs font-semibold uppercase tracking-wider">Desvio de Aterro</p>
+            <p 
+              className="font-semibold mt-1" 
+              style={{ 
+                fontSize: '2rem', 
+                lineHeight: '1.15', 
+                fontFamily: 'var(--font-heading)',
+                color: diversionRate >= 90 ? 'hsl(var(--primary))' : diversionRate >= 50 ? 'hsl(var(--foreground))' : 'hsl(var(--destructive))' 
+              }}
+            >
+              {diversionRate.toFixed(1)}%
+            </p>
+          </div>
+          <p className="text-muted text-xs mt-2">
+            <strong>{((recyclableWeight + organicWeight)).toFixed(1)} kg</strong> reciclados/compostados
+          </p>
+        </div>
 
-      <div className="flex justify-center gap-2 no-print flex-wrap">
-        <Button variant={showDetailed ? "outline" : "default"} onClick={() => { setShowDetailed((v) => !v); setShowLanc(false); }}>
-          <Search className="h-4 w-4 mr-2" />{showDetailed ? "Ocultar Relatório Detalhado" : "Relatório Detalhado"}
-        </Button>
-        <Button variant={showLanc ? "outline" : "default"} onClick={() => { setShowLanc((v) => !v); setShowDetailed(false); }}>
-          <Pencil className="h-4 w-4 mr-2" />{showLanc ? "Ocultar Lançamentos de Resíduos" : "Lançamentos de Resíduos"}
-        </Button>
-      </div>
-
-      {showDetailed && (<>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Card>
-          <CardHeader><CardTitle>Por Categoria</CardTitle></CardHeader>
-          <CardContent style={{ height: 280 }}>
-            {(() => {
-              const totalCat = byCategory.reduce((s: number, e: any) => s + Number(e.value), 0);
-              return (
-                <ResponsiveContainer>
-                  <PieChart>
-                    <Pie
-                      data={byCategory}
-                      dataKey="value"
-                      nameKey="name"
-                      outerRadius={90}
-                      labelLine={false}
-                      label={(props: any) => {
-                        const { cx, cy, midAngle, innerRadius, outerRadius, value, name, fill } = props;
-                        const pct = totalCat > 0 ? (Number(value) / totalCat) * 100 : 0;
-                        const RAD = Math.PI / 180;
-                        const cos = Math.cos(-midAngle * RAD);
-                        const sin = Math.sin(-midAngle * RAD);
-                        // inner label position
-                        const rIn = innerRadius + (outerRadius - innerRadius) * 0.6;
-                        const xIn = cx + rIn * cos;
-                        const yIn = cy + rIn * sin;
-                        // outer label position
-                        const rOut = outerRadius + 18;
-                        const xOut = cx + rOut * cos;
-                        const yOut = cy + rOut * sin;
-                        const anchor = cos >= 0 ? "start" : "end";
-                        return (
-                          <g>
-                            {pct >= 5 && (
-                              <text
-                                x={xIn}
-                                y={yIn}
-                                fill="#fff"
-                                textAnchor="middle"
-                                dominantBaseline="central"
-                                style={{ fontSize: 13, fontWeight: 700 }}
-                              >
-                                {pct.toFixed(1)}%
-                              </text>
-                            )}
-                            <text
-                              x={xOut}
-                              y={yOut}
-                              fill={fill}
-                              textAnchor={anchor}
-                              dominantBaseline="central"
-                              style={{ fontSize: 12 }}
-                            >
-                              {pct < 5
-                                ? `${name}: ${Number(value).toFixed(1)}kg (${pct.toFixed(1)}%)`
-                                : `${name}: ${Number(value).toFixed(1)}kg`}
-                            </text>
-                          </g>
-                        );
-                      }}
-                    >
-                      {byCategory.map((e, i) => <Cell key={i} fill={e.color} />)}
-                    </Pie>
-                    <Tooltip
-                      formatter={(v: any) => {
-                        const pct = totalCat > 0 ? (Number(v) / totalCat) * 100 : 0;
-                        return `${Number(v).toFixed(1)} kg (${pct.toFixed(1)}%)`;
-                      }}
-                    />
-                  </PieChart>
-                </ResponsiveContainer>
-              );
-            })()}
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader><CardTitle>Por Setor</CardTitle></CardHeader>
-          <CardContent style={{ height: 280 }}>
-            {(() => {
-              const totalSec = bySector.reduce((s: number, e: any) => s + Number(e.value), 0);
-              const dataWithPct = bySector.map((e: any) => ({
-                ...e,
-                pct: totalSec > 0 ? (Number(e.value) / totalSec) * 100 : 0,
-              }));
-              return (
-                <ResponsiveContainer>
-                  <BarChart data={dataWithPct} margin={{ top: 24, right: 16, left: 0, bottom: 0 }}>
-                    <XAxis dataKey="name" />
-                    <YAxis />
-                    <Tooltip
-                      formatter={(v: any, _n: any, item: any) =>
-                        `${Number(v).toFixed(1)} kg (${Number(item?.payload?.pct ?? 0).toFixed(1)}%)`
-                      }
-                    />
-                    <Legend />
-                    <Bar dataKey="value" name="kg" fill="hsl(var(--primary))">
-                      <LabelList
-                        dataKey="pct"
-                        position="top"
-                        formatter={(v: any) => `${Number(v).toFixed(1)}%`}
-                        className="fill-foreground"
-                        style={{ fontSize: 12 }}
-                      />
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
-              );
-            })()}
-          </CardContent>
-        </Card>
-      </div>
-
-      {(() => {
-        const days = grav.sample_days ?? 0;
-        if (days === 0) {
-          return (
-            <div className="rounded-md border border-dashed p-4 text-sm text-muted-foreground">
-              Para ver previsões mensal e anual desta gravimetria, informe os <strong>dias de separação considerados</strong> (no histórico, botão de editar).
+        {/* Sample Days */}
+        <div className="card flex flex-col justify-between" style={{ minHeight: '110px' }}>
+          <div className="flex justify-between items-start">
+            <div>
+              <p className="text-muted text-xs font-semibold uppercase tracking-wider">Dias Amostrados</p>
+              <p className="font-semibold mt-1" style={{ fontSize: '2rem', lineHeight: '1.15', fontFamily: 'var(--font-heading)' }}>
+                {days || '—'} <span className="text-sm text-muted font-normal">{days === 1 ? 'dia' : 'dias'}</span>
+              </p>
             </div>
-          );
-        }
-        const dailyAvg = total / days;
-        const monthly = dailyAvg * 30;
-        const yearly = dailyAvg * 365;
-        return (
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <Card>
-              <CardHeader><CardTitle className="text-sm font-medium text-muted-foreground">Dias de separação</CardTitle></CardHeader>
-              <CardContent>
-                <p className="text-3xl font-semibold tabular-nums">{days} <span className="text-base text-muted-foreground">{days === 1 ? "dia" : "dias"}</span></p>
-                <p className="text-xs text-muted-foreground mt-1">Média diária: {dailyAvg.toFixed(1)} kg</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader><CardTitle className="text-sm font-medium text-muted-foreground">Previsão mensal</CardTitle></CardHeader>
-              <CardContent>
-                <p className="text-3xl font-semibold tabular-nums">{monthly.toFixed(1)} <span className="text-base text-muted-foreground">kg</span></p>
-                <p className="text-xs text-muted-foreground mt-1">{dailyAvg.toFixed(1)} kg/dia × 30</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader><CardTitle className="text-sm font-medium text-muted-foreground">Previsão anual</CardTitle></CardHeader>
-              <CardContent>
-                <p className="text-3xl font-semibold tabular-nums">{yearly.toFixed(1)} <span className="text-base text-muted-foreground">kg</span></p>
-                <p className="text-xs text-muted-foreground mt-1">{dailyAvg.toFixed(1)} kg/dia × 365</p>
-              </CardContent>
-            </Card>
+            {canEdit && (
+              <button 
+                onClick={() => { setEditDaysValue(days ? String(days) : ''); setEditDaysOpen(true); }}
+                className="btn btn-ghost btn-icon no-print"
+                style={{ padding: '0.35rem' }}
+                title="Editar dias"
+              >
+                <Pencil size={14} />
+              </button>
+            )}
           </div>
-        );
-      })()}
+          <p className="text-muted text-xs mt-2">
+            Média diária: <strong>{dailyAvg.toFixed(2)} kg/dia</strong>
+          </p>
+        </div>
 
-      {(() => {
-        type Agg = { sectorId: string; sectorName: string; total: number; byCat: Record<string, { name: string; color: string; total: number; subs: Record<string, { name: string; total: number }> }> };
-        const map = new Map<string, Agg>();
-        for (const w of weighings) {
-          const sName = sectorMap[w.sector_id] ?? "—";
-          const cInfo = categoryMap[w.category_id];
-          const cName = cInfo?.name ?? "—";
-          const cColor = cInfo?.color ?? "hsl(var(--primary))";
-          const subName = subMap[w.subcategory_id] ?? "—";
-          const kg = Number(w.peso_kg);
-          let agg = map.get(w.sector_id);
-          if (!agg) { agg = { sectorId: w.sector_id, sectorName: sName, total: 0, byCat: {} }; map.set(w.sector_id, agg); }
-          agg.total += kg;
-          if (!agg.byCat[w.category_id]) agg.byCat[w.category_id] = { name: cName, color: cColor, total: 0, subs: {} };
-          agg.byCat[w.category_id].total += kg;
-          if (!agg.byCat[w.category_id].subs[w.subcategory_id]) agg.byCat[w.category_id].subs[w.subcategory_id] = { name: subName, total: 0 };
-          agg.byCat[w.category_id].subs[w.subcategory_id].total += kg;
-        }
-        const sectorsAgg = Array.from(map.values()).sort((a, b) => b.total - a.total);
-        const catOrderRef = ["Orgânico", "Reciclável", "Perigoso", "Rejeito"];
-        const allCatIds = Array.from(new Set(weighings.map((w) => w.category_id)));
-        const allCats = allCatIds
-          .map((id) => ({ id, name: categoryMap[id]?.name ?? "—", color: categoryMap[id]?.color ?? "hsl(var(--primary))" }))
-          .sort((a, b) => {
-            const ai = catOrderRef.findIndex((o) => o.toLowerCase() === a.name.toLowerCase());
-            const bi = catOrderRef.findIndex((o) => o.toLowerCase() === b.name.toLowerCase());
-            return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
-          });
-        const catTotals: Record<string, number> = {};
-        allCats.forEach((c) => { catTotals[c.id] = sectorsAgg.reduce((s, sec) => s + (sec.byCat[c.id]?.total ?? 0), 0); });
-        if (sectorsAgg.length === 0) return null;
-        return (
-          <Card>
-            <CardHeader>
-              <CardTitle>Relatório por Setor</CardTitle>
-              <p className="text-sm text-muted-foreground">Geração por setor, categoria e subcategoria</p>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="border rounded-md overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Setor</TableHead>
-                      {allCats.map((c) => (
-                        <TableHead key={c.id} className="text-right">
-                          <span className="inline-flex items-center gap-1.5">
-                            <span className="inline-block h-2.5 w-2.5 rounded-full" style={{ background: c.color }} />
-                            {c.name}
-                          </span>
-                        </TableHead>
-                      ))}
-                      <TableHead className="text-right">Total</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {sectorsAgg.map((s) => {
-                      const isOpen = expandedSectors.has(s.sectorId);
-                      const toggle = () => setExpandedSectors((prev) => {
-                        const n = new Set(prev);
-                        n.has(s.sectorId) ? n.delete(s.sectorId) : n.add(s.sectorId);
-                        return n;
-                      });
-                      return (
-                        <React.Fragment key={s.sectorId}>
-                          <TableRow
-                            onClick={toggle}
-                            className="cursor-pointer hover:bg-muted/40"
-                          >
-                            <TableCell className="font-medium">
-                              <span className="inline-flex items-center gap-2">
-                                <ChevronRight
-                                  className={`h-4 w-4 text-muted-foreground transition-transform ${isOpen ? "rotate-90" : ""}`}
-                                />
-                                {s.sectorName}
-                              </span>
-                            </TableCell>
-                            {allCats.map((c) => {
-                              const v = s.byCat[c.id]?.total ?? 0;
-                              return <TableCell key={c.id} className="text-right tabular-nums">{v ? v.toFixed(1) : "—"}</TableCell>;
-                            })}
-                            <TableCell className="text-right tabular-nums font-semibold">{s.total.toFixed(1)}</TableCell>
-                          </TableRow>
-                          {isOpen && (
-                            <TableRow key={`${s.sectorId}-detail`} className="bg-muted/20 hover:bg-muted/20">
-                              <TableCell colSpan={allCats.length + 2} className="p-4">
-                                <div className="flex items-center justify-between mb-3">
-                                  <span className="text-sm font-medium">Detalhamento de {s.sectorName}</span>
-                                  <span className="text-sm text-muted-foreground tabular-nums">
-                                    {s.total.toFixed(1)} kg · {total ? ((s.total / total) * 100).toFixed(1) : "0.0"}% do total
-                                  </span>
-                                </div>
-                                <div className="space-y-3">
-                                  {allCats
-                                    .filter((c) => s.byCat[c.id])
-                                    .map((c) => {
-                                      const cAgg = s.byCat[c.id];
-                                      const subs = Object.values(cAgg.subs).sort((a, b) => b.total - a.total);
-                                      return (
-                                        <div key={c.id} className="rounded-md border bg-background p-3">
-                                          <div className="flex items-center justify-between mb-2">
-                                            <span className="flex items-center gap-2 text-sm font-medium">
-                                              <span className="inline-block h-2.5 w-2.5 rounded-full" style={{ background: c.color }} />
-                                              {c.name}
-                                            </span>
-                                            <span className="text-sm tabular-nums text-muted-foreground">
-                                              {cAgg.total.toFixed(1)} kg · {((cAgg.total / s.total) * 100).toFixed(1)}% do setor
-                                            </span>
-                                          </div>
-                                          <Table>
-                                            <TableBody>
-                                              {subs.map((sub, i) => (
-                                                <TableRow key={i}>
-                                                  <TableCell className="py-1.5">{sub.name}</TableCell>
-                                                  <TableCell className="py-1.5 text-right tabular-nums w-32">{sub.total.toFixed(1)} kg</TableCell>
-                                                  <TableCell className="py-1.5 text-right tabular-nums w-20 text-muted-foreground">{((sub.total / cAgg.total) * 100).toFixed(1)}%</TableCell>
-                                                </TableRow>
-                                              ))}
-                                            </TableBody>
-                                          </Table>
-                                        </div>
-                                      );
-                                    })}
-                                </div>
-                              </TableCell>
-                            </TableRow>
-                          )}
-                        </React.Fragment>
-                      );
-                    })}
-                    <TableRow className="bg-muted/40">
-                      <TableCell className="font-semibold">Total geral</TableCell>
-                      {allCats.map((c) => (
-                        <TableCell key={c.id} className="text-right tabular-nums font-semibold">{(catTotals[c.id] ?? 0).toFixed(1)}</TableCell>
-                      ))}
-                      <TableCell className="text-right tabular-nums font-semibold">{total.toFixed(1)}</TableCell>
-                    </TableRow>
-                  </TableBody>
-                </Table>
-              </div>
-            </CardContent>
-          </Card>
-        );
-      })()}
-
-      </>)}
-
-      {showLanc && (
-      <Card>
-        <CardHeader><CardTitle>Pesagens</CardTitle></CardHeader>
-        <CardContent>
-          <div className="border rounded-md overflow-hidden">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Data</TableHead>
-                  <TableHead>Setor</TableHead>
-                  <TableHead>Categoria</TableHead>
-                  <TableHead>Subcategoria</TableHead>
-                  <TableHead className="text-right">Peso (kg)</TableHead>
-                  {canEdit && <TableHead className="w-24 text-right no-print">Ações</TableHead>}
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {weighings.length === 0 && (
-                  <TableRow><TableCell colSpan={canEdit ? 6 : 5} className="text-center text-muted-foreground py-6">Sem pesagens</TableCell></TableRow>
-                )}
-                {weighings.map((w) => canEdit && editId === w.id ? (
-                  <TableRow key={w.id}>
-                    <TableCell><Input type="date" value={editData} onChange={(e) => setEditData(e.target.value)} className="h-8" /></TableCell>
-                    <TableCell>
-                      <Select value={editSector} onValueChange={setEditSector}>
-                        <SelectTrigger className="h-8"><SelectValue /></SelectTrigger>
-                        <SelectContent>{sectors.map((s) => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}</SelectContent>
-                      </Select>
-                    </TableCell>
-                    <TableCell>
-                      <Select value={editCategory} onValueChange={(v) => { setEditCategory(v); setEditSub(""); }}>
-                        <SelectTrigger className="h-8"><SelectValue /></SelectTrigger>
-                        <SelectContent>{categories.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}</SelectContent>
-                      </Select>
-                    </TableCell>
-                    <TableCell>
-                      <Select value={editSub} onValueChange={setEditSub}>
-                        <SelectTrigger className="h-8"><SelectValue /></SelectTrigger>
-                        <SelectContent>{editFilteredSubs.map((s) => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}</SelectContent>
-                      </Select>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Input type="number" step="0.001" min="0.001" value={editPeso} onChange={(e) => setEditPeso(e.target.value)} className="h-8 text-right" />
-                    </TableCell>
-                    <TableCell className="text-right no-print">
-                      <div className="inline-flex gap-1">
-                        <Button variant="ghost" size="icon" onClick={() => saveEdit(w.id)}><Check className="h-4 w-4" /></Button>
-                        <Button variant="ghost" size="icon" onClick={cancelEdit}><X className="h-4 w-4" /></Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  <TableRow key={w.id}>
-                    <TableCell>{new Date(w.data + "T00:00:00").toLocaleDateString("pt-BR")}</TableCell>
-                    <TableCell>{sectorMap[w.sector_id] ?? "—"}</TableCell>
-                    <TableCell>{categoryMap[w.category_id]?.name ?? "—"}</TableCell>
-                    <TableCell>{subMap[w.subcategory_id] ?? "—"}</TableCell>
-                    <TableCell className="text-right tabular-nums">{Number(w.peso_kg).toFixed(1)}</TableCell>
-                    {canEdit && (
-                      <TableCell className="text-right no-print">
-                        <div className="inline-flex gap-1">
-                          <Button variant="ghost" size="icon" onClick={() => startEdit(w)}><Pencil className="h-4 w-4" /></Button>
-                          <ConfirmDialog
-                            trigger={<Button variant="ghost" size="icon" className="text-destructive hover:text-destructive"><Trash2 className="h-4 w-4" /></Button>}
-                            title="Remover pesagem?"
-                            description="Esta ação não pode ser desfeita."
-                            destructive
-                            confirmLabel="Remover"
-                            onConfirm={() => removeWeighing(w.id)}
-                          />
-                        </div>
-                      </TableCell>
-                    )}
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+        {/* Number of categories */}
+        <div className="card flex flex-col justify-between" style={{ minHeight: '110px' }}>
+          <div>
+            <p className="text-muted text-xs font-semibold uppercase tracking-wider">Massa por Categoria</p>
+            <div className="flex gap-2 items-end mt-1" style={{ overflow: 'hidden' }}>
+              {byCategory.map(c => (
+                <div key={c.id} className="flex flex-col items-center flex-1" style={{ minWidth: '35px' }}>
+                  <span className="text-xs font-semibold" style={{ fontSize: '0.65rem' }}>{((c.value / (totalWeight || 1)) * 100).toFixed(0)}%</span>
+                  <div 
+                    style={{ 
+                      width: '100%', 
+                      height: '24px', 
+                      backgroundColor: c.color, 
+                      borderRadius: 'var(--radius-sm)',
+                      opacity: 0.85 
+                    }} 
+                  />
+                  <span className="text-muted text-xs truncate" style={{ fontSize: '0.55rem', width: '100%', textAlign: 'center', marginTop: '0.125rem' }}>{c.name}</span>
+                </div>
+              ))}
+            </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
+
+      {/* PROJECTIONS CARDS CONTAINER */}
+      {days > 0 ? (
+        <div className="card" style={{ padding: '1.25rem 1.5rem', backgroundColor: 'rgba(34,197,94,0.02)' }}>
+          <h3 style={{ fontSize: '1rem', fontWeight: 600 }} className="mb-2">Projeções de Geração (Média Diária: {dailyAvg.toFixed(2)} kg/dia)</h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-2">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.125rem' }}>
+              <span className="text-muted text-xs">Previsão Mensal (30 dias)</span>
+              <span style={{ fontSize: '1.35rem', fontWeight: 700, color: 'hsl(var(--primary))' }}>{monthlyProjection.toFixed(1)} kg</span>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.125rem' }}>
+              <span className="text-muted text-xs">Previsão Anual (365 dias)</span>
+              <span style={{ fontSize: '1.35rem', fontWeight: 700, color: 'hsl(var(--primary))' }}>{yearlyProjection.toFixed(1)} kg</span>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.125rem' }}>
+              <span className="text-muted text-xs">Fórmula de Extrapolação</span>
+              <span className="text-muted text-xs mt-1">Geração Total / Dias Amostrados &times; Período</span>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="card text-center" style={{ borderStyle: 'dashed', padding: '1.5rem' }}>
+          <p className="text-muted text-sm">
+            ⚠️ Para habilitar as previsões de geração mensal e anual, preencha o número de <strong>dias de coleta considerados</strong> (clique no lápis acima).
+          </p>
+        </div>
       )}
 
-      <Dialog open={editDaysOpen} onOpenChange={(o) => { if (!o) { setEditDaysOpen(false); setEditDaysValue(""); } }}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Editar dias de amostragem</DialogTitle>
-            <DialogDescription>
-              Atualize o número de dias de separação considerados para a Gravimetria {grav?.numero}.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-2">
-            <Label htmlFor="edit-sample-days">Dias de separação</Label>
-            <Input id="edit-sample-days" type="number" min={1} step={1} value={editDaysValue} onChange={(e) => setEditDaysValue(e.target.value)} />
+      {/* PAINEL FINANCEIRO DE VALORAÇÃO */}
+      {totalWeight > 0 && (
+        <div className="card" style={{ padding: '1.25rem 1.5rem', backgroundColor: 'rgba(59,130,246,0.02)', border: '1px solid rgba(59,130,246,0.15)' }}>
+          <h3 style={{ fontSize: '1rem', fontWeight: 600, color: 'hsl(var(--primary))' }} className="mb-2 flex items-center gap-2">
+            💰 Estudo de Valoração Financeira & Economia (Referência UF: {clientUf})
+          </h3>
+          <p className="text-muted text-xs mb-3">
+            Estimativa calculada com base nos custos de destinação de RSU e preços médios de comercialização de sucata/compostos do estado de {clientUf} para 2026.
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-2">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.125rem' }}>
+              <span className="text-muted text-xs">Economia em Desvio de Aterro</span>
+              <span style={{ fontSize: '1.35rem', fontWeight: 700, color: 'hsl(var(--primary))' }}>
+                R$ {economiaAterro.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </span>
+              <span className="text-muted mt-1" style={{ fontSize: '0.68rem', lineHeight: '1.2' }}>
+                Evitou pagar tarifa de destinação de rejeitos ({((recyclableWeight + organicWeight)).toFixed(1)} kg &times; R$ {custoRejeitoKg.toFixed(4)}/kg)
+              </span>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.125rem' }}>
+              <span className="text-muted text-xs">Valor Comercial Potencial</span>
+              <span style={{ fontSize: '1.35rem', fontWeight: 700, color: 'hsl(var(--primary))' }}>
+                R$ {receitaMateriais.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </span>
+              <span className="text-muted mt-1" style={{ fontSize: '0.68rem', lineHeight: '1.2' }}>
+                Receita estimada com venda de recicláveis/compostos orgânicos no mercado regional
+              </span>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.125rem' }}>
+              <span className="text-muted text-xs">Impacto Econômico Total</span>
+              <span style={{ fontSize: '1.35rem', fontWeight: 700, color: 'hsl(var(--primary))' }}>
+                R$ {impactoTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </span>
+              <span className="text-muted mt-1" style={{ fontSize: '0.68rem', lineHeight: '1.2' }}>
+                Soma da economia com desvio de aterro e receita potencial de comercialização
+              </span>
+            </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => { setEditDaysOpen(false); setEditDaysValue(""); }}>Cancelar</Button>
-            <Button onClick={saveSampleDays}>Salvar</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        </div>
+      )}
+
+      {/* DETAILED ANALYSIS TABS AND CHARTS */}
+      {totalWeight > 0 && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          
+          {/* Chart: Category Breakdown (Pie) */}
+          <div className="card" style={{ height: '340px', display: 'flex', flexDirection: 'column' }}>
+            <h3 style={{ fontSize: '1.05rem' }} className="mb-2">Geração por Categoria</h3>
+            <div style={{ flex: 1, minHeight: 0 }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={byCategory}
+                    dataKey="value"
+                    nameKey="name"
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={85}
+                    label={({ name, percent }: { name: string; percent: number }) => `${name} (${(percent * 100).toFixed(0)}%)`}
+                    labelLine={false}
+                  >
+                    {byCategory.map((entry, idx) => (
+                      <Cell key={`cell-${idx}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip formatter={(value: any) => `${Number(value).toFixed(2)} kg`} />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          {/* Chart: Sector Breakdown (Bar) */}
+          <div className="card" style={{ height: '340px', display: 'flex', flexDirection: 'column' }}>
+            <h3 style={{ fontSize: '1.05rem' }} className="mb-2">Geração por Setor (kg)</h3>
+            <div style={{ flex: 1, minHeight: 0 }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={bySector} margin={{ top: 20, right: 10, left: -10, bottom: 5 }}>
+                  <XAxis dataKey="name" />
+                  <YAxis />
+                  <Tooltip formatter={(value: any) => `${Number(value).toFixed(2)} kg`} />
+                  <Bar dataKey="value" name="Massa (kg)" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]}>
+                    <LabelList dataKey="value" position="top" formatter={(v: any) => `${Number(v).toFixed(1)}`} style={{ fontSize: '10px' }} />
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* CATEGORY PROGRESS SUMMARY */}
+      {totalWeight > 0 && (
+        <div className="card">
+          <h3 className="card-title">Resumo Físico por Categoria</h3>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-4">
+            {byCategory.map(c => {
+              const pct = (c.value / totalWeight) * 100;
+              const nName = c.name.toLowerCase();
+              const Icon = nName.includes('orgân') ? Leaf 
+                : nName.includes('recicl') ? Recycle 
+                : nName.includes('perig') ? AlertTriangle 
+                : nName.includes('rejeit') ? Ban 
+                : Scale;
+              
+              return (
+                <div 
+                  key={c.id} 
+                  className="flex flex-col gap-2.5" 
+                  style={{ 
+                    border: '1px solid hsl(var(--card-border))', 
+                    borderRadius: 'var(--radius-md)', 
+                    backgroundColor: 'hsl(var(--background))',
+                    padding: '1.25rem',
+                    boxShadow: '0 2px 6px -2px rgba(0,0,0,0.04)',
+                    transition: 'all 0.2s ease'
+                  }}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="flex items-center gap-2 text-sm font-semibold">
+                      <span 
+                        className="flex items-center justify-center" 
+                        style={{ 
+                          width: '32px', 
+                          height: '32px', 
+                          borderRadius: 'var(--radius-sm)', 
+                          backgroundColor: `${c.color}15`, 
+                          color: c.color,
+                          flexShrink: 0
+                        }}
+                      >
+                        <Icon size={16} />
+                      </span>
+                      {c.name}
+                    </span>
+                    <span className="text-xs text-muted font-semibold">{pct.toFixed(1)}%</span>
+                  </div>
+                  <p className="font-semibold text-lg" style={{ fontFamily: 'var(--font-heading)', marginTop: '0.25rem' }}>
+                    {c.value.toFixed(2)} <span className="text-xs text-muted font-normal">kg</span>
+                  </p>
+                  <div style={{ height: '6px', width: '100%', backgroundColor: 'hsl(var(--muted))', borderRadius: '9999px', overflow: 'hidden', marginTop: '0.125rem' }}>
+                    <div style={{ height: '100%', width: `${pct}%`, backgroundColor: c.color, borderRadius: '9999px' }} />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* EXPANDABLE MATRIX REPORT BY SECTOR */}
+      <div className="flex justify-center gap-2 no-print" style={{ margin: '1rem 0' }}>
+        <button 
+          onClick={() => { setShowDetailed(!showDetailed); setShowWeighings(false); }}
+          className={`btn ${showDetailed ? 'btn-primary' : 'btn-outline'}`}
+        >
+          <Eye size={16} />
+          <span>Matriz por Setor</span>
+        </button>
+        <button 
+          onClick={() => { setShowWeighings(!showWeighings); setShowDetailed(false); }}
+          className={`btn ${showWeighings ? 'btn-primary' : 'btn-outline'}`}
+        >
+          <Settings size={16} />
+          <span>Gerenciar Lançamentos</span>
+        </button>
+      </div>
+
+      {/* MATRIX TABLE DISPLAY */}
+      {showDetailed && matrixRows.length > 0 && (
+        <div className="card">
+          <div className="card-header">
+            <h2 className="card-title">Matriz de Geração: Setor vs Categoria</h2>
+            <p className="card-description">Clique em um setor para ver o detalhamento completo por tipo e subcategoria de resíduo</p>
+          </div>
+
+          <div className="table-container">
+            <table className="table">
+              <thead>
+                <tr>
+                  <th>Setor</th>
+                  {sortedCategories.map(c => (
+                    <th key={c.id} className="text-right" style={{ fontSize: '0.75rem', fontWeight: 700, color: 'hsl(var(--muted-foreground))', letterSpacing: '0.05em' }}>
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: c.color || '#888', display: 'inline-block' }} />
+                        {c.name.toUpperCase()}
+                      </span>
+                    </th>
+                  ))}
+                  <th className="text-right">Total (kg)</th>
+                </tr>
+              </thead>
+              <tbody>
+                {matrixRows.map(row => {
+                  const isOpen = expandedSectors.has(row.sectorId);
+                  return (
+                    <React.Fragment key={row.sectorId}>
+                      <tr 
+                        onClick={() => handleToggleSectorExpand(row.sectorId)} 
+                        style={{ cursor: 'pointer' }}
+                        className="hover-trigger-row"
+                      >
+                        <td className="font-semibold">
+                          <span className="flex items-center gap-1.5">
+                            <ChevronRight 
+                              size={16} 
+                              style={{ 
+                                transition: 'transform 0.2s ease', 
+                                transform: isOpen ? 'rotate(90deg)' : 'none',
+                                color: 'hsl(var(--muted-foreground))'
+                              }} 
+                            />
+                            {row.sectorName}
+                          </span>
+                        </td>
+                        {sortedCategories.map(c => {
+                          const val = row.byCat[c.id]?.total || 0;
+                          return (
+                            <td key={c.id} className="text-right text-sm">
+                              {val > 0 ? `${val.toFixed(2)}` : '—'}
+                            </td>
+                          );
+                        })}
+                        <td className="text-right font-semibold">{row.total.toFixed(2)}</td>
+                      </tr>
+
+                      {/* Expandable detailed section */}
+                      {isOpen && (
+                        <tr>
+                          <td colSpan={sortedCategories.length + 2} style={{ backgroundColor: 'rgba(34, 197, 94, 0.01)', padding: '1.25rem' }}>
+                            <div className="flex flex-col gap-3">
+                              <h4 style={{ fontSize: '0.875rem', fontWeight: 600 }}>Detalhamento: {row.sectorName}</h4>
+                              
+                              <div className="flex flex-col gap-4">
+                                {sortedCategories
+                                  .filter(c => row.byCat[c.id])
+                                  .map(c => {
+                                    const catData = row.byCat[c.id];
+                                    const typesInCat = Object.entries(catData.types).sort((a, b) => b[1].total - a[1].total);
+                                    
+                                    return (
+                                      <div 
+                                        key={c.id} 
+                                        style={{ 
+                                          border: '1px solid hsl(var(--card-border))', 
+                                          borderRadius: 'var(--radius-md)', 
+                                          padding: '1.25rem', 
+                                          backgroundColor: 'hsl(var(--card))',
+                                          boxShadow: '0 2px 8px -2px rgba(0,0,0,0.04)'
+                                        }}
+                                      >
+                                        <div className="flex items-center justify-between" style={{ borderBottom: '1px solid hsl(var(--card-border))', paddingBottom: '0.75rem', marginBottom: '0.75rem' }}>
+                                          <span className="flex items-center gap-2 text-sm font-semibold">
+                                            <span style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: c.color }} />
+                                            {c.name}
+                                          </span>
+                                          <span className="text-sm text-muted font-semibold">{catData.total.toFixed(2)} kg</span>
+                                        </div>
+
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                          {typesInCat.map(([typeId, typeVal]) => {
+                                            const subItems = Object.entries(typeVal.subs).sort((a, b) => b[1].total - a[1].total);
+                                            return (
+                                              <div 
+                                                key={typeId} 
+                                                style={{ 
+                                                  padding: '0.75rem', 
+                                                  backgroundColor: 'hsl(var(--background))', 
+                                                  borderRadius: 'var(--radius-sm)',
+                                                  border: '1px solid hsl(var(--card-border))'
+                                                }}
+                                              >
+                                                <div className="flex justify-between items-center text-xs font-semibold" style={{ borderBottom: '1px dashed hsl(var(--card-border))', paddingBottom: '0.25rem', marginBottom: '0.5rem' }}>
+                                                  <span>{typeVal.name}</span>
+                                                  <span className="text-muted">{typeVal.total.toFixed(2)} kg</span>
+                                                </div>
+                                                <div className="flex flex-col gap-1">
+                                                  {subItems.map(([subId, subVal]) => (
+                                                    <div key={subId} className="flex justify-between items-center text-xs text-muted" style={{ paddingLeft: '0.25rem' }}>
+                                                      <span>&bull; {subVal.name}</span>
+                                                      <span>{subVal.total.toFixed(2)} kg</span>
+                                                    </div>
+                                                  ))}
+                                                </div>
+                                              </div>
+                                            );
+                                          })}
+                                        </div>
+                                      </div>
+                                    );
+                                  })}
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </React.Fragment>
+                  );
+                })}
+                {/* Column Totals Row */}
+                <tr style={{ backgroundColor: 'hsl(var(--muted))', fontWeight: 600 }}>
+                  <td>Total Geral</td>
+                  {sortedCategories.map(c => (
+                    <td key={c.id} className="text-right">
+                      {columnTotals[c.id] > 0 ? columnTotals[c.id].toFixed(2) : '0.00'}
+                    </td>
+                  ))}
+                  <td className="text-right">{totalWeight.toFixed(2)}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* WEIGHINGS MANAGEMENT SECTION */}
+      {showWeighings && (
+        <div className="card">
+          <div className="card-header">
+            <h2 className="card-title">Gestão de Lançamentos de Resíduos</h2>
+            <p className="card-description">Edite pesagens realizadas neste estudo ou exclua lançamentos incorretos</p>
+          </div>
+
+          <div className="table-container">
+            <table className="table">
+              <thead>
+                <tr>
+                  <th>Data</th>
+                  <th>Setor</th>
+                  <th>Categoria</th>
+                  <th>Tipo</th>
+                  <th>Subcategoria</th>
+                  <th>Classificação</th>
+                  <th className="text-right">Peso (kg)</th>
+                  {canEdit && <th style={{ width: '80px' }} />}
+                </tr>
+              </thead>
+              <tbody>
+                {weighings.length === 0 ? (
+                  <tr>
+                    <td colSpan={8} className="text-center text-muted" style={{ padding: '2rem 0' }}>
+                      Nenhum lançamento neste estudo.
+                    </td>
+                  </tr>
+                ) : (
+                  weighings.map(w => {
+                    const isEditingThisRow = editId === w.id;
+
+                    const handleEditTypeChange = (tid: string) => {
+                      setEditType(tid);
+                      const selectedT = types.find(t => t.id === tid);
+                      if (selectedT && selectedT.default_classification_id) {
+                        setEditClass(selectedT.default_classification_id);
+                      } else {
+                        setEditClass('');
+                      }
+                      setEditSub('');
+                    };
+
+                    if (isEditingThisRow) {
+                      return (
+                        <tr key={w.id} style={{ backgroundColor: 'rgba(34, 197, 94, 0.04)' }}>
+                          <td><input type="date" className="form-input" style={{ padding: '0.25rem 0.5rem', minWidth: '110px' }} value={editData} onChange={e => setEditData(e.target.value)} /></td>
+                          <td>
+                            <select className="form-select" style={{ padding: '0.25rem 0.5rem', minWidth: '100px' }} value={editSector} onChange={e => setEditSector(e.target.value)}>
+                              <option value="">Selecione...</option>
+                              {sectors.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                            </select>
+                          </td>
+                          <td>
+                            <select className="form-select" style={{ padding: '0.25rem 0.5rem', minWidth: '100px' }} value={editCategory} onChange={e => { setEditCategory(e.target.value); handleEditTypeChange(''); }}>
+                              <option value="">Selecione...</option>
+                              {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                            </select>
+                          </td>
+                          <td>
+                            <select className="form-select" style={{ padding: '0.25rem 0.5rem', minWidth: '100px' }} value={editType} onChange={e => handleEditTypeChange(e.target.value)} disabled={!editCategory}>
+                              <option value="">Selecione...</option>
+                              {editFilteredTypes.map((t: Type) => <option key={t.id} value={t.id}>{t.name}</option>)}
+                            </select>
+                          </td>
+                          <td>
+                            <select className="form-select" style={{ padding: '0.25rem 0.5rem', minWidth: '100px' }} value={editSub} onChange={e => setEditSub(e.target.value)} disabled={!editType}>
+                              <option value="">Selecione...</option>
+                              {editFilteredSubs.map((s: Subcategory) => <option key={s.id} value={s.id}>{s.name}</option>)}
+                            </select>
+                          </td>
+                          <td>
+                            <span className="text-sm font-medium">{classMap[editClass] || '—'}</span>
+                          </td>
+                          <td><input type="number" step="0.001" min="0.001" className="form-input text-right" style={{ padding: '0.25rem 0.5rem', width: '80px', display: 'inline-block' }} value={editPeso} onChange={e => setEditPeso(e.target.value)} /></td>
+                          <td>
+                            <div className="flex gap-2 justify-end">
+                              <button onClick={() => handleSaveInlineEdit(w.id)} className="btn btn-ghost btn-icon" style={{ color: 'hsl(var(--primary))' }} title="Salvar"><Check size={16} /></button>
+                              <button onClick={() => setEditId(null)} className="btn btn-ghost btn-icon" style={{ color: 'hsl(var(--destructive))' }} title="Cancelar"><X size={16} /></button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    }
+
+                    const catColor = categoryMap[w.category_id]?.color || '#888';
+                    return (
+                      <tr key={w.id}>
+                        <td>{new Date(w.data + 'T00:00:00').toLocaleDateString('pt-BR')}</td>
+                        <td><span className="font-medium">{sectorMap[w.sector_id] || '—'}</span></td>
+                        <td>
+                          <span className="flex items-center font-medium" style={{ gap: '0.5rem' }}>
+                            <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: catColor, display: 'inline-block' }} />
+                            {categoryMap[w.category_id]?.name || '—'}
+                          </span>
+                        </td>
+                        <td>{typeMap[w.type_id]?.name || '—'}</td>
+                        <td>{subMap[w.subcategory_id] || '—'}</td>
+                        <td><span className="text-muted text-xs font-semibold">{classMap[w.classification_id] || '—'}</span></td>
+                        <td className="text-right font-semibold">{Number(w.peso_kg).toFixed(2)} kg</td>
+                        {canEdit && (
+                          <td>
+                            <div className="flex gap-2 justify-end">
+                              <button onClick={() => handleStartInlineEdit(w)} className="btn btn-ghost btn-icon" title="Editar"><Pencil size={15} /></button>
+                              <button onClick={() => setDeleteConfirmId(w.id)} className="btn btn-ghost btn-icon" style={{ color: 'hsl(var(--destructive))' }} title="Remover"><Trash2 size={15} /></button>
+                            </div>
+                          </td>
+                        )}
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* DIALOG: EDIT DAYS */}
+      {editDaysOpen && (
+        <div className="modal-overlay">
+          <div className="modal-content" style={{ maxWidth: '400px' }}>
+            <div className="modal-header">
+              <h3 className="modal-title font-semibold">Editar dias de amostragem</h3>
+              <button onClick={() => setEditDaysOpen(false)} className="modal-close">&times;</button>
+            </div>
+            <div className="form-group" style={{ marginTop: '0.5rem' }}>
+              <label className="form-label">Dias de coleta considerados</label>
+              <input 
+                type="number" 
+                min="1" 
+                step="1" 
+                className="form-input" 
+                value={editDaysValue} 
+                onChange={e => setEditDaysValue(e.target.value)} 
+              />
+              <p className="text-xs text-muted mt-1">
+                Altere o número de dias de coleta. Isso irá atualizar instantaneamente as previsões mensais e anuais.
+              </p>
+            </div>
+            <div className="modal-footer">
+              <button onClick={() => setEditDaysOpen(false)} className="btn btn-secondary">Cancelar</button>
+              <button onClick={handleSaveSampleDays} className="btn btn-primary">Salvar</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* DIALOG: DELETE CONFIRMATION */}
+      {deleteConfirmId && (
+        <div className="modal-overlay">
+          <div className="modal-content" style={{ maxWidth: '400px' }}>
+            <div className="modal-header">
+              <h3 className="modal-title flex items-center gap-2" style={{ color: 'hsl(var(--destructive))' }}>
+                <AlertTriangle size={20} />
+                Excluir Lançamento
+              </h3>
+            </div>
+            <p className="text-sm text-muted" style={{ margin: '0.75rem 0' }}>
+              Tem certeza que deseja excluir permanentemente esta pesagem? Esta ação não pode ser desfeita.
+            </p>
+            <div className="modal-footer">
+              <button onClick={() => setDeleteConfirmId(null)} className="btn btn-secondary">Cancelar</button>
+              <button onClick={() => handleRemoveWeighing(deleteConfirmId)} className="btn btn-danger">Excluir</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Styles for print and row hover */}
+      <style>{`
+        @media print {
+          .no-print, .btn, header, aside, .sidebar-backdrop, .modal-overlay, .flex.justify-center {
+            display: none !important;
+          }
+          .main-content-el {
+            margin-left: 0 !important;
+            padding: 0 !important;
+          }
+          .card {
+            border: none !important;
+            box-shadow: none !important;
+            background: none !important;
+            backdrop-filter: none !important;
+          }
+          .table-container {
+            border: none !important;
+          }
+          body {
+            background-color: #fff !important;
+            color: #000 !important;
+          }
+        }
+        .hover-trigger-row:hover {
+          background-color: rgba(34, 197, 94, 0.03) !important;
+        }
+      `}</style>
+
     </div>
   );
 };

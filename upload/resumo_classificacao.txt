@@ -1,0 +1,306 @@
+RESUMO DO EXCEL DE CLASSIFICAÇÃO
+Abas encontradas: METAL, PLÁSTICO, Plan1, PAPEL, VIDRO, ORGÂNICO, PERIGOSO, REJEITO, CUSTO RSU, CLASSE I, CLASSE II A - Não Inerse, CLASSE II B - Inerse, Referências Classificação
+
+
+===================================
+ABA: METAL
+===================================
+L1: ["Preço Médio da Sucata de Metal por Estado (R$/kg)"]
+L2: ["Classe II B"]
+L3: ["Tipo de Metal","AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS","MG","PA","PB","PR","PE","PI","RJ","RN","RS","RO","RR","SC","SP","SE","TO"]
+L4: ["Ferro",0.59,0.62,0.59,0.6,0.64,0.62,0.67,0.68,0.66,0.6,0.62,0.63,0.7,0.62,0.61,0.69,0.63,0.59,0.72,0.6,0.68,0.6,0.59,0.7,0.73,0.62,0.61]
+L5: ["Alumínio",6.55,6.84,6.48,6.7,7.06,6.91,7.42,7.49,7.27,6.62,6.91,6.98,7.78,6.84,6.77,7.63,6.98,6.55,7.92,6.7,7.56,6.62,6.48,7.7,8.06,6.84,6.77]
+L6: ["Cobre",34.58,36.1,34.2,35.34,37.24,36.48,39.14,39.52,38.38,34.96,36.48,36.86,41.04,36.1,35.72,40.28,36.86,34.58,41.8,35.34,39.9,34.96,34.2,40.66,42.56,36.1,35.72]
+L7: ["Latão",25.94,27.07,25.65,26.51,27.93,27.36,29.36,29.64,28.79,26.22,27.36,27.64,30.78,27.07,26.79,30.21,27.64,25.94,31.35,26.51,29.93,26.22,25.65,30.5,31.92,27.07,26.79]
+L8: ["Chumbo",5,5.22,4.95,5.12,5.39,5.28,5.67,5.72,5.55,5.06,5.28,5.33,5.94,5.22,5.17,5.83,5.33,5,6.05,5.12,5.78,5.06,4.95,5.89,6.16,5.22,5.17]
+L9: ["Metal Misturado",2.55,2.66,2.52,2.6,2.74,2.69,2.88,2.91,2.83,2.58,2.69,2.72,3.02,2.66,2.63,2.97,2.72,2.55,3.08,2.6,2.94,2.58,2.52,3,3.14,2.66,2.63]
+L13: ["COR DE REFERÊNCIA","METAL:","AMARELO"]
+L18: ["Observações e Fontes"]
+L20: ["* Os valores são médias estimadas de mercado para 2026."]
+L21: ["* Os preços variam conforme qualidade, pureza, volume e região."]
+L22: ["* Metal Misturado refere-se à sucata metálica sem separação detalhada."]
+L23: ["* Valores expressos em Reais por quilograma (R$/kg)."]
+L24: ["* Referências utilizadas: XLata, Scrap Trade, SucataFinder."]
+Total de linhas de dados na aba: 16
+
+===================================
+ABA: PLÁSTICO
+===================================
+L1: ["Preço Médio da Sucata de Plásticos por Estado (R$/kg)"]
+L2: ["Classe II B"]
+L3: ["Tipo de Plástico","Sigla","AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS","MG","PA","PB","PR","PE","PI","RJ","RN","RS","RO","RR","SC","SP","SE","TO"]
+L4: ["PET Transparente","PET 1",3.46,3.61,3.42,3.53,3.72,3.65,3.91,3.95,3.84,3.5,3.65,3.69,4.1,3.61,3.57,4.03,3.69,3.46,4.18,3.53,3.99,3.5,3.42,4.07,4.26,3.61,3.57]
+L5: ["PET Colorido","PET 1",2.64,2.75,2.61,2.7,2.84,2.78,2.99,3.02,2.93,2.67,2.78,2.81,3.13,2.75,2.73,3.07,2.81,2.64,3.19,2.7,3.04,2.67,2.61,3.1,3.25,2.75,2.73]
+L6: ["PEAD","HDPE 2",3.82,3.99,3.78,3.91,4.12,4.03,4.33,4.37,4.24,3.86,4.03,4.07,4.54,3.99,3.95,4.45,4.07,3.82,4.62,3.91,4.41,3.86,3.78,4.49,4.7,3.99,3.95]
+L7: ["PEBD","LDPE 4",2.46,2.56,2.43,2.51,2.65,2.59,2.78,2.81,2.73,2.48,2.59,2.62,2.92,2.56,2.54,2.86,2.62,2.46,2.97,2.51,2.84,2.48,2.43,2.89,3.02,2.56,2.54]
+L8: ["PVC","PVC 3",1.64,1.71,1.62,1.67,1.76,1.73,1.85,1.87,1.82,1.66,1.73,1.75,1.94,1.71,1.69,1.91,1.75,1.64,1.98,1.67,1.89,1.66,1.62,1.93,2.02,1.71,1.69]
+L9: ["PP","PP 5",2.82,2.94,2.79,2.88,3.04,2.98,3.19,3.22,3.13,2.85,2.98,3.01,3.35,2.94,2.91,3.29,3.01,2.82,3.41,2.88,3.26,2.85,2.79,3.32,3.47,2.94,2.91]
+L10: ["ABS","ABS 7",5.28,5.51,5.22,5.39,5.68,5.57,5.97,6.03,5.86,5.34,5.57,5.63,6.26,5.51,5.45,6.15,5.63,5.28,6.38,5.39,6.09,5.34,5.22,6.21,6.5,5.51,5.45]
+L11: ["Plástico Misto","OUTROS 7",1.27,1.33,1.26,1.3,1.37,1.34,1.44,1.46,1.41,1.29,1.34,1.36,1.51,1.33,1.32,1.48,1.36,1.27,1.54,1.3,1.47,1.29,1.26,1.5,1.57,1.33,1.32]
+L15: ["COR DE REFERÊNCIA","PLÁSTICO","VERMELHO"]
+L20: ["Observações e Fontes"]
+L22: ["* Os valores representam médias estimadas de mercado para 2026."]
+L23: ["* Os preços variam conforme limpeza, cor, moagem e volume."]
+L24: ["* Plástico Misto refere-se a resíduos plásticos sem separação específica."]
+L25: ["* Valores expressos em Reais por quilograma (R$/kg)."]
+L26: ["* Referências utilizadas: reciclus.com.br, sucatafinder.com e mercado reciclável nacional."]
+Total de linhas de dados na aba: 18
+
+===================================
+ABA: Plan1
+===================================
+L1: [null,"CATEGORIA",null,null,null,"SUB CATEGORIA",null,null,"TIPO","CLASSIFICAÇÃO"]
+L2: [null,"RECICLÁVEL",null,null,null,"Branco",null,null,"PLÁSTICO","CLASSE II - B (INERSE)"]
+L3: [null,"ORGÂNICO",null,null,null,"Jornal",null,null,"VIDRO","CLASSE II - B (INERSE)"]
+L4: [null,"PERIGOSO",null,null,null,"Papelão",null,null,"METAL","CLASSE II - B (INERSE)"]
+L5: [null,"REJEITO",null,null,null,"Arquivo",null,null,"PAPEL","CLASSE II - A (NÃO INERSE)"]
+L6: [null,null,null,null,null,"Revista",null,null,"ORGÂNICO","CLASSE II - A (NÃO INERSE)"]
+L7: [null,null,null,null,null,"Kraft",null,null,"REJEITO","CLASSE II - A (NÃO INERSE)"]
+L8: [null,null,null,null,null,"Cartolina",null,null,"OUTROS A","CLASSE II - A (NÃO INERSE)"]
+L9: [null,null,null,null,null,"Papel Misto",null,null,"OUTROS B","CLASSE II - B (INERSE)"]
+L10: [null,null,null,null,null,"Ferro",null,null,"TÓXICO","CLASSE  I - PERIGOSOS"]
+L11: [null,null,null,null,null,"Alumínio",null,null,"INFLAMÁVEL","CLASSE  I - PERIGOSOS"]
+L12: [null,null,null,null,null,"Cobre",null,null,"CORROSIVO","CLASSE  I - PERIGOSOS"]
+L13: [null,null,null,null,null,"Latão",null,null,"REATIVO","CLASSE  I - PERIGOSOS"]
+L14: [null,null,null,null,null,"Chumbo",null,null,"PATOGÊNICO (Infectante)","CLASSE  I - PERIGOSOS"]
+L15: [null,null,null,null,null,"Sucata de metal",null,null,"CANCERÍGENO","CLASSE  I - PERIGOSOS"]
+L16: [null,null,null,null,null,"PET Transparente - Nº 1"]
+L17: [null,null,null,null,null,"PET Colorido - Nº 1"]
+L18: [null,null,null,null,null,"PEAD - Nº 2"]
+L19: [null,null,null,null,null,"PVC - Nº 3"]
+L20: [null,null,null,null,null,"PEBD - Nº 4"]
+L21: [null,null,null,null,null,"PP - Nº 5"]
+L22: [null,null,null,null,null,"PS - Nº 6"]
+L23: [null,null,null,null,null,"ABS - Nº 7 (OUTROS)"]
+L24: [null,null,null,null,null,"Misto - Nº 7 (OUTROS)"]
+L25: [null,null,null,null,null,"Branco (Transparente)"]
+L26: [null,null,null,null,null,"Verde"]
+L27: [null,null,null,null,null,"Âmbar"]
+L28: [null,null,null,null,null,"Temperado"]
+L29: [null,null,null,null,null,"Laminado"]
+L30: [null,null,null,null,null,"Cacos Mistos"]
+L31: [null,null,null,null,null,"Garrafa Inteira"]
+L32: [null,null,null,null,null,"Misto"]
+L33: [null,null,null,null,null,"ALIMENTOS"]
+L34: [null,null,null,null,null,"PODA/CAPINA"]
+L35: [null,null,null,null,null,"SERRAGEM"]
+L36: [null,null,null,null,null,"Pilhas"]
+L37: [null,null,null,null,null,"Baterias"]
+L38: [null,null,null,null,null,"Placas eletrônicas"]
+L39: [null,null,null,null,null," Lâmpadas fluorescentes"]
+L40: [null,null,null,null,null,"Óleo lubrificante"]
+L41: [null,null,null,null,null,"Óleo de frituras"]
+L42: [null,null,null,null,null,"Tintas"]
+L43: [null,null,null,null,null,"Solventes"]
+L44: [null,null,null,null,null,"hospitalares"]
+L45: [null,null,null,null,null,"Medicamentos"]
+L46: [null,null,null,null,null,"Agrotóxicos"]
+L47: [null,null,null,null,null,"Embalagens contaminadas"]
+L48: [null,null,null,null,null,"Amianto"]
+L49: [null,null,null,null,null,"Mercúrio"]
+L50: [null,null,null,null,null,"Infectantes"]
+L51: [null,null,null,null,null,"Papel higiênico"]
+L52: [null,null,null,null,null,"Fraudas"]
+L53: [null,null,null,null,null,"Descartáveis"]
+L54: [null,null,null,null,null,"Embalagens Sujas"]
+L55: [null,null,null,null,null,"Sem Reciclabilidade"]
+L56: [null,null,null,null,null,"Fezes"]
+L57: [null,null,null,null,"B","Entulho Limpo (Construção Civil)"]
+L58: [null,null,null,null,"A","TEXTIL (LIMPO)"]
+L59: [null,null,null,null,"A","Couro e porracha"]
+L60: [null,null,null,null,"A","Móveis"]
+L61: [null,null,null,null,"A","Madeiras"]
+L62: [null,null,null,null,"A","Gesso"]
+Total de linhas de dados na aba: 62
+
+===================================
+ABA: PAPEL
+===================================
+L1: ["Preço Médio da Sucata de Papel por Estado (R$/kg)"]
+L2: ["CLASSE II - A "]
+L3: ["Tipo de Papel","AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS","MG","PA","PB","PR","PE","PI","RJ","RN","RS","RO","RR","SC","SP","SE","TO"]
+L4: ["Papel Branco",1.09,1.14,1.08,1.12,1.18,1.15,1.24,1.25,1.21,1.1,1.15,1.16,1.3,1.14,1.13,1.27,1.16,1.09,1.32,1.12,1.26,1.1,1.08,1.28,1.34,1.14,1.13]
+L5: ["Jornal",0.5,0.52,0.5,0.51,0.54,0.53,0.57,0.57,0.56,0.51,0.53,0.53,0.59,0.52,0.52,0.58,0.53,0.5,0.61,0.51,0.58,0.51,0.5,0.59,0.62,0.52,0.52]
+L6: ["Papelão",0.68,0.71,0.68,0.7,0.73,0.72,0.77,0.78,0.76,0.69,0.72,0.73,0.81,0.71,0.7,0.8,0.73,0.68,0.83,0.7,0.79,0.69,0.68,0.8,0.84,0.71,0.7]
+L7: ["Arquivo Misto",0.77,0.81,0.77,0.79,0.83,0.82,0.88,0.88,0.86,0.78,0.82,0.82,0.92,0.81,0.8,0.9,0.82,0.77,0.94,0.79,0.89,0.78,0.77,0.91,0.95,0.81,0.8]
+L8: ["Revista",0.41,0.43,0.41,0.42,0.44,0.43,0.46,0.47,0.45,0.41,0.43,0.44,0.49,0.43,0.42,0.48,0.44,0.41,0.5,0.42,0.47,0.41,0.41,0.48,0.5,0.43,0.42]
+L9: ["Papel Kraft",0.86,0.9,0.85,0.88,0.93,0.91,0.98,0.99,0.96,0.87,0.91,0.92,1.03,0.9,0.89,1.01,0.92,0.86,1.04,0.88,1,0.87,0.85,1.02,1.06,0.9,0.89]
+L10: ["Cartolina",0.64,0.66,0.63,0.65,0.69,0.67,0.72,0.73,0.71,0.64,0.67,0.68,0.76,0.66,0.66,0.74,0.68,0.64,0.77,0.65,0.73,0.64,0.63,0.75,0.78,0.66,0.66]
+L11: ["Papel Misto",0.36,0.38,0.36,0.37,0.39,0.38,0.41,0.42,0.4,0.37,0.38,0.39,0.43,0.38,0.38,0.42,0.39,0.36,0.44,0.37,0.42,0.37,0.36,0.43,0.45,0.38,0.38]
+L15: ["COR DE REFERÊNCIA","PAPEL","AZUL"]
+L20: ["Observações e Fontes"]
+L22: ["* Os valores representam médias estimadas do mercado brasileiro para 2026."]
+L23: ["* Os preços variam conforme qualidade, limpeza, prensagem e volume."]
+L24: ["* Papel Misto refere-se a papéis recicláveis sem separação específica."]
+L25: ["* Valores expressos em Reais por quilograma (R$/kg)."]
+L26: ["* Referências utilizadas: mercado reciclável nacional, cooperativas e plataformas de sucata."]
+Total de linhas de dados na aba: 18
+
+===================================
+ABA: VIDRO
+===================================
+L1: ["Preço Médio da Sucata de Vidro por Estado (R$/kg)"]
+L2: ["Classe II B"]
+L3: ["Tipo de Vidro","AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS","MG","PA","PB","PR","PE","PI","RJ","RN","RS","RO","RR","SC","SP","SE","TO"]
+L4: ["Vidro Branco",0.27,0.28,0.27,0.28,0.29,0.29,0.31,0.31,0.3,0.28,0.29,0.29,0.32,0.28,0.28,0.32,0.29,0.27,0.33,0.28,0.32,0.28,0.27,0.32,0.34,0.28,0.28]
+L5: ["Vidro Verde",0.23,0.24,0.23,0.23,0.24,0.24,0.26,0.26,0.25,0.23,0.24,0.24,0.27,0.24,0.23,0.27,0.24,0.23,0.28,0.23,0.26,0.23,0.23,0.27,0.28,0.24,0.23]
+L6: ["Vidro Âmbar",0.25,0.27,0.25,0.26,0.27,0.27,0.29,0.29,0.28,0.26,0.27,0.27,0.3,0.27,0.26,0.3,0.27,0.25,0.31,0.26,0.29,0.26,0.25,0.3,0.31,0.27,0.26]
+L7: ["Vidro Temperado",0.41,0.43,0.41,0.42,0.44,0.43,0.46,0.47,0.45,0.41,0.43,0.44,0.49,0.43,0.42,0.48,0.44,0.41,0.5,0.42,0.47,0.41,0.41,0.48,0.5,0.43,0.42]
+L8: ["Vidro Laminado",0.36,0.38,0.36,0.37,0.39,0.38,0.41,0.42,0.4,0.37,0.38,0.39,0.43,0.38,0.38,0.42,0.39,0.36,0.44,0.37,0.42,0.37,0.36,0.43,0.45,0.38,0.38]
+L9: ["Cacos Mistos",0.16,0.17,0.16,0.17,0.18,0.17,0.19,0.19,0.18,0.17,0.17,0.17,0.19,0.17,0.17,0.19,0.17,0.16,0.2,0.17,0.19,0.17,0.16,0.19,0.2,0.17,0.17]
+L10: ["Garrafa Inteira",0.32,0.33,0.32,0.33,0.34,0.34,0.36,0.36,0.35,0.32,0.34,0.34,0.38,0.33,0.33,0.37,0.34,0.32,0.39,0.33,0.37,0.32,0.32,0.37,0.39,0.33,0.33]
+L11: ["Vidro Misto",0.2,0.21,0.2,0.2,0.22,0.21,0.23,0.23,0.22,0.2,0.21,0.21,0.24,0.21,0.21,0.23,0.21,0.2,0.24,0.2,0.23,0.2,0.2,0.24,0.25,0.21,0.21]
+L15: ["COR DE REFERÊNCIA","VÍDRO","VERDE"]
+L20: ["Observações e Fontes"]
+L22: ["* Os valores representam médias estimadas do mercado brasileiro para 2026."]
+L23: ["* Os preços variam conforme limpeza, separação por cor e volume."]
+L24: ["* Vidro Misto refere-se a resíduos de vidro sem separação específica."]
+L25: ["* Valores expressos em Reais por quilograma (R$/kg)."]
+L26: ["* Referências utilizadas: cooperativas, recicladoras e plataformas do setor reciclável."]
+Total de linhas de dados na aba: 18
+
+===================================
+ABA: ORGÂNICO
+===================================
+L1: ["Valores Estimados de Venda do Composto Orgânico por Estado (R$/Lt.)"]
+L2: ["CLASSE II - A "]
+L3: ["Produto","AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS","MG","PA","PB","PR","PE","PI","RJ","RN","RS","RO","RR","SC","SP","SE","TO"]
+L4: ["Composto Orgânico",0.77,0.81,0.77,0.79,0.83,0.82,0.9,0.89,0.87,0.77,0.82,0.83,0.94,0.8,0.8,0.92,0.82,0.77,0.95,0.79,0.91,0.78,0.77,0.93,0.98,0.82,0.81]
+L5: ["Húmus",2.18,2.28,2.16,2.23,2.35,2.3,2.54,2.52,2.45,2.18,2.33,2.35,2.64,2.26,2.26,2.59,2.33,2.16,2.69,2.23,2.57,2.21,2.16,2.62,2.76,2.3,2.28]
+L6: ["Biofertilizante Líquido",1.59,1.66,1.57,1.63,1.71,1.68,1.85,1.84,1.79,1.59,1.7,1.71,1.93,1.65,1.65,1.89,1.7,1.57,1.96,1.63,1.87,1.61,1.57,1.91,2.01,1.68,1.66]
+L9: ["COR DE REFERÊNCIA","ORGÂNICO","MARROM"]
+L14: ["Observações Compostagem"]
+L16: ["Os valores representam estimativas médias de venda do composto orgânico para 2026."]
+L17: ["Os preços variam conforme qualidade, maturação, peneiramento e certificação."]
+L18: ["Valores expressos em Reais por quilograma (R$/kg)."]
+L19: ["Os valores foram ajustados regionalmente com base em demanda agrícola e logística."]
+L20: ["Referências utilizadas: compostagem urbana, cooperativas e agricultura orgânica."]
+L22: ["Húmus refere-se ao fertilizante orgânico produzido por vermicompostagem."]
+L24: ["Biofertilizante líquido refere-se ao líquido orgânico gerado durante o processo de compostagem e vermicompostagem."]
+Total de linhas de dados na aba: 15
+
+===================================
+ABA: PERIGOSO
+===================================
+L1: ["Resíduos Classe I Perigosos"]
+L3: ["CLASSE I"]
+L4: [" Perigosos"]
+L5: ["Resíduo","Categoria","Destino Recomendado","Base Legal"]
+L6: ["Pilhas","Eletrônicos","Logística reversa","CONAMA 401"]
+L7: ["Baterias","Eletrônicos","Logística reversa","CONAMA 401"]
+L8: ["Placas eletrônicas","Eletrônicos","Logística reversa","PNRS / ABNT"]
+L9: ["Lâmpadas fluorescentes","Perigosos","Logística reversa","PNRS"]
+L10: ["Óleo lubrificante usado","Perigosos","Logística reversa","CONAMA 362"]
+L11: ["Óleo de frituras","Perigosos","Logística reversa","CONAMA 362"]
+L12: ["Tintas","Perigosos","Tratamento especial","ABNT NBR 10004"]
+L13: ["Solventes","Perigosos","Tratamento especial","ABNT NBR 10004"]
+L14: ["Resíduos hospitalares","Saúde","Tratamento especial","RDC ANVISA 222"]
+L15: ["Medicamentos vencidos","Saúde","Logística reversa","PNRS"]
+L16: ["Agrotóxicos","Agrícola","Logística reversa","Lei 9.974/2000"]
+L17: ["Embalagens contaminadas","Industrial","Tratamento especial","ABNT NBR 10004"]
+L18: ["Amianto","Construção Civil","Disposição controlada","CONAMA"]
+L19: ["Mercúrio","Industrial","Tratamento especial","ABNT NBR 10004"]
+L20: ["Resíduos infectantes","Saúde","Tratamento especial","RDC ANVISA 222"]
+L22: ["COR DE REFERÊNCIA","ORGÂNICO","laranja"]
+Total de linhas de dados na aba: 20
+
+===================================
+ABA: REJEITO
+===================================
+L1: ["Custo Médio REJEITO (R$/kg)"]
+L3: ["Tipo LIXO DOMÉSTICO",null,"AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS","MG","PA","PB","PR","PE","PI","RJ","RN","RS","RO","RR","SC","SP","SE","TO"]
+L4: ["REJEITO","VALOR POR KG",0.345,0.35625,0.35625,0.39,0.3675,0.36,0.42,0.39375,0.3825,0.34125,0.3675,0.37125,0.4125,0.35625,0.3525,0.405,0.36375,0.3375,0.43125,0.34875,0.40125,0.34875,0.3525,0.40875,0.4425,0.36,0.36]
+L9: ["Destinanão"]
+L10: ["Aterro Sanitário - Custo RSU / por KG."]
+L13: ["COR DE REFERÊNCIA","REJEITO","CINZA"]
+L17: ["Observações e Metodologia"]
+L19: ["* Os valores representam estimativas médias de custos de RSU para 2026."]
+L20: ["* RSU = Resíduos Sólidos Urbanos."]
+L21: ["* Os custos são expressos em Reais por tonelada (R$/t). / 1000"]
+L22: ["* Nos estados sem dados específicos, foram aplicadas médias nacionais ajustadas regionalmente."]
+L23: ["* Os valores podem variar conforme distância, densidade urbana, contratos municipais e tecnologia do aterro."]
+L24: ["* Referências utilizadas: SNIS, ABRELPE, contratos municipais e médias do setor de limpeza urbana."]
+Total de linhas de dados na aba: 13
+
+===================================
+ABA: CUSTO RSU
+===================================
+L1: ["Custos Médios de RSU por Estado (R$/tonelada)"]
+L3: ["Serviço","AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS","MG","PA","PB","PR","PE","PI","RJ","RN","RS","RO","RR","SC","SP","SE","TO"]
+L4: ["Coleta",170.2,175.75,175.75,192.4,181.3,177.6,207.2,194.25,188.7,168.35,181.3,183.15,203.5,175.75,173.9,199.8,179.45,166.5,212.75,172.05,197.95,172.05,173.9,201.65,218.3,177.6,177.6]
+L5: ["Transporte",66.24,68.4,68.4,74.88,70.56,69.12,80.64,75.6,73.44,65.52,70.56,71.28,79.2,68.4,67.68,77.76,69.84,64.8,82.8,66.96,77.04,66.96,67.68,78.48,84.96,69.12,69.12]
+L6: ["Disposição em Aterro Sanitário",108.56,112.1,112.1,122.72,115.64,113.28,132.16,123.9,120.36,107.38,115.64,116.82,129.8,112.1,110.92,127.44,114.46,106.2,135.7,109.74,126.26,109.74,110.92,128.62,139.24,113.28,113.28]
+L8: ["TOTAL  Custo/t",345,356.25,356.25,390,367.5,360,420,393.75,382.5,341.25,367.5,371.25,412.5,356.25,352.5,405,363.75,337.5,431.25,348.75,401.25,348.75,352.5,408.75,442.5,360,360]
+L13: ["Observações e Metodologia"]
+L15: ["* Os valores representam estimativas médias de custos de RSU para 2026."]
+L16: ["* RSU = Resíduos Sólidos Urbanos."]
+L17: ["* Os custos são expressos em Reais por tonelada (R$/t)."]
+L18: ["* Nos estados sem dados específicos, foram aplicadas médias nacionais ajustadas regionalmente."]
+L19: ["* Os valores podem variar conforme distância, densidade urbana, contratos municipais e tecnologia do aterro."]
+L20: ["* Referências utilizadas: SNIS, ABRELPE, contratos municipais e médias do setor de limpeza urbana."]
+Total de linhas de dados na aba: 13
+
+===================================
+ABA: CLASSE I
+===================================
+L1: ["Classificação dos resíduos"]
+L3: ["CLASSE I","PERIGOSOS"]
+L5: ["Resíduo","Categoria","Destino Recomendado","Base Legal"]
+L6: ["Pilhas","Eletrônicos","Logística reversa","CONAMA 401"]
+L7: ["Baterias","Eletrônicos","Logística reversa","CONAMA 401"]
+L8: ["Placas eletrônicas","Eletrônicos","Logística reversa","PNRS / ABNT"]
+L9: ["Lâmpadas fluorescentes","Perigosos","Logística reversa","PNRS"]
+L10: ["Óleo lubrificante usado","Perigosos","Logística reversa","CONAMA 362"]
+L11: ["Tintas","Perigosos","Tratamento especial","ABNT NBR 10004"]
+L12: ["Solventes","Perigosos","Tratamento especial","ABNT NBR 10004"]
+L13: ["Resíduos hospitalares","Saúde","Tratamento especial","RDC ANVISA 222"]
+L14: ["Medicamentos vencidos","Saúde","Logística reversa","PNRS"]
+L15: ["Agrotóxicos","Agrícola","Logística reversa","Lei 9.974/2000"]
+L16: ["Embalagens contaminadas","Industrial","Tratamento especial","ABNT NBR 10004"]
+L17: ["Amianto","Construção Civil","Disposição controlada","CONAMA"]
+L18: ["Mercúrio","Industrial","Tratamento especial","ABNT NBR 10004"]
+L19: ["Resíduos infectantes","Saúde","Tratamento especial","RDC ANVISA 222"]
+Total de linhas de dados na aba: 17
+
+===================================
+ABA: CLASSE II A - Não Inerse
+===================================
+L1: ["Classificação dos resíduos"]
+L3: ["CLASSE II - A Não Inerse","Não Inerse"]
+L5: ["Resíduos classificados como Classe II A Nao Inerte"]
+L6: ["Resíduo","Categoria","Destino Recomendado","Base Legal"]
+L7: ["Papel","Papéis","Reciclagem","ABNT NBR 10004"]
+L8: ["Restos alimentares","Orgânicos","Compostagem","PNRS"]
+L9: ["Poda e jardinagem","Orgânicos","Compostagem","PNRS"]
+L10: ["Gesso","Construção Civil","Reciclagem controlada","CONAMA 307"]
+L11: ["Composto orgânico","Orgânicos","Uso agrícola","PNRS"]
+L12: ["Húmus","Orgânicos","Uso agrícola","PNRS"]
+L13: ["Biofertilizante","Orgânicos","Uso agrícola","PNRS"]
+Total de linhas de dados na aba: 11
+
+===================================
+ABA: CLASSE II B - Inerse
+===================================
+L1: ["Classificação dos resíduos"]
+L3: ["CLASSE II - B ","Inerse"]
+L5: ["Resíduos classificados como Classe II B Inerte"]
+L6: ["Resíduo","Categoria","Destino Recomendado","Base Legal"]
+L7: ["Vidros","Vidros","Reciclagem","ABNT NBR 10004"]
+L8: ["Plásticos","Plásticos","Reciclagem","ABNT NBR 10004"]
+L9: ["Plásicos PVC","Plásticos","Reciclagem controlada","ABNT NBR 10004"]
+L10: ["Ferrosos","Metais","Reciclagem","ABNT NBR 10004"]
+L11: ["Entulho limpo","Construção Civil","Reciclagem","CONAMA 307"]
+Total de linhas de dados na aba: 9
+
+===================================
+ABA: Referências Classificação
+===================================
+L1: ["Legislações e normas brasileiras utilizadas"]
+L3: ["Lei nº 12.305/2010 - Política Nacional de Resíduos Sólidos (PNRS)"]
+L4: ["ABNT NBR 10004 - Classificação de resíduos sólidos"]
+L5: ["CONAMA 307 - Resíduos da construção civil"]
+L6: ["CONAMA 401 - Pilhas e baterias"]
+L7: ["CONAMA 362 - Óleo lubrificante usado"]
+L8: ["RDC ANVISA 222 - Resíduos de serviços de saúde"]
+L9: ["Lei 9.974/2000 - Embalagens de agrotóxicos"]
+Total de linhas de dados na aba: 8

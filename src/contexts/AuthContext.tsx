@@ -1,113 +1,148 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from "react";
-import { Session, User } from "@supabase/supabase-js";
-import { supabase } from "@/integrations/supabase/client";
+import React, { createContext, useContext, useEffect, useState } from 'react';
+import { supabase } from '../integrations/supabase/client';
+import type { User } from '@supabase/supabase-js';
 
-export type AppRole = "master_admin" | "client_admin" | "client_user";
+interface Profile {
+  id: string;
+  client_id: string | null;
+  full_name: string | null;
+  email: string | null;
+}
 
-interface RoleRow {
-  role: AppRole;
+interface UserRole {
+  role: 'master_admin' | 'client_admin' | 'client_user';
   client_id: string | null;
 }
 
 interface AuthContextType {
   user: User | null;
-  session: Session | null;
-  loading: boolean;
-  roles: RoleRow[];
+  profile: Profile | null;
+  roles: UserRole[];
+  role: 'master_admin' | 'client_admin' | 'client_user' | null;
   clientId: string | null;
   isMasterAdmin: boolean;
   isClientAdmin: boolean;
-  fullName: string;
-  impersonatedClientId: string | null;
+  loading: boolean;
   setImpersonatedClient: (clientId: string | null) => void;
+  impersonatedClientId: string | null;
   signOut: () => Promise<void>;
-  refresh: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const IMPERSONATE_KEY = "impersonate_client_id";
-
-export const AuthProvider = ({ children }: { children: ReactNode }) => {
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [roles, setRoles] = useState<RoleRow[]>([]);
-  const [profileClientId, setProfileClientId] = useState<string | null>(null);
-  const [fullName, setFullName] = useState<string>("");
-  const [impersonatedClientId, setImpersonatedClientIdState] = useState<string | null>(
-    () => (typeof window !== "undefined" ? localStorage.getItem(IMPERSONATE_KEY) : null)
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [roles, setRoles] = useState<UserRole[]>([]);
+  const [impersonatedClientId, setImpersonatedClientState] = useState<string | null>(
+    sessionStorage.getItem('impersonated_client_id')
   );
+  const [loading, setLoading] = useState(true);
 
-  const loadProfileAndRoles = async (uid: string) => {
-    const [{ data: rolesData }, { data: profileData }] = await Promise.all([
-      supabase.from("user_roles").select("role, client_id").eq("user_id", uid),
-      supabase.from("profiles").select("client_id, full_name").eq("id", uid).maybeSingle(),
-    ]);
-    setRoles((rolesData ?? []) as RoleRow[]);
-    setProfileClientId(profileData?.client_id ?? null);
-    setFullName(profileData?.full_name ?? "");
+  const setImpersonatedClient = (id: string | null) => {
+    if (id) {
+      sessionStorage.setItem('impersonated_client_id', id);
+    } else {
+      sessionStorage.removeItem('impersonated_client_id');
+    }
+    setImpersonatedClientState(id);
+  };
+
+  const fetchUserData = async (currentUser: User) => {
+    try {
+      // 1. Fetch Profile
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', currentUser.id)
+        .maybeSingle();
+
+      if (profileError) throw profileError;
+      setProfile(profileData as Profile);
+
+      // 2. Fetch Roles
+      const { data: rolesData, error: rolesError } = await supabase
+        .from('user_roles')
+        .select('role, client_id')
+        .eq('user_id', currentUser.id);
+
+      if (rolesError) throw rolesError;
+      setRoles((rolesData || []) as UserRole[]);
+    } catch (error) {
+      console.error('Error fetching user meta data:', error);
+    }
   };
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, sess) => {
-      setSession(sess);
-      setUser(sess?.user ?? null);
-      if (sess?.user) {
-        setTimeout(() => { loadProfileAndRoles(sess.user.id); }, 0);
+    // Check active session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        setUser(session.user);
+        fetchUserData(session.user).finally(() => setLoading(false));
       } else {
-        setRoles([]);
-        setProfileClientId(null);
-        setFullName("");
-        localStorage.removeItem(IMPERSONATE_KEY);
-        setImpersonatedClientIdState(null);
+        setLoading(false);
       }
     });
 
-    supabase.auth.getSession().then(({ data: { session: sess } }) => {
-      setSession(sess);
-      setUser(sess?.user ?? null);
-      if (sess?.user) loadProfileAndRoles(sess.user.id);
-      setLoading(false);
-    });
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (_event, session) => {
+        setLoading(true);
+        if (session?.user) {
+          setUser(session.user);
+          await fetchUserData(session.user);
+        } else {
+          setUser(null);
+          setProfile(null);
+          setRoles([]);
+          setImpersonatedClientState(null);
+          sessionStorage.removeItem('impersonated_client_id');
+        }
+        setLoading(false);
+      }
+    );
 
-    return () => subscription.unsubscribe();
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
-  const isMasterAdmin = roles.some((r) => r.role === "master_admin");
-  const baseIsClientAdmin = roles.some((r) => r.role === "client_admin");
-
-  // Effective values consider master admin impersonation
-  const clientId = isMasterAdmin && impersonatedClientId ? impersonatedClientId : profileClientId;
-  const isClientAdmin = (isMasterAdmin && !!impersonatedClientId) || baseIsClientAdmin;
-
-  const setImpersonatedClient = (id: string | null) => {
-    if (id) localStorage.setItem(IMPERSONATE_KEY, id);
-    else localStorage.removeItem(IMPERSONATE_KEY);
-    setImpersonatedClientIdState(id);
-  };
-
   const signOut = async () => {
-    localStorage.removeItem(IMPERSONATE_KEY);
-    setImpersonatedClientIdState(null);
+    setLoading(true);
     await supabase.auth.signOut();
   };
 
-  const refresh = async () => {
-    if (user) await loadProfileAndRoles(user.id);
+  // Determine active roles and privileges
+  const isMasterAdmin = roles.some((r) => r.role === 'master_admin');
+  const activeRole = roles.length > 0 ? roles[0].role : null;
+  const isClientAdmin = roles.some((r) => r.role === 'client_admin');
+
+  // Client ID: if impersonated (by master admin), use that, otherwise use profile's client_id
+  const clientId = (isMasterAdmin && impersonatedClientId) 
+    ? impersonatedClientId 
+    : (profile?.client_id || null);
+
+  const value = {
+    user,
+    profile,
+    roles,
+    role: activeRole,
+    clientId,
+    isMasterAdmin,
+    isClientAdmin,
+    loading,
+    setImpersonatedClient,
+    impersonatedClientId,
+    signOut,
   };
 
-  return (
-    <AuthContext.Provider
-      value={{ user, session, loading, roles, clientId, isMasterAdmin, isClientAdmin, fullName, impersonatedClientId, setImpersonatedClient, signOut, refresh }}
-    >
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
 export const useAuth = () => {
-  const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error("useAuth must be used within AuthProvider");
-  return ctx;
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
 };
