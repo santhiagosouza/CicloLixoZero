@@ -1,0 +1,5 @@
+---
+deployment:
+  tasks:
+    - export DEPLOYPATH=/home2/websai15/ciclolixozero.com.br/
+    - /bin/rsync -av --delete dist/ $DEPLOYPATH
