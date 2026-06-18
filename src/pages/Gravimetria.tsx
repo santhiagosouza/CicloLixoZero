@@ -111,6 +111,8 @@ const Gravimetria: React.FC = () => {
   const [editPeso, setEditPeso] = useState('');
 
   // Modals state
+  const [startModalOpen, setStartModalOpen] = useState(false);
+  const [startDays, setStartDays] = useState('1');
   const [endModalOpen, setEndModalOpen] = useState(false);
   const [endDays, setEndDays] = useState('');
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
@@ -251,16 +253,25 @@ const Gravimetria: React.FC = () => {
   const editFilteredSubs = subcategories.filter(s => s.type_id === editType);
 
   const startGravimetria = async () => {
+    const days = parseInt(startDays, 10);
+    if (isNaN(days) || days < 1) {
+      alert('Por favor, informe um número de dias de separação válido (maior que 0).');
+      return;
+    }
+    
     try {
       const { error } = await supabase
         .from('gravimetrias')
         .insert({
           client_id: clientId,
           numero: 0,
-          started_by: user!.id
+          started_by: user!.id,
+          sample_days: days
         });
 
       if (error) throw error;
+      setStartModalOpen(false);
+      setStartDays('1');
       setReloadKey(k => k + 1);
     } catch (err: any) {
       alert('Erro ao iniciar gravimetria: ' + err.message);
@@ -420,7 +431,7 @@ const Gravimetria: React.FC = () => {
             {active ? (
               <div className="flex gap-2">
                 <button 
-                  onClick={() => setEndModalOpen(true)} 
+                  onClick={() => { setEndDays(active.sample_days ? String(active.sample_days) : '1'); setEndModalOpen(true); }} 
                   className="btn btn-primary"
                   style={{ backgroundColor: 'hsl(var(--destructive))', color: '#fff' }}
                 >
@@ -436,7 +447,7 @@ const Gravimetria: React.FC = () => {
                 </button>
               </div>
             ) : (
-              <button onClick={startGravimetria} className="btn btn-primary">
+              <button onClick={() => { setStartDays('1'); setStartModalOpen(true); }} className="btn btn-primary">
                 <Play size={16} />
                 <span>Iniciar Nova Gravimetria</span>
               </button>
@@ -672,7 +683,7 @@ const Gravimetria: React.FC = () => {
                 Atualmente não há nenhuma rodada de coleta de resíduos ativa. Para realizar novos lançamentos de pesagens, é necessário iniciar uma gravimetria.
               </p>
               {(isClientAdmin || isMasterAdmin) ? (
-                <button onClick={startGravimetria} className="btn btn-primary" style={{ padding: '0.75rem 1.75rem' }}>
+                <button onClick={() => { setStartDays('1'); setStartModalOpen(true); }} className="btn btn-primary" style={{ padding: '0.75rem 1.75rem' }}>
                   <Play size={16} />
                   <span>Iniciar Gravimetria</span>
                 </button>
@@ -745,6 +756,45 @@ const Gravimetria: React.FC = () => {
             </div>
           </div>
         </>
+      )}
+
+      {/* MODAL: INICIAR NOVA GRAVIMETRIA */}
+      {startModalOpen && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h3 className="modal-title font-semibold">Iniciar Nova Gravimetria</h3>
+              <button onClick={() => setStartModalOpen(false)} className="modal-close">&times;</button>
+            </div>
+            <div className="flex flex-col gap-3">
+              <p className="text-sm text-muted">
+                Configure os dias de separação para iniciar o novo estudo gravimétrico.
+              </p>
+              <div className="form-group" style={{ marginTop: '0.5rem' }}>
+                <label className="form-label">Dias de Coleta Considerados (Separados)</label>
+                <input 
+                  type="number" 
+                  min="1" 
+                  step="1" 
+                  className="form-input" 
+                  placeholder="Ex: 7" 
+                  value={startDays} 
+                  onChange={e => setStartDays(e.target.value)} 
+                  required
+                />
+                <p className="text-xs text-muted mt-1">
+                  Insira o número de dias de separação considerados para a amostragem. Este valor é essencial para calcular as projeções de geração mensal e anual desde o início.
+                </p>
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button onClick={() => setStartModalOpen(false)} className="btn btn-secondary">Cancelar</button>
+              <button onClick={startGravimetria} className="btn btn-primary">
+                Iniciar Estudo
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* MODAL: ENCERRAR GRAVIMETRIA */}
