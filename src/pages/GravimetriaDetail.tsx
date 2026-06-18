@@ -238,9 +238,16 @@ const GravimetriaDetail: React.FC = () => {
   const economiaAterro = (recyclableWeight + organicWeight) * custoRejeitoKg;
 
   let receitaMateriais = 0;
+  const receitaPorTipo: Record<string, { typeName: string; value: number; color: string }> = {};
+
   weighings.forEach(w => {
     const subName = subMap[w.subcategory_id];
-    if (subName) {
+    const typeObj = typeMap[w.type_id];
+    const typeName = typeObj?.name || 'Outros';
+    const catObj = categoryMap[w.category_id];
+    const isRecyclableOrOrganic = catObj?.name.toLowerCase() === 'reciclável' || catObj?.name.toLowerCase() === 'orgânico';
+
+    if (subName && isRecyclableOrOrganic) {
       const precosUF = (residuosFinanceiro.precos as any)[clientUf] || {};
       let precoUnitario = 0;
       const keys = Object.keys(precosUF);
@@ -253,9 +260,25 @@ const GravimetriaDetail: React.FC = () => {
       if (matchKey) {
         precoUnitario = precosUF[matchKey] ?? 0;
       }
-      receitaMateriais += Number(w.peso_kg) * precoUnitario;
+
+      const itemVal = Number(w.peso_kg) * precoUnitario;
+      receitaMateriais += itemVal;
+
+      if (itemVal > 0) {
+        const key = w.type_id;
+        if (!receitaPorTipo[key]) {
+          receitaPorTipo[key] = {
+            typeName,
+            value: 0,
+            color: typeObj?.color || catObj?.color || '#888'
+          };
+        }
+        receitaPorTipo[key].value += itemVal;
+      }
     }
   });
+
+  const receitasDetalhadas = Object.values(receitaPorTipo).sort((a, b) => b.value - a.value);
   const impactoTotal = economiaAterro + receitaMateriais;
 
   // Matrix calculations: Sector vs Category
@@ -720,6 +743,49 @@ const GravimetriaDetail: React.FC = () => {
               </span>
             </div>
           </div>
+
+          {/* Detailed revenue by material type */}
+          {receitaMateriais > 0 && (
+            <div style={{ marginTop: '1.5rem', borderTop: '1px dashed rgba(59,130,246,0.15)', paddingTop: '1.25rem' }}>
+              <h4 style={{ fontSize: '0.875rem', fontWeight: 600, color: 'hsl(var(--foreground))' }} className="mb-1">Detalhamento do Valor de Venda por Material</h4>
+              <p className="text-muted text-xs mb-3">Valores estimados de comercialização por tipo de material na região de {clientUf} (Útil para planejamento de retorno sobre recicláveis/compostos):</p>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {receitasDetalhadas.map((item, idx) => {
+                  const pctReceita = receitaMateriais > 0 ? (item.value / receitaMateriais) * 100 : 0;
+                  return (
+                    <div 
+                      key={idx} 
+                      style={{ 
+                        border: '1px solid hsl(var(--card-border))', 
+                        borderRadius: 'var(--radius-md)', 
+                        padding: '0.75rem 1rem', 
+                        backgroundColor: 'hsl(var(--card))',
+                        boxShadow: '0 1px 3px rgba(0,0,0,0.01)'
+                      }}
+                    >
+                      <div className="flex justify-between items-center text-xs font-semibold mb-1.5">
+                        <span className="flex items-center gap-1.5">
+                          <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: item.color }} />
+                          {item.typeName}
+                        </span>
+                        <span style={{ color: 'hsl(var(--primary))', fontSize: '0.85rem' }}>
+                          R$ {item.value.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </span>
+                      </div>
+                      <div style={{ height: '4px', width: '100%', backgroundColor: 'hsl(var(--muted))', borderRadius: '9999px', overflow: 'hidden' }}>
+                        <div style={{ height: '100%', width: `${pctReceita}%`, backgroundColor: item.color, borderRadius: '9999px' }} />
+                      </div>
+                      <div className="flex justify-between text-muted mt-1" style={{ fontSize: '0.65rem' }}>
+                        <span>Est. de Receita</span>
+                        <span>{pctReceita.toFixed(1)}% do total</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
       )}
 
