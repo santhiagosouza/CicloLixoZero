@@ -618,7 +618,8 @@ const GravimetriaDetail: React.FC = () => {
       {/* PROJECTIONS CARDS CONTAINER */}
       {days > 0 ? (
         <div className="card" style={{ padding: '1.25rem 1.5rem', backgroundColor: 'rgba(34,197,94,0.02)' }}>
-          <h3 style={{ fontSize: '1rem', fontWeight: 600 }} className="mb-2">Projeções de Geração (Média Diária: {dailyAvg.toFixed(2)} kg/dia)</h3>
+          <h3 style={{ fontSize: '1rem', fontWeight: 600 }} className="mb-2">Projeções de Geração (Média Diária Geral: {dailyAvg.toFixed(2)} kg/dia)</h3>
+          
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-2">
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.125rem' }}>
               <span className="text-muted text-xs">Previsão Mensal (30 dias)</span>
@@ -631,6 +632,45 @@ const GravimetriaDetail: React.FC = () => {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.125rem' }}>
               <span className="text-muted text-xs">Fórmula de Extrapolação</span>
               <span className="text-muted text-xs mt-1">Geração Total / Dias Amostrados &times; Período</span>
+            </div>
+          </div>
+
+          {/* Detailed projections by category for storage and logistics planning */}
+          <div style={{ marginTop: '1.5rem', borderTop: '1px dashed hsl(var(--card-border))', paddingTop: '1.25rem' }}>
+            <h4 style={{ fontSize: '0.875rem', fontWeight: 600 }} className="mb-1">Dimensionamento e Logística por Categoria</h4>
+            <p className="text-muted text-xs mb-3">Estime a geração de massa para planejar a capacidade de caçambas, bombonas, frequência de coletas e dimensionamento do armazenamento temporário.</p>
+            
+            <div className="table-container" style={{ border: 'none', boxShadow: 'none', padding: 0, background: 'transparent' }}>
+              <table className="table" style={{ background: 'transparent' }}>
+                <thead>
+                  <tr style={{ background: 'transparent', borderBottom: '1px solid hsl(var(--card-border))' }}>
+                    <th style={{ padding: '0.5rem 0' }}>Categoria</th>
+                    <th className="text-right" style={{ padding: '0.5rem 0' }}>Média Diária</th>
+                    <th className="text-right" style={{ padding: '0.5rem 0' }}>Est. Mensal (30d)</th>
+                    <th className="text-right" style={{ padding: '0.5rem 0' }}>Est. Anual (365d)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {byCategory.map(c => {
+                    const cDailyAvg = c.value / days;
+                    const cMonthly = cDailyAvg * 30;
+                    const cYearly = cDailyAvg * 365;
+                    return (
+                      <tr key={c.id} style={{ background: 'transparent', borderBottom: '1px solid rgba(0,0,0,0.02)' }}>
+                        <td style={{ padding: '0.625rem 0', fontWeight: 500 }}>
+                          <span className="flex items-center gap-2">
+                            <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: c.color || '#888' }} />
+                            {c.name}
+                          </span>
+                        </td>
+                        <td className="text-right font-medium text-sm" style={{ padding: '0.625rem 0' }}>{cDailyAvg.toFixed(2)} kg/dia</td>
+                        <td className="text-right font-semibold text-sm" style={{ padding: '0.625rem 0', color: 'hsl(var(--primary))' }}>{cMonthly.toFixed(1)} kg</td>
+                        <td className="text-right font-semibold text-sm" style={{ padding: '0.625rem 0', color: 'hsl(var(--primary))' }}>{cYearly.toFixed(1)} kg</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
             </div>
           </div>
         </div>
