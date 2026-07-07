@@ -351,7 +351,9 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
           }}
           className="main-content-el"
         >
-          {children}
+          <div className="content-container">
+            {children}
+          </div>
         </main>
       </div>
 

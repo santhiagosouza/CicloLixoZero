@@ -14,18 +14,16 @@ import {
   AlertTriangle, 
   Ban, 
   ChevronRight, 
-  Check, 
-  X, 
-  Trash2,
   Calendar,
-  Eye,
-  Settings
+  DollarSign,
+  TrendingUp,
+  BarChart3,
+  Share2,
+  ChevronDown
 } from 'lucide-react';
+import { InfoTooltip } from '../components/InfoTooltip';
 import * as XLSX from 'xlsx';
-import * as Recharts from 'recharts';
 import { residuosFinanceiro } from '../data/residuosFinanceiro';
-
-const { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, LabelList } = Recharts as any;
 
 interface Weighing {
   id: string;
@@ -54,11 +52,6 @@ const GravimetriaDetail: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [reloadKey, setReloadKey] = useState(0);
 
-  // Aux configuration
-  const [sectors, setSectors] = useState<Sector[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [types, setTypes] = useState<Type[]>([]);
-  const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
 
   // Maps
   const [sectorMap, setSectorMap] = useState<Record<string, string>>({});
@@ -68,26 +61,12 @@ const GravimetriaDetail: React.FC = () => {
   const [classMap, setClassMap] = useState<Record<string, string>>({});
 
   // View state
-  const [showDetailed, setShowDetailed] = useState(true);
-  const [showWeighings, setShowWeighings] = useState(false);
   const [expandedSectors, setExpandedSectors] = useState<Set<string>>(new Set());
-
-  // Edit states
-  const [editId, setEditId] = useState<string | null>(null);
-  const [editData, setEditData] = useState('');
-  const [editSector, setEditSector] = useState('');
-  const [editCategory, setEditCategory] = useState('');
-  const [editType, setEditType] = useState('');
-  const [editSub, setEditSub] = useState('');
-  const [editClass, setEditClass] = useState('');
-  const [editPeso, setEditPeso] = useState('');
 
   // Edit Days dialog state
   const [editDaysOpen, setEditDaysOpen] = useState(false);
+  const [shareDropdownOpen, setShareDropdownOpen] = useState(false);
   const [editDaysValue, setEditDaysValue] = useState('');
-
-  // Delete dialog state
-  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!id) return;
@@ -140,10 +119,6 @@ const GravimetriaDetail: React.FC = () => {
           const typs = (typeRes.data || []) as Type[];
           const subs = (subRes.data || []) as Subcategory[];
 
-          setSectors(secs);
-          setCategories(cats);
-          setTypes(typs);
-          setSubcategories(subs);
 
           setSectorMap(Object.fromEntries(secs.map(s => [s.id, s.name])));
           setCategoryMap(Object.fromEntries(cats.map(c => [c.id, c])));
@@ -281,6 +256,11 @@ const GravimetriaDetail: React.FC = () => {
   const receitasDetalhadas = Object.values(receitaPorTipo).sort((a, b) => b.value - a.value);
   const impactoTotal = economiaAterro + receitaMateriais;
 
+  // Financial projections (day/month/year)
+  const financialDailyAvg = days > 0 ? impactoTotal / days : 0;
+  const financialMonthly = financialDailyAvg * 30;
+  const financialYearly = financialDailyAvg * 365;
+
   // Matrix calculations: Sector vs Category
   // We want to build: Sector -> Record<CategoryId, weight>
   const orderRef = ['Orgânico', 'Reciclável', 'Perigoso', 'Rejeito'];
@@ -341,9 +321,6 @@ const GravimetriaDetail: React.FC = () => {
     columnTotals[c.id] = matrixRows.reduce((sum, row) => sum + (row.byCat[c.id]?.total || 0), 0);
   });
 
-  const editFilteredTypes = types.filter(t => t.category_id === editCategory);
-  const editFilteredSubs = subcategories.filter(s => s.type_id === editType);
-
   const handleToggleSectorExpand = (secId: string) => {
     setExpandedSectors(prev => {
       const next = new Set(prev);
@@ -351,61 +328,6 @@ const GravimetriaDetail: React.FC = () => {
       else next.add(secId);
       return next;
     });
-  };
-
-  const handleStartInlineEdit = (w: Weighing) => {
-    setEditId(w.id);
-    setEditData(w.data);
-    setEditSector(w.sector_id);
-    setEditCategory(w.category_id);
-    setEditType(w.type_id);
-    setEditSub(w.subcategory_id);
-    setEditClass(w.classification_id);
-    setEditPeso(String(w.peso_kg));
-  };
-
-  const handleSaveInlineEdit = async (wid: string) => {
-    if (!editSector || !editCategory || !editType || !editSub || !editClass || !editPeso) {
-      alert('Preencha todos os campos obrigatórios.');
-      return;
-    }
-
-    try {
-      const { error } = await supabase
-        .from('weighings')
-        .update({
-          data: editData,
-          sector_id: editSector,
-          category_id: editCategory,
-          type_id: editType,
-          subcategory_id: editSub,
-          classification_id: editClass,
-          peso_kg: Number(editPeso)
-        })
-        .eq('id', wid);
-
-      if (error) throw error;
-
-      setEditId(null);
-      setReloadKey(k => k + 1);
-    } catch (err: any) {
-      alert('Erro ao atualizar pesagem: ' + err.message);
-    }
-  };
-
-  const handleRemoveWeighing = async (wid: string) => {
-    try {
-      const { error } = await supabase
-        .from('weighings')
-        .delete()
-        .eq('id', wid);
-
-      if (error) throw error;
-      setDeleteConfirmId(null);
-      setReloadKey(k => k + 1);
-    } catch (err: any) {
-      alert('Erro ao remover pesagem: ' + err.message);
-    }
   };
 
   const handleSaveSampleDays = async () => {
@@ -526,323 +448,221 @@ const GravimetriaDetail: React.FC = () => {
             <ArrowLeft size={18} />
           </Link>
           <div>
-            <h1 style={{ fontSize: '1.75rem', margin: 0 }}>Análise Gravimétrica #{grav.numero}</h1>
-            <p className="text-muted text-sm flex items-center gap-2 mt-1">
-              <Calendar size={14} />
-              {new Date(grav.started_at).toLocaleDateString('pt-BR')} — {grav.ended_at ? new Date(grav.ended_at).toLocaleDateString('pt-BR') : 'Em andamento'}
+            <h1 style={{ fontSize: '1.5rem', margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              Relatório Gravimetria
+            </h1>
+            <p className="text-muted text-sm flex items-center gap-2 mt-1 flex-wrap">
+              Arquivo {String(grav.numero).padStart(2, '0')}
+              <span className="text-muted" style={{ opacity: 0.5 }}>•</span>
+              <Calendar size={13} style={{ flexShrink: 0 }} />
+              <span>{new Date(grav.started_at).toLocaleDateString('pt-BR')} — {grav.ended_at ? new Date(grav.ended_at).toLocaleDateString('pt-BR') : 'Em andamento'}</span>
+              <span className="text-muted" style={{ opacity: 0.5 }}>•</span>
+              <span style={{ 
+                backgroundColor: 'hsl(var(--accent))', 
+                color: 'hsl(var(--accent-foreground))',
+                padding: '0.15rem 0.6rem', 
+                borderRadius: '9999px', 
+                fontSize: '0.7rem', 
+                fontWeight: 600,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.25rem',
+                flexShrink: 0
+              }}>
+                Amostra {days || '—'} dias
+                {canEdit && (
+                  <button 
+                    onClick={() => { setEditDaysValue(days ? String(days) : ''); setEditDaysOpen(true); }}
+                    className="btn btn-ghost btn-icon no-print"
+                    style={{ padding: '2px', width: 'auto', height: 'auto', display: 'inline-flex', color: 'inherit' }}
+                    title="Editar dias"
+                  >
+                    <Pencil size={10} />
+                  </button>
+                )}
+              </span>
             </p>
           </div>
         </div>
 
         <div className="flex items-center gap-2 flex-wrap">
-          <button onClick={() => window.print()} className="btn btn-outline">
-            <Printer size={16} />
-            <span>Imprimir Relatório</span>
-          </button>
-          <button onClick={exportToXLSX} className="btn btn-outline">
-            <FileSpreadsheet size={16} />
-            <span>Excel (XLSX)</span>
-          </button>
-          <button onClick={exportToCSV} className="btn btn-outline">
-            <Download size={16} />
-            <span>CSV</span>
-          </button>
-        </div>
-      </div>
-
-      {/* METRIC CARDS GRID */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4" style={{ marginTop: '0.5rem' }}>
-        
-        {/* Total Weight */}
-        <div className="card flex flex-col justify-between" style={{ minHeight: '110px' }}>
-          <div>
-            <p className="text-muted text-xs font-semibold uppercase tracking-wider">Massa Amostrada</p>
-            <p className="font-semibold mt-1" style={{ fontSize: '2rem', lineHeight: '1.15', fontFamily: 'var(--font-heading)' }}>
-              {totalWeight.toFixed(2)} <span className="text-sm text-muted font-normal">kg</span>
-            </p>
-          </div>
-          <p className="text-muted text-xs mt-2 flex items-center gap-1">
-            <Scale size={14} />
-            Soma de todas as pesagens
-          </p>
-        </div>
-
-        {/* Landfill Diversion Rate */}
-        <div className="card flex flex-col justify-between" style={{ minHeight: '110px' }}>
-          <div>
-            <p className="text-muted text-xs font-semibold uppercase tracking-wider">Desvio de Aterro</p>
-            <p 
-              className="font-semibold mt-1" 
-              style={{ 
-                fontSize: '2rem', 
-                lineHeight: '1.15', 
-                fontFamily: 'var(--font-heading)',
-                color: diversionRate >= 90 ? 'hsl(var(--primary))' : diversionRate >= 50 ? 'hsl(var(--foreground))' : 'hsl(var(--destructive))' 
-              }}
+          {canEdit && (
+            <Link 
+              to={`/gravimetria/${id}/lancamentos`}
+              className="btn btn-outline"
+              style={{ fontSize: '0.8rem', padding: '0.4rem 0.75rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}
             >
-              {diversionRate.toFixed(1)}%
-            </p>
-          </div>
-          <p className="text-muted text-xs mt-2">
-            <strong>{((recyclableWeight + organicWeight)).toFixed(1)} kg</strong> reciclados/compostados
-          </p>
-        </div>
+              <Pencil size={15} />
+              <span>Editar Lançamentos</span>
+            </Link>
+          )}
 
-        {/* Sample Days */}
-        <div className="card flex flex-col justify-between" style={{ minHeight: '110px' }}>
-          <div className="flex justify-between items-start">
-            <div>
-              <p className="text-muted text-xs font-semibold uppercase tracking-wider">Dias Amostrados</p>
-              <p className="font-semibold mt-1" style={{ fontSize: '2rem', lineHeight: '1.15', fontFamily: 'var(--font-heading)' }}>
-                {days || '—'} <span className="text-sm text-muted font-normal">{days === 1 ? 'dia' : 'dias'}</span>
-              </p>
-            </div>
-            {canEdit && (
-              <button 
-                onClick={() => { setEditDaysValue(days ? String(days) : ''); setEditDaysOpen(true); }}
-                className="btn btn-ghost btn-icon no-print"
-                style={{ padding: '0.35rem' }}
-                title="Editar dias"
-              >
-                <Pencil size={14} />
-              </button>
+          <div style={{ position: 'relative' }}>
+            <button 
+              onClick={() => setShareDropdownOpen(!shareDropdownOpen)} 
+              className="btn btn-outline" 
+              style={{ fontSize: '0.8rem', padding: '0.4rem 0.75rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}
+            >
+              <Share2 size={15} />
+              <span>Exportar</span>
+              <ChevronDown size={12} style={{ opacity: 0.7 }} />
+            </button>
+            {shareDropdownOpen && (
+              <>
+                <div 
+                  className="fixed inset-0 z-50 no-print" 
+                  onClick={() => setShareDropdownOpen(false)} 
+                  style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 999 }}
+                />
+                <div 
+                  className="card no-print"
+                  style={{
+                    position: 'absolute',
+                    top: 'calc(100% + 5px)',
+                    right: 0,
+                    zIndex: 1000,
+                    minWidth: '180px',
+                    padding: '0.5rem',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '0.25rem',
+                    border: '1px solid hsl(var(--card-border))',
+                    backgroundColor: 'hsl(var(--card))'
+                  }}
+                >
+                  <button 
+                    onClick={() => { window.print(); setShareDropdownOpen(false); }} 
+                    className="btn btn-ghost" 
+                    style={{ 
+                      fontSize: '0.8rem', 
+                      padding: '0.5rem 0.75rem', 
+                      justifyContent: 'flex-start',
+                      width: '100%',
+                      textAlign: 'left',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.5rem'
+                    }}
+                  >
+                    <Printer size={15} />
+                    <span>Imprimir</span>
+                  </button>
+                  <button 
+                    onClick={() => { exportToXLSX(); setShareDropdownOpen(false); }} 
+                    className="btn btn-ghost" 
+                    style={{ 
+                      fontSize: '0.8rem', 
+                      padding: '0.5rem 0.75rem', 
+                      justifyContent: 'flex-start',
+                      width: '100%',
+                      textAlign: 'left',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.5rem'
+                    }}
+                  >
+                    <FileSpreadsheet size={15} />
+                    <span>Excel (XLSX)</span>
+                  </button>
+                  <button 
+                    onClick={() => { exportToCSV(); setShareDropdownOpen(false); }} 
+                    className="btn btn-ghost" 
+                    style={{ 
+                      fontSize: '0.8rem', 
+                      padding: '0.5rem 0.75rem', 
+                      justifyContent: 'flex-start',
+                      width: '100%',
+                      textAlign: 'left',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.5rem'
+                    }}
+                  >
+                    <Download size={15} />
+                    <span>CSV</span>
+                  </button>
+                </div>
+              </>
             )}
           </div>
-          <p className="text-muted text-xs mt-2">
-            Média diária: <strong>{dailyAvg.toFixed(2)} kg/dia</strong>
-          </p>
         </div>
+      </div>
 
-        {/* Number of categories */}
-        <div className="card flex flex-col justify-between" style={{ minHeight: '110px' }}>
-          <div>
-            <p className="text-muted text-xs font-semibold uppercase tracking-wider">Massa por Categoria</p>
-            <div className="flex gap-2 items-end mt-1" style={{ overflow: 'hidden' }}>
-              {byCategory.map(c => (
-                <div key={c.id} className="flex flex-col items-center flex-1" style={{ minWidth: '35px' }}>
-                  <span className="text-xs font-semibold" style={{ fontSize: '0.65rem' }}>{((c.value / (totalWeight || 1)) * 100).toFixed(0)}%</span>
-                  <div 
-                    style={{ 
-                      width: '100%', 
-                      height: '24px', 
-                      backgroundColor: c.color, 
-                      borderRadius: 'var(--radius-sm)',
-                      opacity: 0.85 
-                    }} 
-                  />
-                  <span className="text-muted text-xs truncate" style={{ fontSize: '0.55rem', width: '100%', textAlign: 'center', marginTop: '0.125rem' }}>{c.name}</span>
-                </div>
-              ))}
+      {/* SEÇÃO B — PROJEÇÃO DE GERAÇÃO (5 cards) */}
+      <div style={{ marginTop: '0.75rem' }}>
+        <div className="flex items-center gap-2" style={{ marginBottom: '1.25rem' }}>
+          <h2 className="report-section-title">
+            Projeção de Geração
+          </h2>
+          <InfoTooltip text="Valores baseados na média diária de geração de resíduos extrapolados para períodos mensais (30 dias) e anuais (365 dias). Fórmula: Geração Total ÷ Dias Amostrados × Período." />
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-5">
+          {/* Total Pesagem */}
+          <div className="card" style={{ padding: '1rem 1.25rem', minHeight: '90px' }}>
+            <div className="flex items-center gap-3">
+              <Scale size={20} style={{ color: 'hsl(var(--primary))', flexShrink: 0 }} />
+              <span className="text-muted text-xs font-semibold" style={{ lineHeight: 1.2 }}>Total Pesagem</span>
             </div>
+            <p className="font-semibold mt-2" style={{ fontSize: '1.5rem', lineHeight: '1', fontFamily: 'var(--font-heading)' }}>
+              {totalWeight.toFixed(2)} <span className="text-sm text-muted font-normal">Kg.</span>
+            </p>
+          </div>
+
+          {/* Recicláveis % */}
+          <div className="card" style={{ padding: '1rem 1.25rem', minHeight: '90px' }}>
+            <div className="flex items-center gap-3">
+              <Recycle size={20} style={{ color: 'hsl(var(--secondary))', flexShrink: 0 }} />
+              <span className="text-muted text-xs font-semibold" style={{ lineHeight: 1.2 }}>Recicláveis</span>
+            </div>
+            <p className="font-semibold mt-2" style={{ fontSize: '1.5rem', lineHeight: '1', fontFamily: 'var(--font-heading)', color: diversionRate >= 90 ? 'hsl(var(--primary))' : diversionRate >= 50 ? 'hsl(var(--foreground))' : 'hsl(var(--destructive))' }}>
+              {diversionRate.toFixed(1)} <span className="text-sm text-muted font-normal">%</span>
+            </p>
+          </div>
+
+          {/* Média/Dia */}
+          <div className="card" style={{ padding: '1rem 1.25rem', minHeight: '90px' }}>
+            <div className="flex items-center gap-3">
+              <BarChart3 size={20} style={{ color: 'hsl(var(--primary))', flexShrink: 0 }} />
+              <span className="text-muted text-xs font-semibold" style={{ lineHeight: 1.2 }}>Média / Dia</span>
+            </div>
+            <p className="font-semibold mt-2" style={{ fontSize: '1.5rem', lineHeight: '1', fontFamily: 'var(--font-heading)' }}>
+              {dailyAvg.toFixed(2)} <span className="text-sm text-muted font-normal">Kg.</span>
+            </p>
+          </div>
+
+          {/* Média/Mês */}
+          <div className="card" style={{ padding: '1rem 1.25rem', minHeight: '90px' }}>
+            <div className="flex items-center gap-3">
+              <Calendar size={20} style={{ color: 'hsl(var(--primary))', flexShrink: 0 }} />
+              <span className="text-muted text-xs font-semibold" style={{ lineHeight: 1.2 }}>Média / Mês</span>
+            </div>
+            <p className="font-semibold mt-2" style={{ fontSize: '1.5rem', lineHeight: '1', fontFamily: 'var(--font-heading)' }}>
+              {monthlyProjection.toFixed(1)} <span className="text-sm text-muted font-normal">Kg.</span>
+            </p>
+          </div>
+
+          {/* Média/Ano */}
+          <div className="card" style={{ padding: '1rem 1.25rem', minHeight: '90px' }}>
+            <div className="flex items-center gap-3">
+              <TrendingUp size={20} style={{ color: 'hsl(var(--primary))', flexShrink: 0 }} />
+              <span className="text-muted text-xs font-semibold" style={{ lineHeight: 1.2 }}>Média / Ano</span>
+            </div>
+            <p className="font-semibold mt-2" style={{ fontSize: '1.5rem', lineHeight: '1', fontFamily: 'var(--font-heading)' }}>
+              {yearlyProjection.toFixed(1)} <span className="text-sm text-muted font-normal">Kg.</span>
+            </p>
           </div>
         </div>
       </div>
 
-      {/* PROJECTIONS CARDS CONTAINER */}
-      {days > 0 ? (
-        <div className="card" style={{ padding: '1.25rem 1.5rem', backgroundColor: 'rgba(34,197,94,0.02)' }}>
-          <h3 style={{ fontSize: '1rem', fontWeight: 600 }} className="mb-2">Projeções de Geração (Média Diária Geral: {dailyAvg.toFixed(2)} kg/dia)</h3>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-2">
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.125rem' }}>
-              <span className="text-muted text-xs">Previsão Mensal (30 dias)</span>
-              <span style={{ fontSize: '1.35rem', fontWeight: 700, color: 'hsl(var(--primary))' }}>{monthlyProjection.toFixed(1)} kg</span>
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.125rem' }}>
-              <span className="text-muted text-xs">Previsão Anual (365 dias)</span>
-              <span style={{ fontSize: '1.35rem', fontWeight: 700, color: 'hsl(var(--primary))' }}>{yearlyProjection.toFixed(1)} kg</span>
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.125rem' }}>
-              <span className="text-muted text-xs">Fórmula de Extrapolação</span>
-              <span className="text-muted text-xs mt-1">Geração Total / Dias Amostrados &times; Período</span>
-            </div>
-          </div>
-
-          {/* Detailed projections by category for storage and logistics planning */}
-          <div style={{ marginTop: '1.5rem', borderTop: '1px dashed hsl(var(--card-border))', paddingTop: '1.25rem' }}>
-            <h4 style={{ fontSize: '0.875rem', fontWeight: 600 }} className="mb-1">Dimensionamento e Logística por Categoria</h4>
-            <p className="text-muted text-xs mb-3">Estime a geração de massa para planejar a capacidade de caçambas, bombonas, frequência de coletas e dimensionamento do armazenamento temporário.</p>
-            
-            <div className="table-container" style={{ border: 'none', boxShadow: 'none', padding: 0, background: 'transparent' }}>
-              <table className="table" style={{ background: 'transparent' }}>
-                <thead>
-                  <tr style={{ background: 'transparent', borderBottom: '1px solid hsl(var(--card-border))' }}>
-                    <th style={{ padding: '0.5rem 0' }}>Categoria</th>
-                    <th className="text-right" style={{ padding: '0.5rem 0' }}>Média Diária</th>
-                    <th className="text-right" style={{ padding: '0.5rem 0' }}>Est. Mensal (30d)</th>
-                    <th className="text-right" style={{ padding: '0.5rem 0' }}>Est. Anual (365d)</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {byCategory.map(c => {
-                    const cDailyAvg = c.value / days;
-                    const cMonthly = cDailyAvg * 30;
-                    const cYearly = cDailyAvg * 365;
-                    return (
-                      <tr key={c.id} style={{ background: 'transparent', borderBottom: '1px solid rgba(0,0,0,0.02)' }}>
-                        <td style={{ padding: '0.625rem 0', fontWeight: 500 }}>
-                          <span className="flex items-center gap-2">
-                            <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: c.color || '#888' }} />
-                            {c.name}
-                          </span>
-                        </td>
-                        <td className="text-right font-medium text-sm" style={{ padding: '0.625rem 0' }}>{cDailyAvg.toFixed(2)} kg/dia</td>
-                        <td className="text-right font-semibold text-sm" style={{ padding: '0.625rem 0', color: 'hsl(var(--primary))' }}>{cMonthly.toFixed(1)} kg</td>
-                        <td className="text-right font-semibold text-sm" style={{ padding: '0.625rem 0', color: 'hsl(var(--primary))' }}>{cYearly.toFixed(1)} kg</td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      ) : (
-        <div className="card text-center" style={{ borderStyle: 'dashed', padding: '1.5rem' }}>
-          <p className="text-muted text-sm">
-            ⚠️ Para habilitar as previsões de geração mensal e anual, preencha o número de <strong>dias de coleta considerados</strong> (clique no lápis acima).
-          </p>
-        </div>
-      )}
-
-      {/* PAINEL FINANCEIRO DE VALORAÇÃO */}
+      {/* SEÇÃO C — GERAÇÃO POR CATEGORIA (4 cards com barras) */}
       {totalWeight > 0 && (
-        <div className="card" style={{ padding: '1.25rem 1.5rem', backgroundColor: 'rgba(59,130,246,0.02)', border: '1px solid rgba(59,130,246,0.15)' }}>
-          <h3 style={{ fontSize: '1rem', fontWeight: 600, color: 'hsl(var(--primary))' }} className="mb-2 flex items-center gap-2">
-            💰 Estudo de Valoração Financeira & Economia (Referência UF: {clientUf})
-          </h3>
-          <p className="text-muted text-xs mb-3">
-            Estimativa calculada com base nos custos de destinação de RSU e preços médios de comercialização de sucata/compostos do estado de {clientUf} para 2026.
-          </p>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-2">
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.125rem' }}>
-              <span className="text-muted text-xs">Economia em Desvio de Aterro</span>
-              <span style={{ fontSize: '1.35rem', fontWeight: 700, color: 'hsl(var(--primary))' }}>
-                R$ {economiaAterro.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-              </span>
-              <span className="text-muted mt-1" style={{ fontSize: '0.68rem', lineHeight: '1.2' }}>
-                Evitou pagar tarifa de destinação de rejeitos ({((recyclableWeight + organicWeight)).toFixed(1)} kg &times; R$ {custoRejeitoKg.toFixed(4)}/kg)
-              </span>
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.125rem' }}>
-              <span className="text-muted text-xs">Valor Comercial Potencial</span>
-              <span style={{ fontSize: '1.35rem', fontWeight: 700, color: 'hsl(var(--primary))' }}>
-                R$ {receitaMateriais.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-              </span>
-              <span className="text-muted mt-1" style={{ fontSize: '0.68rem', lineHeight: '1.2' }}>
-                Receita estimada com venda de recicláveis/compostos orgânicos no mercado regional
-              </span>
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.125rem' }}>
-              <span className="text-muted text-xs">Impacto Econômico Total</span>
-              <span style={{ fontSize: '1.35rem', fontWeight: 700, color: 'hsl(var(--primary))' }}>
-                R$ {impactoTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-              </span>
-              <span className="text-muted mt-1" style={{ fontSize: '0.68rem', lineHeight: '1.2' }}>
-                Soma da economia com desvio de aterro e receita potencial de comercialização
-              </span>
-            </div>
+        <div style={{ marginTop: '2.25rem' }}>
+          <div className="flex items-center gap-3" style={{ marginBottom: '1.25rem' }}>
+            <h2 className="report-section-title">Geração por Categoria</h2>
+            <InfoTooltip text="Distribuição do peso total por categoria de resíduo: Orgânico, Reciclável, Perigoso e Rejeito." />
           </div>
-
-          {/* Detailed revenue by material type */}
-          {receitaMateriais > 0 && (
-            <div style={{ marginTop: '1.5rem', borderTop: '1px dashed rgba(59,130,246,0.15)', paddingTop: '1.25rem' }}>
-              <h4 style={{ fontSize: '0.875rem', fontWeight: 600, color: 'hsl(var(--foreground))' }} className="mb-1">Detalhamento do Valor de Venda por Material</h4>
-              <p className="text-muted text-xs mb-3">Valores estimados de comercialização por tipo de material na região de {clientUf} (Útil para planejamento de retorno sobre recicláveis/compostos):</p>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {receitasDetalhadas.map((item, idx) => {
-                  const pctReceita = receitaMateriais > 0 ? (item.value / receitaMateriais) * 100 : 0;
-                  return (
-                    <div 
-                      key={idx} 
-                      style={{ 
-                        border: '1px solid hsl(var(--card-border))', 
-                        borderRadius: 'var(--radius-md)', 
-                        padding: '0.75rem 1rem', 
-                        backgroundColor: 'hsl(var(--card))',
-                        boxShadow: '0 1px 3px rgba(0,0,0,0.01)'
-                      }}
-                    >
-                      <div className="flex justify-between items-center text-xs font-semibold mb-1.5">
-                        <span className="flex items-center gap-1.5">
-                          <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: item.color }} />
-                          {item.typeName}
-                        </span>
-                        <span style={{ color: 'hsl(var(--primary))', fontSize: '0.85rem' }}>
-                          R$ {item.value.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                        </span>
-                      </div>
-                      <div style={{ height: '4px', width: '100%', backgroundColor: 'hsl(var(--muted))', borderRadius: '9999px', overflow: 'hidden' }}>
-                        <div style={{ height: '100%', width: `${pctReceita}%`, backgroundColor: item.color, borderRadius: '9999px' }} />
-                      </div>
-                      <div className="flex justify-between text-muted mt-1" style={{ fontSize: '0.65rem' }}>
-                        <span>Est. de Receita</span>
-                        <span>{pctReceita.toFixed(1)}% do total</span>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* DETAILED ANALYSIS TABS AND CHARTS */}
-      {totalWeight > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          
-          {/* Chart: Category Breakdown (Pie) */}
-          <div className="card" style={{ height: '340px', display: 'flex', flexDirection: 'column' }}>
-            <h3 style={{ fontSize: '1.05rem' }} className="mb-2">Geração por Categoria</h3>
-            <div style={{ flex: 1, minHeight: 0 }}>
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={byCategory}
-                    dataKey="value"
-                    nameKey="name"
-                    cx="50%"
-                    cy="50%"
-                    outerRadius={85}
-                    label={({ name, percent }: { name: string; percent: number }) => `${name} (${(percent * 100).toFixed(0)}%)`}
-                    labelLine={false}
-                  >
-                    {byCategory.map((entry, idx) => (
-                      <Cell key={`cell-${idx}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip formatter={(value: any) => `${Number(value).toFixed(2)} kg`} />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-
-          {/* Chart: Sector Breakdown (Bar) */}
-          <div className="card" style={{ height: '340px', display: 'flex', flexDirection: 'column' }}>
-            <h3 style={{ fontSize: '1.05rem' }} className="mb-2">Geração por Setor (kg)</h3>
-            <div style={{ flex: 1, minHeight: 0 }}>
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={bySector} margin={{ top: 20, right: 10, left: -10, bottom: 5 }}>
-                  <XAxis dataKey="name" />
-                  <YAxis />
-                  <Tooltip formatter={(value: any) => `${Number(value).toFixed(2)} kg`} />
-                  <Bar dataKey="value" name="Massa (kg)" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]}>
-                    <LabelList dataKey="value" position="top" formatter={(v: any) => `${Number(v).toFixed(1)}`} style={{ fontSize: '10px' }} />
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* CATEGORY PROGRESS SUMMARY */}
-      {totalWeight > 0 && (
-        <div className="card">
-          <h3 className="card-title">Resumo Físico por Categoria</h3>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
             {byCategory.map(c => {
               const pct = (c.value / totalWeight) * 100;
               const nName = c.name.toLowerCase();
@@ -855,40 +675,24 @@ const GravimetriaDetail: React.FC = () => {
               return (
                 <div 
                   key={c.id} 
-                  className="flex flex-col gap-2.5" 
+                  className="card"
                   style={{ 
-                    border: '1px solid hsl(var(--card-border))', 
-                    borderRadius: 'var(--radius-md)', 
-                    backgroundColor: 'hsl(var(--background))',
-                    padding: '1.25rem',
-                    boxShadow: '0 2px 6px -2px rgba(0,0,0,0.04)',
-                    transition: 'all 0.2s ease'
+                    padding: '1rem 1.25rem',
+                    borderLeft: `4px solid ${c.color}`,
                   }}
                 >
                   <div className="flex items-center justify-between">
-                    <span className="flex items-center gap-2 text-sm font-semibold">
-                      <span 
-                        className="flex items-center justify-center" 
-                        style={{ 
-                          width: '32px', 
-                          height: '32px', 
-                          borderRadius: 'var(--radius-sm)', 
-                          backgroundColor: `${c.color}15`, 
-                          color: c.color,
-                          flexShrink: 0
-                        }}
-                      >
-                        <Icon size={16} />
-                      </span>
+                    <span className="flex items-center gap-3 text-sm font-semibold">
+                      <Icon size={18} style={{ color: c.color, flexShrink: 0 }} />
                       {c.name}
                     </span>
-                    <span className="text-xs text-muted font-semibold">{pct.toFixed(1)}%</span>
+                    <span className="text-xs font-bold" style={{ color: c.color }}>{pct.toFixed(1)}%</span>
                   </div>
-                  <p className="font-semibold text-lg" style={{ fontFamily: 'var(--font-heading)', marginTop: '0.25rem' }}>
-                    {c.value.toFixed(2)} <span className="text-xs text-muted font-normal">kg</span>
+                  <p className="font-semibold" style={{ fontSize: '1.25rem', fontFamily: 'var(--font-heading)', margin: '0.5rem 0 0.25rem' }}>
+                    {c.value.toFixed(2)} <span className="text-xs text-muted font-normal">Kg.</span>
                   </p>
-                  <div style={{ height: '6px', width: '100%', backgroundColor: 'hsl(var(--muted))', borderRadius: '9999px', overflow: 'hidden', marginTop: '0.125rem' }}>
-                    <div style={{ height: '100%', width: `${pct}%`, backgroundColor: c.color, borderRadius: '9999px' }} />
+                  <div style={{ height: '6px', width: '100%', backgroundColor: 'hsl(var(--muted))', borderRadius: '9999px', overflow: 'hidden' }}>
+                    <div style={{ height: '100%', width: `${pct}%`, backgroundColor: c.color, borderRadius: '9999px', transition: 'width 0.5s ease' }} />
                   </div>
                 </div>
               );
@@ -897,27 +701,217 @@ const GravimetriaDetail: React.FC = () => {
         </div>
       )}
 
-      {/* EXPANDABLE MATRIX REPORT BY SECTOR */}
-      <div className="flex justify-center gap-2 no-print" style={{ margin: '1rem 0' }}>
-        <button 
-          onClick={() => { setShowDetailed(!showDetailed); setShowWeighings(false); }}
-          className={`btn ${showDetailed ? 'btn-primary' : 'btn-outline'}`}
-        >
-          <Eye size={16} />
-          <span>Matriz por Setor</span>
-        </button>
-        <button 
-          onClick={() => { setShowWeighings(!showWeighings); setShowDetailed(false); }}
-          className={`btn ${showWeighings ? 'btn-primary' : 'btn-outline'}`}
-        >
-          <Settings size={16} />
-          <span>Gerenciar Lançamentos</span>
-        </button>
-      </div>
+      {/* SEÇÃO D — PREVISÃO POR CATEGORIA (Tabela DIA/MÊS/ANO) */}
+      {days > 0 ? (
+        <div className="card" style={{ padding: '1.25rem 1.5rem', marginTop: '2.25rem' }}>
+          <div className="table-container" style={{ border: 'none', boxShadow: 'none', padding: 0, background: 'transparent' }}>
+            <table className="table" style={{ background: 'transparent' }}>
+              <thead>
+                <tr style={{ background: 'transparent', borderBottom: '1px solid hsl(var(--card-border))' }}>
+                  <th style={{ padding: '0.875rem 1rem', fontWeight: 700, fontSize: '0.825rem', textAlign: 'left', backgroundColor: 'hsl(var(--card))' }}>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', textTransform: 'none', color: 'hsl(var(--foreground))', fontSize: '0.9rem', fontWeight: 700, fontFamily: 'var(--font-heading)' }}>
+                      Previsão por Categoria
+                      <InfoTooltip text="Projeção de geração por categoria baseada na média diária extrapolada para períodos mensais (30 dias) e anuais (365 dias). Útil para planejamento de caçambas, bombonas e frequência de coletas." position="down" />
+                    </span>
+                  </th>
+                  <th className="text-center" style={{ padding: '0.875rem 1rem', fontWeight: 700, fontSize: '0.8rem', width: '20%', textAlign: 'center', backgroundColor: 'hsl(var(--card))' }}>DIA</th>
+                  <th className="text-center" style={{ padding: '0.875rem 1rem', fontWeight: 700, fontSize: '0.8rem', width: '20%', textAlign: 'center', backgroundColor: 'hsl(var(--card))' }}>MÊS</th>
+                  <th className="text-center" style={{ padding: '0.875rem 1rem', fontWeight: 700, fontSize: '0.8rem', width: '20%', textAlign: 'center', backgroundColor: 'hsl(var(--card))' }}>ANO</th>
+                </tr>
+              </thead>
+              <tbody>
+                {byCategory.map(c => {
+                  const cDailyAvg = c.value / days;
+                  const cMonthly = cDailyAvg * 30;
+                  const cYearly = cDailyAvg * 365;
+                  const nName = c.name.toLowerCase();
+                  const Icon = nName.includes('orgân') ? Leaf 
+                    : nName.includes('recicl') ? Recycle 
+                    : nName.includes('perig') ? AlertTriangle 
+                    : nName.includes('rejeit') ? Ban 
+                    : Scale;
+                  return (
+                    <tr key={c.id} style={{ background: 'transparent', borderBottom: '1px solid rgba(0,0,0,0.04)' }}>
+                      <td style={{ padding: '0.875rem 1rem', fontWeight: 500 }}>
+                        <span className="flex items-center gap-2">
+                          <span style={{ 
+                            width: '24px', height: '24px', borderRadius: '50%', 
+                            backgroundColor: `${c.color}15`, color: c.color,
+                            display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0
+                          }}>
+                            <Icon size={12} />
+                          </span>
+                          {c.name}
+                        </span>
+                      </td>
+                      <td className="text-center font-medium text-sm text-muted" style={{ padding: '0.875rem 1rem', textAlign: 'center' }}>{cDailyAvg.toFixed(2)} Kg.</td>
+                      <td className="text-center font-semibold text-sm" style={{ padding: '0.875rem 1rem', color: 'hsl(var(--primary))', textAlign: 'center' }}>{cMonthly.toFixed(1)} Kg.</td>
+                      <td className="text-center font-semibold text-sm" style={{ padding: '0.875rem 1rem', color: 'hsl(var(--primary))', textAlign: 'center' }}>{cYearly.toFixed(1)} Kg.</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      ) : (
+        <div className="card text-center" style={{ borderStyle: 'dashed', padding: '1.5rem' }}>
+          <p className="text-muted text-sm">
+            ⚠️ Para habilitar as previsões de geração mensal e anual, preencha o número de <strong>dias de coleta considerados</strong> (clique no lápis acima).
+          </p>
+        </div>
+      )}
 
-      {/* MATRIX TABLE DISPLAY */}
-      {showDetailed && matrixRows.length > 0 && (
-        <div className="card">
+      {/* SEÇÃO E — FINANCEIRO & ECONÔMICO (integrado) */}
+      {totalWeight > 0 && (
+        <div style={{ marginTop: '2.25rem' }}>
+          {/* Section header */}
+          <div className="flex items-center gap-2" style={{ marginBottom: '1.25rem' }}>
+            <h2 className="report-section-title">
+              <DollarSign size={18} />
+              Financeiro & Econômico
+            </h2>
+            <InfoTooltip text={`Estimativa calculada com base nos custos de destinação de RSU e preços médios de comercialização de sucata/compostos do estado de ${clientUf} para 2026.`} />
+          </div>
+
+          {/* 5 Financial Summary Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-5">
+            {/* Desvio de Aterro */}
+            <div className="card" style={{ padding: '1rem 1.25rem' }}>
+              <span className="text-muted text-xs font-semibold" style={{ lineHeight: 1.2 }}>Desvio de Aterro</span>
+              <p className="font-semibold mt-1" style={{ fontSize: '1.35rem', lineHeight: '1', fontFamily: 'var(--font-heading)' }}>
+                R$ {economiaAterro.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </p>
+            </div>
+
+            {/* Valor do Material */}
+            <div className="card" style={{ padding: '1rem 1.25rem' }}>
+              <span className="text-muted text-xs font-semibold" style={{ lineHeight: 1.2 }}>Valor do Material</span>
+              <p className="font-semibold mt-1" style={{ fontSize: '1.35rem', lineHeight: '1', fontFamily: 'var(--font-heading)' }}>
+                R$ {receitaMateriais.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </p>
+            </div>
+
+            {/* Impacto Econômico */}
+            <div className="card" style={{ padding: '1rem 1.25rem' }}>
+              <span className="text-muted text-xs font-semibold" style={{ lineHeight: 1.2 }}>Impacto Econômico</span>
+              <p className="font-semibold mt-1" style={{ fontSize: '1.35rem', lineHeight: '1', fontFamily: 'var(--font-heading)', color: 'hsl(var(--primary))' }}>
+                R$ {impactoTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </p>
+            </div>
+
+            {/* Impacto MÊS */}
+            <div className="card" style={{ 
+              padding: '1rem 1.25rem',
+              border: '2px solid hsl(var(--primary))',
+            }}>
+              <div className="flex items-start justify-between">
+                <span className="text-muted text-xs font-semibold" style={{ lineHeight: 1.2 }}>Impacto - MÊS</span>
+                <span style={{
+                  width: '28px', height: '28px', borderRadius: '50%',
+                  backgroundColor: 'hsl(var(--primary))', color: 'white',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  marginTop: '-0.3rem', marginRight: '-0.3rem', flexShrink: 0
+                }}>
+                  <DollarSign size={15} />
+                </span>
+              </div>
+              <p className="font-semibold mt-1" style={{ fontSize: '1.35rem', lineHeight: '1', fontFamily: 'var(--font-heading)', color: 'hsl(var(--primary))' }}>
+                R$ {financialMonthly.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </p>
+            </div>
+
+            {/* Impacto ANO */}
+            <div className="card" style={{ 
+              padding: '1rem 1.25rem',
+              border: '2px solid hsl(var(--primary))',
+            }}>
+              <div className="flex items-start justify-between">
+                <span className="text-muted text-xs font-semibold" style={{ lineHeight: 1.2 }}>Impacto - ANO</span>
+                <span style={{
+                  width: '28px', height: '28px', borderRadius: '50%',
+                  backgroundColor: 'hsl(var(--primary))', color: 'white',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  marginTop: '-0.3rem', marginRight: '-0.3rem', flexShrink: 0
+                }}>
+                  <DollarSign size={15} />
+                </span>
+              </div>
+              <p className="font-semibold mt-1" style={{ fontSize: '1.35rem', lineHeight: '1', fontFamily: 'var(--font-heading)', color: 'hsl(var(--primary))' }}>
+                R$ {financialYearly.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </p>
+            </div>
+          </div>
+
+          {/* Detalhamento por Tipo de Material */}
+          {receitasDetalhadas.length > 0 && (
+            <>
+              <div className="flex items-center" style={{ marginBottom: '1.25rem', marginTop: '2.25rem' }}>
+                <h2 className="report-section-title">Detalhamento por Tipo de Material</h2>
+              </div>
+
+              <div className="card" style={{ padding: '1.25rem 1.5rem' }}>
+                <div className="table-container" style={{ border: 'none', boxShadow: 'none', padding: 0, background: 'transparent' }}>
+                  <table className="table" style={{ background: 'transparent' }}>
+                    <thead>
+                      <tr style={{ background: 'transparent', borderBottom: '1px solid hsl(var(--card-border))' }}>
+                        <th style={{ padding: '0.875rem 1rem', fontWeight: 700, fontSize: '0.825rem', textAlign: 'left', backgroundColor: 'hsl(var(--card))' }}>TOTAL DA GERAÇÃO</th>
+                        <th className="text-center" style={{ padding: '0.875rem 1rem', fontWeight: 700, fontSize: '0.8rem', width: '20%', textAlign: 'center', backgroundColor: 'hsl(var(--card))' }}>DIA</th>
+                        <th className="text-center" style={{ padding: '0.875rem 1rem', fontWeight: 700, fontSize: '0.8rem', width: '20%', textAlign: 'center', backgroundColor: 'hsl(var(--card))' }}>MÊS</th>
+                        <th className="text-center" style={{ padding: '0.875rem 1rem', fontWeight: 700, fontSize: '0.8rem', width: '20%', textAlign: 'center', backgroundColor: 'hsl(var(--card))' }}>ANO</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {receitasDetalhadas.map((item, idx) => {
+                        const pctReceita = receitaMateriais > 0 ? (item.value / receitaMateriais) * 100 : 0;
+                        const dailyVal = days > 0 ? item.value / days : 0;
+                        const monthlyVal = dailyVal * 30;
+                        const yearlyVal = dailyVal * 365;
+                        return (
+                          <tr key={idx} style={{ background: 'transparent', borderBottom: '1px solid rgba(0,0,0,0.04)' }}>
+                            <td style={{ padding: '0.875rem 1rem' }}>
+                              <div className="flex flex-col gap-1">
+                                <div className="flex items-center justify-between">
+                                  <span className="flex items-center gap-2 text-sm font-semibold">
+                                    <span style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: item.color, flexShrink: 0 }} />
+                                    {item.typeName}
+                                  </span>
+                                  <span className="font-semibold" style={{ fontSize: '1rem', fontFamily: 'var(--font-heading)' }}>
+                                    R$ {item.value.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                  </span>
+                                </div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.125rem' }}>
+                                  <div style={{ flex: 1, height: '5px', backgroundColor: 'hsl(var(--muted))', borderRadius: '9999px', overflow: 'hidden' }}>
+                                    <div style={{ height: '100%', width: `${pctReceita}%`, backgroundColor: item.color, borderRadius: '9999px', transition: 'width 0.5s ease' }} />
+                                  </div>
+                                  <span className="text-xs text-muted font-semibold" style={{ minWidth: '35px', textAlign: 'right' }}>{pctReceita.toFixed(1)} %</span>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="text-center text-sm text-muted" style={{ padding: '0.875rem 1rem', verticalAlign: 'middle', textAlign: 'center' }}>
+                              R$ {dailyVal.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            </td>
+                            <td className="text-center text-sm text-muted" style={{ padding: '0.875rem 1rem', verticalAlign: 'middle', textAlign: 'center' }}>
+                              R$ {monthlyVal.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            </td>
+                            <td className="text-center text-sm font-semibold" style={{ padding: '0.875rem 1rem', verticalAlign: 'middle', textAlign: 'center' }}>
+                              R$ {yearlyVal.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+      )}
+
+      {/* MATRIX TABLE DISPLAY (ALWAYS VISIBLE) */}
+      {matrixRows.length > 0 && (
+        <div className="card" style={{ marginTop: '2.25rem' }}>
           <div className="card-header">
             <h2 className="card-title">Matriz de Geração: Setor vs Categoria</h2>
             <p className="card-description">Clique em um setor para ver o detalhamento completo por tipo e subcategoria de resíduo</p>
@@ -928,14 +922,22 @@ const GravimetriaDetail: React.FC = () => {
               <thead>
                 <tr>
                   <th>Setor</th>
-                  {sortedCategories.map(c => (
-                    <th key={c.id} className="text-right" style={{ fontSize: '0.75rem', fontWeight: 700, color: 'hsl(var(--muted-foreground))', letterSpacing: '0.05em' }}>
-                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: c.color || '#888', display: 'inline-block' }} />
-                        {c.name.toUpperCase()}
-                      </span>
-                    </th>
-                  ))}
+                  {sortedCategories.map(c => {
+                    const nName = c.name.toLowerCase();
+                    const CategoryIcon = nName.includes('orgân') ? Leaf 
+                      : nName.includes('recicl') ? Recycle 
+                      : nName.includes('perig') ? AlertTriangle 
+                      : nName.includes('rejeit') ? Ban 
+                      : Scale;
+                    return (
+                      <th key={c.id} className="text-right" style={{ fontSize: '0.75rem', fontWeight: 700, color: 'hsl(var(--muted-foreground))', letterSpacing: '0.05em' }}>
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', justifyContent: 'flex-end', width: '100%' }}>
+                          <CategoryIcon size={14} style={{ color: c.color || 'inherit' }} />
+                          {c.name.toUpperCase()}
+                        </span>
+                      </th>
+                    );
+                  })}
                   <th className="text-right">Total (kg)</th>
                 </tr>
               </thead>
@@ -976,7 +978,7 @@ const GravimetriaDetail: React.FC = () => {
                       {/* Expandable detailed section */}
                       {isOpen && (
                         <tr>
-                          <td colSpan={sortedCategories.length + 2} style={{ backgroundColor: 'rgba(34, 197, 94, 0.01)', padding: '1.25rem' }}>
+                          <td colSpan={sortedCategories.length + 2} style={{ backgroundColor: 'rgba(56, 142, 60, 0.01)', padding: '1.25rem' }}>
                             <div className="flex flex-col gap-3">
                               <h4 style={{ fontSize: '0.875rem', fontWeight: 600 }}>Detalhamento: {row.sectorName}</h4>
                               
@@ -986,7 +988,12 @@ const GravimetriaDetail: React.FC = () => {
                                   .map(c => {
                                     const catData = row.byCat[c.id];
                                     const typesInCat = Object.entries(catData.types).sort((a, b) => b[1].total - a[1].total);
-                                    
+                                    const nName = c.name.toLowerCase();
+                                    const CategoryIcon = nName.includes('orgân') ? Leaf 
+                                      : nName.includes('recicl') ? Recycle 
+                                      : nName.includes('perig') ? AlertTriangle 
+                                      : nName.includes('rejeit') ? Ban 
+                                      : Scale;
                                     return (
                                       <div 
                                         key={c.id} 
@@ -1000,7 +1007,7 @@ const GravimetriaDetail: React.FC = () => {
                                       >
                                         <div className="flex items-center justify-between" style={{ borderBottom: '1px solid hsl(var(--card-border))', paddingBottom: '0.75rem', marginBottom: '0.75rem' }}>
                                           <span className="flex items-center gap-2 text-sm font-semibold">
-                                            <span style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: c.color }} />
+                                            <CategoryIcon size={16} style={{ color: c.color }} />
                                             {c.name}
                                           </span>
                                           <span className="text-sm text-muted font-semibold">{catData.total.toFixed(2)} kg</span>
@@ -1062,125 +1069,6 @@ const GravimetriaDetail: React.FC = () => {
         </div>
       )}
 
-      {/* WEIGHINGS MANAGEMENT SECTION */}
-      {showWeighings && (
-        <div className="card">
-          <div className="card-header">
-            <h2 className="card-title">Gestão de Lançamentos de Resíduos</h2>
-            <p className="card-description">Edite pesagens realizadas neste estudo ou exclua lançamentos incorretos</p>
-          </div>
-
-          <div className="table-container">
-            <table className="table">
-              <thead>
-                <tr>
-                  <th>Data</th>
-                  <th>Setor</th>
-                  <th>Categoria</th>
-                  <th>Tipo</th>
-                  <th>Subcategoria</th>
-                  <th>Classificação</th>
-                  <th className="text-right">Peso (kg)</th>
-                  {canEdit && <th style={{ width: '80px' }} />}
-                </tr>
-              </thead>
-              <tbody>
-                {weighings.length === 0 ? (
-                  <tr>
-                    <td colSpan={8} className="text-center text-muted" style={{ padding: '2rem 0' }}>
-                      Nenhum lançamento neste estudo.
-                    </td>
-                  </tr>
-                ) : (
-                  weighings.map(w => {
-                    const isEditingThisRow = editId === w.id;
-
-                    const handleEditTypeChange = (tid: string) => {
-                      setEditType(tid);
-                      const selectedT = types.find(t => t.id === tid);
-                      if (selectedT && selectedT.default_classification_id) {
-                        setEditClass(selectedT.default_classification_id);
-                      } else {
-                        setEditClass('');
-                      }
-                      setEditSub('');
-                    };
-
-                    if (isEditingThisRow) {
-                      return (
-                        <tr key={w.id} style={{ backgroundColor: 'rgba(34, 197, 94, 0.04)' }}>
-                          <td><input type="date" className="form-input" style={{ padding: '0.25rem 0.5rem', minWidth: '110px' }} value={editData} onChange={e => setEditData(e.target.value)} /></td>
-                          <td>
-                            <select className="form-select" style={{ padding: '0.25rem 0.5rem', minWidth: '100px' }} value={editSector} onChange={e => setEditSector(e.target.value)}>
-                              <option value="">Selecione...</option>
-                              {sectors.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-                            </select>
-                          </td>
-                          <td>
-                            <select className="form-select" style={{ padding: '0.25rem 0.5rem', minWidth: '100px' }} value={editCategory} onChange={e => { setEditCategory(e.target.value); handleEditTypeChange(''); }}>
-                              <option value="">Selecione...</option>
-                              {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                            </select>
-                          </td>
-                          <td>
-                            <select className="form-select" style={{ padding: '0.25rem 0.5rem', minWidth: '100px' }} value={editType} onChange={e => handleEditTypeChange(e.target.value)} disabled={!editCategory}>
-                              <option value="">Selecione...</option>
-                              {editFilteredTypes.map((t: Type) => <option key={t.id} value={t.id}>{t.name}</option>)}
-                            </select>
-                          </td>
-                          <td>
-                            <select className="form-select" style={{ padding: '0.25rem 0.5rem', minWidth: '100px' }} value={editSub} onChange={e => setEditSub(e.target.value)} disabled={!editType}>
-                              <option value="">Selecione...</option>
-                              {editFilteredSubs.map((s: Subcategory) => <option key={s.id} value={s.id}>{s.name}</option>)}
-                            </select>
-                          </td>
-                          <td>
-                            <span className="text-sm font-medium">{classMap[editClass] || '—'}</span>
-                          </td>
-                          <td><input type="number" step="0.001" min="0.001" className="form-input text-right" style={{ padding: '0.25rem 0.5rem', width: '80px', display: 'inline-block' }} value={editPeso} onChange={e => setEditPeso(e.target.value)} /></td>
-                          <td>
-                            <div className="flex gap-2 justify-end">
-                              <button onClick={() => handleSaveInlineEdit(w.id)} className="btn btn-ghost btn-icon" style={{ color: 'hsl(var(--primary))' }} title="Salvar"><Check size={16} /></button>
-                              <button onClick={() => setEditId(null)} className="btn btn-ghost btn-icon" style={{ color: 'hsl(var(--destructive))' }} title="Cancelar"><X size={16} /></button>
-                            </div>
-                          </td>
-                        </tr>
-                      );
-                    }
-
-                    const catColor = categoryMap[w.category_id]?.color || '#888';
-                    return (
-                      <tr key={w.id}>
-                        <td>{new Date(w.data + 'T00:00:00').toLocaleDateString('pt-BR')}</td>
-                        <td><span className="font-medium">{sectorMap[w.sector_id] || '—'}</span></td>
-                        <td>
-                          <span className="flex items-center font-medium" style={{ gap: '0.5rem' }}>
-                            <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: catColor, display: 'inline-block' }} />
-                            {categoryMap[w.category_id]?.name || '—'}
-                          </span>
-                        </td>
-                        <td>{typeMap[w.type_id]?.name || '—'}</td>
-                        <td>{subMap[w.subcategory_id] || '—'}</td>
-                        <td><span className="text-muted text-xs font-semibold">{classMap[w.classification_id] || '—'}</span></td>
-                        <td className="text-right font-semibold">{Number(w.peso_kg).toFixed(2)} kg</td>
-                        {canEdit && (
-                          <td>
-                            <div className="flex gap-2 justify-end">
-                              <button onClick={() => handleStartInlineEdit(w)} className="btn btn-ghost btn-icon" title="Editar"><Pencil size={15} /></button>
-                              <button onClick={() => setDeleteConfirmId(w.id)} className="btn btn-ghost btn-icon" style={{ color: 'hsl(var(--destructive))' }} title="Remover"><Trash2 size={15} /></button>
-                            </div>
-                          </td>
-                        )}
-                      </tr>
-                    );
-                  })
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
-
       {/* DIALOG: EDIT DAYS */}
       {editDaysOpen && (
         <div className="modal-overlay">
@@ -1211,27 +1099,6 @@ const GravimetriaDetail: React.FC = () => {
         </div>
       )}
 
-      {/* DIALOG: DELETE CONFIRMATION */}
-      {deleteConfirmId && (
-        <div className="modal-overlay">
-          <div className="modal-content" style={{ maxWidth: '400px' }}>
-            <div className="modal-header">
-              <h3 className="modal-title flex items-center gap-2" style={{ color: 'hsl(var(--destructive))' }}>
-                <AlertTriangle size={20} />
-                Excluir Lançamento
-              </h3>
-            </div>
-            <p className="text-sm text-muted" style={{ margin: '0.75rem 0' }}>
-              Tem certeza que deseja excluir permanentemente esta pesagem? Esta ação não pode ser desfeita.
-            </p>
-            <div className="modal-footer">
-              <button onClick={() => setDeleteConfirmId(null)} className="btn btn-secondary">Cancelar</button>
-              <button onClick={() => handleRemoveWeighing(deleteConfirmId)} className="btn btn-danger">Excluir</button>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Styles for print and row hover */}
       <style>{`
         @media print {
@@ -1241,6 +1108,9 @@ const GravimetriaDetail: React.FC = () => {
           .main-content-el {
             margin-left: 0 !important;
             padding: 0 !important;
+          }
+          .content-container {
+            max-width: none !important;
           }
           .card {
             border: none !important;
@@ -1257,7 +1127,7 @@ const GravimetriaDetail: React.FC = () => {
           }
         }
         .hover-trigger-row:hover {
-          background-color: rgba(34, 197, 94, 0.03) !important;
+          background-color: rgba(56, 142, 60, 0.03) !important;
         }
       `}</style>
 

@@ -20,26 +20,26 @@
   --popover-foreground: 160 25% 12%;
   
   /* Brand/Accent Colors (Green Sustainability) */
-  --primary: 152 65% 38%;         /* Emerald Green #22c55e */
-  --primary-foreground: 152 70% 97%;
-  --primary-hover: 152 65% 30%;
+  --primary: 125 56% 24%;         /* Forest Green #1B5E20 */
+  --primary-foreground: 0 0% 100%;
+  --primary-hover: 125 56% 18%;
   
-  --secondary: 140 10% 92%;
-  --secondary-foreground: 160 20% 20%;
-  --secondary-hover: 140 10% 86%;
+  --secondary: 122 40% 45%;
+  --secondary-foreground: 0 0% 100%;
+  --secondary-hover: 122 40% 38%;
   
   --muted: 140 8% 94%;
   --muted-foreground: 160 8% 45%;
   
-  --accent: 152 30% 92%;
-  --accent-foreground: 152 65% 25%;
+  --accent: 125 30% 92%;
+  --accent-foreground: 125 56% 20%;
   
   --destructive: 0 84% 60%;
   --destructive-foreground: 0 0% 100%;
   
   --border: 140 10% 88%;
   --input: 140 10% 92%;
-  --ring: 152 65% 38%;
+  --ring: 125 56% 24%;
 
   /* Borders & Shadows */
   --radius-sm: 6px;
@@ -50,7 +50,7 @@
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
   --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.04), 0 4px 6px -2px rgba(0, 0, 0, 0.02);
-  --shadow-elegant: 0 20px 25px -5px rgba(16, 185, 129, 0.05), 0 10px 10px -5px rgba(16, 185, 129, 0.02);
+  --shadow-elegant: 0 20px 25px -5px rgba(27, 94, 32, 0.05), 0 10px 10px -5px rgba(27, 94, 32, 0.02);
   --glass-bg: rgba(255, 255, 255, 0.7);
   --glass-blur: 12px;
 }
@@ -68,9 +68,9 @@
     --popover: 160 20% 9%;
     --popover-foreground: 160 15% 94%;
     
-    --primary: 152 65% 42%;          /* Slightly brighter emerald */
+    --primary: 125 56% 35%;          /* Slightly brighter forest */
     --primary-foreground: 160 20% 8%;
-    --primary-hover: 152 65% 48%;
+    --primary-hover: 125 56% 42%;
     
     --secondary: 160 12% 16%;
     --secondary-foreground: 160 10% 85%;
@@ -79,15 +79,15 @@
     --muted: 160 12% 14%;
     --muted-foreground: 160 8% 60%;
     
-    --accent: 152 30% 16%;
-    --accent-foreground: 152 65% 75%;
+    --accent: 125 30% 16%;
+    --accent-foreground: 125 50% 75%;
     
     --destructive: 350 80% 55%;
     --destructive-foreground: 0 0% 100%;
     
     --border: 160 12% 15%;
     --input: 160 12% 15%;
-    --ring: 152 65% 42%;
+    --ring: 125 56% 35%;
     
     --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
     --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
@@ -106,21 +106,21 @@
   --card-border: 160 15% 14%;
   --popover: 160 20% 9%;
   --popover-foreground: 160 15% 94%;
-  --primary: 152 65% 42%;
+  --primary: 125 56% 35%;
   --primary-foreground: 160 20% 8%;
-  --primary-hover: 152 65% 48%;
+  --primary-hover: 125 56% 42%;
   --secondary: 160 12% 16%;
   --secondary-foreground: 160 10% 85%;
   --secondary-hover: 160 12% 22%;
   --muted: 160 12% 14%;
   --muted-foreground: 160 8% 60%;
-  --accent: 152 30% 16%;
-  --accent-foreground: 152 65% 75%;
+  --accent: 125 30% 16%;
+  --accent-foreground: 125 50% 75%;
   --destructive: 350 80% 55%;
   --destructive-foreground: 0 0% 100%;
   --border: 160 12% 15%;
   --input: 160 12% 15%;
-  --ring: 152 65% 42%;
+  --ring: 125 56% 35%;
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
   --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3);
@@ -194,7 +194,7 @@ button, input, select, textarea {
 }
 .card:hover {
   box-shadow: var(--shadow-elegant);
-  border-color: rgba(34, 197, 94, 0.25);
+  border-color: rgba(56, 142, 60, 0.25);
 }
 .card-header {
   margin-bottom: 1.25rem;
@@ -238,7 +238,7 @@ button, input, select, textarea {
 }
 .btn-primary:hover:not(:disabled) {
   background-color: hsl(var(--primary-hover));
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+  box-shadow: 0 4px 12px rgba(27, 94, 32, 0.2);
 }
 
 .btn-secondary {
@@ -304,7 +304,7 @@ button, input, select, textarea {
 }
 .form-input:focus, .form-select:focus, .form-textarea:focus {
   border-color: hsl(var(--primary));
-  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.15);
+  box-shadow: 0 0 0 3px rgba(56, 142, 60, 0.15);
 }
 .form-select {
   appearance: none;
@@ -315,7 +315,14 @@ button, input, select, textarea {
   padding-right: 2.5rem;
 }
 
-/* Tables */
+/* Content Container to limit width on large viewports */
+.content-container {
+  width: 100%;
+  max-width: 1400px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
 .table-container {
   width: 100%;
   overflow-x: auto;
@@ -345,7 +352,7 @@ button, input, select, textarea {
   border-bottom: none;
 }
 .table tbody tr:hover {
-  background-color: rgba(34, 197, 94, 0.02);
+  background-color: rgba(56, 142, 60, 0.02);
 }
 
 /* Badges */
@@ -362,8 +369,8 @@ button, input, select, textarea {
   color: hsl(var(--secondary-foreground));
 }
 .badge-success {
-  background-color: rgba(16, 185, 129, 0.12);
-  color: #059669;
+  background-color: rgba(27, 94, 32, 0.12);
+  color: #2E7D32;
 }
 .badge-warning {
   background-color: rgba(245, 158, 11, 0.12);
@@ -443,6 +450,7 @@ button, input, select, textarea {
 .gap-2 { gap: 0.5rem; }
 .gap-3 { gap: 0.75rem; }
 .gap-4 { gap: 1rem; }
+.gap-5 { gap: 1.25rem; }
 .flex-1 { flex: 1; }
 
 .grid { display: grid; }
@@ -450,11 +458,13 @@ button, input, select, textarea {
 .grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.grid-cols-5 { grid-template-columns: repeat(5, minmax(0, 1fr)); }
 
 @media (min-width: 768px) {
   .md\:grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .md\:grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .md\:grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .md\:grid-cols-5 { grid-template-columns: repeat(5, minmax(0, 1fr)); }
   .md\:grid-cols-6 { grid-template-columns: repeat(6, minmax(0, 1fr)); }
   .md\:col-span-2 { grid-column: span 2 / span 2; }
   .md\:col-span-3 { grid-column: span 3 / span 3; }
@@ -506,4 +516,93 @@ button, input, select, textarea {
 @keyframes pulse {
   0%, 100% { opacity: 1; transform: scale(1); }
   50% { opacity: .5; transform: scale(1.1); }
+}
+
+/* ==========================================================================
+   INFO TOOLTIP
+   ========================================================================== */
+.info-tooltip-wrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+.info-tooltip-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background-color: hsl(var(--muted));
+  color: hsl(var(--muted-foreground));
+  font-size: 0.65rem;
+  font-weight: 700;
+  cursor: help;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+.info-tooltip-icon:hover {
+  background-color: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+}
+.info-tooltip-content {
+  display: none;
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: hsl(var(--foreground));
+  color: hsl(var(--background));
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.75rem;
+  line-height: 1.4;
+  white-space: normal;
+  min-width: 200px;
+  max-width: 320px;
+  z-index: 1000;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  pointer-events: none;
+}
+.info-tooltip-content::after {
+  content: '';
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-bottom-color: hsl(var(--foreground));
+}
+.info-tooltip-wrapper:hover .info-tooltip-content {
+  display: block;
+  animation: fadeIn 0.15s ease;
+}
+
+.info-tooltip-content.tooltip-up {
+  top: auto;
+  bottom: calc(100% + 8px);
+}
+.info-tooltip-content.tooltip-up::after {
+  bottom: auto;
+  top: 100%;
+  border-bottom-color: transparent;
+  border-top-color: hsl(var(--foreground));
+}
+
+/* Report Section Titles & Spacing */
+.report-section-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  font-family: var(--font-heading);
+  color: hsl(var(--foreground));
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-transform: none;
+  letter-spacing: -0.01em;
+}
+.report-section-title svg {
+  color: hsl(var(--primary));
+  flex-shrink: 0;
 }

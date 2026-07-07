@@ -12,6 +12,7 @@ import Subcategories from './pages/Subcategories';
 import Users from './pages/Users';
 import Reports from './pages/Reports';
 import NotFound from './pages/NotFound';
+import EditarLancamentos from './pages/EditarLancamentos';
 
 import MasterDashboard from './pages/master/MasterDashboard';
 import Clients from './pages/master/Clients';
@@ -51,6 +52,7 @@ const App: React.FC = () => {
           {/* Authenticated Client/General Routes */}
           <Route path="/" element={<ProtectedRoute><HomeRedirect /></ProtectedRoute>} />
           <Route path="/gravimetria/:id" element={<ProtectedRoute><AppLayout><GravimetriaDetail /></AppLayout></ProtectedRoute>} />
+          <Route path="/gravimetria/:id/lancamentos" element={<ProtectedRoute><AppLayout><EditarLancamentos /></AppLayout></ProtectedRoute>} />
           <Route path="/sectors" element={<ProtectedRoute><AppLayout><Sectors /></AppLayout></ProtectedRoute>} />
           <Route path="/subcategories" element={<ProtectedRoute><AppLayout><Subcategories /></AppLayout></ProtectedRoute>} />
           <Route path="/users" element={<ProtectedRoute><AppLayout><Users /></AppLayout></ProtectedRoute>} />
