@@ -75,30 +75,40 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     // Check active session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user) {
-        setUser(session.user);
-        fetchUserData(session.user).finally(() => setLoading(false));
-      } else {
+    supabase.auth.getSession()
+      .then(({ data: { session } }) => {
+        if (session?.user) {
+          setUser(session.user);
+          fetchUserData(session.user).finally(() => setLoading(false));
+        } else {
+          setLoading(false);
+        }
+      })
+      .catch((err) => {
+        console.error('Error getting session:', err);
         setLoading(false);
-      }
-    });
+      });
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (_event, session) => {
         setLoading(true);
-        if (session?.user) {
-          setUser(session.user);
-          await fetchUserData(session.user);
-        } else {
-          setUser(null);
-          setProfile(null);
-          setRoles([]);
-          setImpersonatedClientState(null);
-          sessionStorage.removeItem('impersonated_client_id');
+        try {
+          if (session?.user) {
+            setUser(session.user);
+            await fetchUserData(session.user);
+          } else {
+            setUser(null);
+            setProfile(null);
+            setRoles([]);
+            setImpersonatedClientState(null);
+            sessionStorage.removeItem('impersonated_client_id');
+          }
+        } catch (err) {
+          console.error('Error in onAuthStateChange:', err);
+        } finally {
+          setLoading(false);
         }
-        setLoading(false);
       }
     );
 
