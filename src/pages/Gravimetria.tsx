@@ -39,7 +39,7 @@ interface Category {
 
 interface Type {
   id: string;
-  category_id: string;
+  subcategory_id: string;
   name: string;
   color: string | null;
   default_classification_id: string | null;
@@ -47,7 +47,7 @@ interface Type {
 
 interface Subcategory {
   id: string;
-  type_id: string;
+  category_id: string;
   name: string;
 }
 
@@ -129,10 +129,9 @@ const Gravimetria: React.FC = () => {
           supabase.from('sectors').select('id, name').eq('client_id', clientId).eq('active', true).order('name'),
           supabase.from('classifications').select('id, name'),
           supabase.from('categories').select('id, name, color').order('name'),
-          supabase.from('types').select('id, category_id, name, color, default_classification_id').order('name'),
+          supabase.from('types').select('id, subcategory_id, name, color, default_classification_id').eq('client_id', clientId).eq('active', true).order('name'),
           supabase.from('subcategories')
-            .select('id, type_id, name')
-            .or(`client_id.is.null,client_id.eq.${clientId}`)
+            .select('id, category_id, name')
             .eq('active', true)
             .order('name')
         ]);
@@ -211,15 +210,19 @@ const Gravimetria: React.FC = () => {
     } else {
       setClassificationId('');
     }
-    setSubcategoryId('');
   }, [typeId, types]);
 
   // Handle Cascading Filter changes
   useEffect(() => {
-    setTypeId('');
     setSubcategoryId('');
+    setTypeId('');
     setClassificationId('');
   }, [categoryId]);
+
+  useEffect(() => {
+    setTypeId('');
+    setClassificationId('');
+  }, [subcategoryId]);
 
   if (loading) {
     return (
@@ -245,12 +248,12 @@ const Gravimetria: React.FC = () => {
   }
 
   // Filtered dropdowns based on cascades
-  const filteredTypes = types.filter(t => t.category_id === categoryId);
-  const filteredSubs = subcategories.filter(s => s.type_id === typeId);
+  const filteredSubs = subcategories.filter(s => s.category_id === categoryId);
+  const filteredTypes = types.filter(t => t.subcategory_id === subcategoryId);
 
   // Edit-mode cascading dropdown filters
-  const editFilteredTypes = types.filter(t => t.category_id === editCategory);
-  const editFilteredSubs = subcategories.filter(s => s.type_id === editType);
+  const editFilteredSubs = subcategories.filter(s => s.category_id === editCategory);
+  const editFilteredTypes = types.filter(t => t.subcategory_id === editSub);
 
   const startGravimetria = async () => {
     const days = parseInt(startDays, 10);
@@ -509,30 +512,30 @@ const Gravimetria: React.FC = () => {
                 </div>
 
                 <div className="form-group md:col-span-1">
-                  <label className="form-label">Tipo</label>
-                  <select 
-                    className="form-select" 
-                    value={typeId} 
-                    onChange={e => setTypeId(e.target.value)} 
-                    disabled={!categoryId} 
-                    required
-                  >
-                    <option value="">Selecione...</option>
-                    {filteredTypes.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
-                  </select>
-                </div>
-
-                <div className="form-group md:col-span-1">
                   <label className="form-label">Subcategoria</label>
                   <select 
                     className="form-select" 
                     value={subcategoryId} 
                     onChange={e => setSubcategoryId(e.target.value)} 
-                    disabled={!typeId} 
+                    disabled={!categoryId} 
                     required
                   >
                     <option value="">Selecione...</option>
                     {filteredSubs.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                  </select>
+                </div>
+
+                <div className="form-group md:col-span-1">
+                  <label className="form-label">Tipo</label>
+                  <select 
+                    className="form-select" 
+                    value={typeId} 
+                    onChange={e => setTypeId(e.target.value)} 
+                    disabled={!subcategoryId} 
+                    required
+                  >
+                    <option value="">Selecione...</option>
+                    {filteredTypes.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
                   </select>
                 </div>
 
@@ -574,8 +577,8 @@ const Gravimetria: React.FC = () => {
                       <th>Data</th>
                       <th>Setor</th>
                       <th>Categoria</th>
-                      <th>Tipo</th>
                       <th>Subcategoria</th>
+                      <th>Tipo</th>
                       <th>Classificação</th>
                       <th className="text-right">Peso (kg)</th>
                       <th style={{ width: '80px' }} />
@@ -593,6 +596,12 @@ const Gravimetria: React.FC = () => {
                         const isEditingThisRow = editId === w.id;
 
                         // Auto-update edit class when edit type changes
+                        const handleEditSubChange = (sid: string) => {
+                          setEditSub(sid);
+                          setEditType('');
+                          setEditClass('');
+                        };
+
                         const handleEditTypeChange = (tid: string) => {
                           setEditType(tid);
                           const selectedT = types.find(t => t.id === tid);
@@ -601,7 +610,6 @@ const Gravimetria: React.FC = () => {
                           } else {
                             setEditClass('');
                           }
-                          setEditSub('');
                         };
 
                         if (isEditingThisRow) {
@@ -615,21 +623,21 @@ const Gravimetria: React.FC = () => {
                                 </select>
                               </td>
                               <td>
-                                <select className="form-select" style={{ padding: '0.25rem 0.5rem', minWidth: '100px' }} value={editCategory} onChange={e => { setEditCategory(e.target.value); handleEditTypeChange(''); }}>
+                                <select className="form-select" style={{ padding: '0.25rem 0.5rem', minWidth: '100px' }} value={editCategory} onChange={e => { setEditCategory(e.target.value); handleEditSubChange(''); }}>
                                   <option value="">Selecione...</option>
                                   {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                                 </select>
                               </td>
                               <td>
-                                <select className="form-select" style={{ padding: '0.25rem 0.5rem', minWidth: '100px' }} value={editType} onChange={e => handleEditTypeChange(e.target.value)} disabled={!editCategory}>
+                                <select className="form-select" style={{ padding: '0.25rem 0.5rem', minWidth: '100px' }} value={editSub} onChange={e => handleEditSubChange(e.target.value)} disabled={!editCategory}>
                                   <option value="">Selecione...</option>
-                                  {editFilteredTypes.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+                                  {editFilteredSubs.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                                 </select>
                               </td>
                               <td>
-                                <select className="form-select" style={{ padding: '0.25rem 0.5rem', minWidth: '100px' }} value={editSub} onChange={e => setEditSub(e.target.value)} disabled={!editType}>
+                                <select className="form-select" style={{ padding: '0.25rem 0.5rem', minWidth: '100px' }} value={editType} onChange={e => handleEditTypeChange(e.target.value)} disabled={!editSub}>
                                   <option value="">Selecione...</option>
-                                  {editFilteredSubs.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                                  {editFilteredTypes.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
                                 </select>
                               </td>
                               <td>
@@ -657,8 +665,8 @@ const Gravimetria: React.FC = () => {
                                 {categoryMap[w.category_id]?.name || '—'}
                               </span>
                             </td>
-                            <td>{typeMap[w.type_id]?.name || '—'}</td>
                             <td>{subMap[w.subcategory_id] || '—'}</td>
+                            <td>{typeMap[w.type_id]?.name || '—'}</td>
                             <td><span className="text-muted text-xs font-semibold">{classMap[w.classification_id] || '—'}</span></td>
                             <td className="text-right font-semibold">{Number(w.peso_kg).toFixed(2)} kg</td>
                             <td>

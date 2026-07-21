@@ -41,7 +41,7 @@ interface Category {
 
 interface Type {
   id: string;
-  category_id: string;
+  subcategory_id: string;
   name: string;
   color: string;
   default_classification_id: string;
@@ -49,7 +49,7 @@ interface Type {
 
 interface Subcategory {
   id: string;
-  type_id: string;
+  category_id: string;
   name: string;
 }
 
@@ -124,8 +124,8 @@ const EditarLancamentos: React.FC = () => {
             supabase.from('sectors').select('id, name').eq('client_id', g.client_id).eq('active', true).order('name'),
             supabase.from('classifications').select('id, name'),
             supabase.from('categories').select('id, name, color').order('name'),
-            supabase.from('types').select('id, category_id, name, color, default_classification_id').order('name'),
-            supabase.from('subcategories').select('id, type_id, name').or(`client_id.is.null,client_id.eq.${g.client_id}`).order('name')
+            supabase.from('types').select('id, subcategory_id, name, color, default_classification_id').eq('client_id', g.client_id).eq('active', true).order('name'),
+            supabase.from('subcategories').select('id, category_id, name').eq('active', true).order('name')
           ]);
 
           const ws = (wRes.data || []) as Weighing[];
@@ -158,8 +158,8 @@ const EditarLancamentos: React.FC = () => {
     fetchData();
   }, [id, reloadKey]);
 
-  const editFilteredTypes = types.filter(t => t.category_id === editCategory);
-  const editFilteredSubs = subcategories.filter(s => s.type_id === editType);
+  const editFilteredSubs = subcategories.filter(s => s.category_id === editCategory);
+  const editFilteredTypes = types.filter(t => t.subcategory_id === editSub);
 
   const handleStartInlineEdit = (w: Weighing) => {
     setEditId(w.id);
@@ -172,6 +172,12 @@ const EditarLancamentos: React.FC = () => {
     setEditPeso(String(w.peso_kg));
   };
 
+  const handleEditSubChange = (sid: string) => {
+    setEditSub(sid);
+    setEditType('');
+    setEditClass('');
+  };
+
   const handleEditTypeChange = (tid: string) => {
     setEditType(tid);
     const selectedT = types.find(t => t.id === tid);
@@ -180,7 +186,6 @@ const EditarLancamentos: React.FC = () => {
     } else {
       setEditClass('');
     }
-    setEditSub('');
   };
 
   const handleSaveInlineEdit = async (wid: string) => {
@@ -280,8 +285,8 @@ const EditarLancamentos: React.FC = () => {
                 <th>Data</th>
                 <th>Setor</th>
                 <th>Categoria</th>
-                <th>Tipo</th>
                 <th>Subcategoria</th>
+                <th>Tipo</th>
                 <th>Classificação</th>
                 <th className="text-right">Peso (kg)</th>
                 {canEdit && <th style={{ width: '80px' }} />}
@@ -309,21 +314,21 @@ const EditarLancamentos: React.FC = () => {
                           </select>
                         </td>
                         <td>
-                          <select className="form-select" style={{ padding: '0.25rem 0.5rem', minWidth: '100px' }} value={editCategory} onChange={e => { setEditCategory(e.target.value); handleEditTypeChange(''); }}>
+                          <select className="form-select" style={{ padding: '0.25rem 0.5rem', minWidth: '100px' }} value={editCategory} onChange={e => { setEditCategory(e.target.value); handleEditSubChange(''); }}>
                             <option value="">Selecione...</option>
                             {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                           </select>
                         </td>
                         <td>
-                          <select className="form-select" style={{ padding: '0.25rem 0.5rem', minWidth: '100px' }} value={editType} onChange={e => handleEditTypeChange(e.target.value)} disabled={!editCategory}>
+                          <select className="form-select" style={{ padding: '0.25rem 0.5rem', minWidth: '100px' }} value={editSub} onChange={e => handleEditSubChange(e.target.value)} disabled={!editCategory}>
                             <option value="">Selecione...</option>
-                            {editFilteredTypes.map((t: Type) => <option key={t.id} value={t.id}>{t.name}</option>)}
+                            {editFilteredSubs.map((s: Subcategory) => <option key={s.id} value={s.id}>{s.name}</option>)}
                           </select>
                         </td>
                         <td>
-                          <select className="form-select" style={{ padding: '0.25rem 0.5rem', minWidth: '100px' }} value={editSub} onChange={e => setEditSub(e.target.value)} disabled={!editType}>
+                          <select className="form-select" style={{ padding: '0.25rem 0.5rem', minWidth: '100px' }} value={editType} onChange={e => handleEditTypeChange(e.target.value)} disabled={!editSub}>
                             <option value="">Selecione...</option>
-                            {editFilteredSubs.map((s: Subcategory) => <option key={s.id} value={s.id}>{s.name}</option>)}
+                            {editFilteredTypes.map((t: Type) => <option key={t.id} value={t.id}>{t.name}</option>)}
                           </select>
                         </td>
                         <td>
@@ -357,8 +362,8 @@ const EditarLancamentos: React.FC = () => {
                           {categoryMap[w.category_id]?.name || '—'}
                         </span>
                       </td>
-                      <td>{typeMap[w.type_id]?.name || '—'}</td>
                       <td>{subMap[w.subcategory_id] || '—'}</td>
+                      <td>{typeMap[w.type_id]?.name || '—'}</td>
                       <td><span className="text-muted text-xs font-semibold">{classMap[w.classification_id] || '—'}</span></td>
                       <td className="text-right font-semibold">{Number(w.peso_kg).toFixed(2)} kg</td>
                       {canEdit && (

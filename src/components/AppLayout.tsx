@@ -64,7 +64,7 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
     menuItems.push(
       { path: '/', label: 'Gravimetria', icon: Scale },
       { path: '/sectors', label: 'Setores', icon: Grid },
-      { path: '/subcategories', label: 'Subcategorias', icon: Layers },
+      { path: '/types', label: 'Tipos', icon: Layers },
       { path: '/users', label: 'Usuários', icon: Users },
       { path: '/reports', label: 'Relatórios', icon: BarChart2 }
     );

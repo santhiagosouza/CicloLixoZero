@@ -8,7 +8,7 @@ import Auth from './pages/Auth';
 import Gravimetria from './pages/Gravimetria';
 import GravimetriaDetail from './pages/GravimetriaDetail';
 import Sectors from './pages/Sectors';
-import Subcategories from './pages/Subcategories';
+import Types from './pages/Types';
 import Users from './pages/Users';
 import Reports from './pages/Reports';
 import NotFound from './pages/NotFound';
@@ -54,7 +54,7 @@ const App: React.FC = () => {
           <Route path="/gravimetria/:id" element={<ProtectedRoute><AppLayout><GravimetriaDetail /></AppLayout></ProtectedRoute>} />
           <Route path="/gravimetria/:id/lancamentos" element={<ProtectedRoute><AppLayout><EditarLancamentos /></AppLayout></ProtectedRoute>} />
           <Route path="/sectors" element={<ProtectedRoute><AppLayout><Sectors /></AppLayout></ProtectedRoute>} />
-          <Route path="/subcategories" element={<ProtectedRoute><AppLayout><Subcategories /></AppLayout></ProtectedRoute>} />
+          <Route path="/types" element={<ProtectedRoute><AppLayout><Types /></AppLayout></ProtectedRoute>} />
           <Route path="/users" element={<ProtectedRoute><AppLayout><Users /></AppLayout></ProtectedRoute>} />
           <Route path="/reports" element={<ProtectedRoute><AppLayout><Reports /></AppLayout></ProtectedRoute>} />
 

@@ -39,8 +39,8 @@ interface Weighing {
 interface Sector { id: string; name: string }
 interface Classification { id: string; name: string }
 interface Category { id: string; name: string; color: string | null }
-interface Type { id: string; name: string; color: string | null; category_id?: string; default_classification_id?: string | null }
-interface Subcategory { id: string; name: string; type_id?: string }
+interface Type { id: string; name: string; color: string | null; subcategory_id?: string; default_classification_id?: string | null }
+interface Subcategory { id: string; name: string; category_id?: string }
 
 const GravimetriaDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -106,8 +106,8 @@ const GravimetriaDetail: React.FC = () => {
             supabase.from('sectors').select('id, name').eq('client_id', g.client_id).eq('active', true).order('name'),
             supabase.from('classifications').select('id, name'),
             supabase.from('categories').select('id, name, color').order('name'),
-            supabase.from('types').select('id, category_id, name, color, default_classification_id').order('name'),
-            supabase.from('subcategories').select('id, type_id, name').or(`client_id.is.null,client_id.eq.${g.client_id}`).order('name')
+            supabase.from('types').select('id, subcategory_id, name, color, default_classification_id').eq('client_id', g.client_id).eq('active', true).order('name'),
+            supabase.from('subcategories').select('id, category_id, name').eq('active', true).order('name')
           ]);
 
           const ws = (wRes.data || []) as Weighing[];
@@ -277,7 +277,7 @@ const GravimetriaDetail: React.FC = () => {
     sectorId: string;
     sectorName: string;
     total: number;
-    byCat: Record<string, { total: number; types: Record<string, { name: string; total: number; subs: Record<string, { name: string; total: number }> }> }>;
+    byCat: Record<string, { total: number; subs: Record<string, { name: string; total: number; types: Record<string, { name: string; total: number }> }> }>;
   };
 
   const matrixMap = new Map<string, MatrixRow>();
@@ -296,21 +296,21 @@ const GravimetriaDetail: React.FC = () => {
     row.total += kg;
 
     if (!row.byCat[w.category_id]) {
-      row.byCat[w.category_id] = { total: 0, types: {} };
+      row.byCat[w.category_id] = { total: 0, subs: {} };
     }
     row.byCat[w.category_id].total += kg;
 
-    // Deep nesting for expanded details: Type
-    if (!row.byCat[w.category_id].types[w.type_id]) {
-      row.byCat[w.category_id].types[w.type_id] = { name: typeMap[w.type_id]?.name || '—', total: 0, subs: {} };
+    // Deep nesting for expanded details: Subcategory
+    if (!row.byCat[w.category_id].subs[w.subcategory_id]) {
+      row.byCat[w.category_id].subs[w.subcategory_id] = { name: subMap[w.subcategory_id] || '—', total: 0, types: {} };
     }
-    row.byCat[w.category_id].types[w.type_id].total += kg;
+    row.byCat[w.category_id].subs[w.subcategory_id].total += kg;
 
-    // Subcategory
-    if (!row.byCat[w.category_id].types[w.type_id].subs[w.subcategory_id]) {
-      row.byCat[w.category_id].types[w.type_id].subs[w.subcategory_id] = { name: subMap[w.subcategory_id] || '—', total: 0 };
+    // Type
+    if (!row.byCat[w.category_id].subs[w.subcategory_id].types[w.type_id]) {
+      row.byCat[w.category_id].subs[w.subcategory_id].types[w.type_id] = { name: typeMap[w.type_id]?.name || '—', total: 0 };
     }
-    row.byCat[w.category_id].types[w.type_id].subs[w.subcategory_id].total += kg;
+    row.byCat[w.category_id].subs[w.subcategory_id].types[w.type_id].total += kg;
   });
 
   const matrixRows = Array.from(matrixMap.values()).sort((a, b) => b.total - a.total);
@@ -987,7 +987,7 @@ const GravimetriaDetail: React.FC = () => {
                                   .filter(c => row.byCat[c.id])
                                   .map(c => {
                                     const catData = row.byCat[c.id];
-                                    const typesInCat = Object.entries(catData.types).sort((a, b) => b[1].total - a[1].total);
+                                    const subsInCat = Object.entries(catData.subs).sort((a, b) => b[1].total - a[1].total);
                                     const nName = c.name.toLowerCase();
                                     const CategoryIcon = nName.includes('orgân') ? Leaf 
                                       : nName.includes('recicl') ? Recycle 
@@ -1014,11 +1014,11 @@ const GravimetriaDetail: React.FC = () => {
                                         </div>
 
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                          {typesInCat.map(([typeId, typeVal]) => {
-                                            const subItems = Object.entries(typeVal.subs).sort((a, b) => b[1].total - a[1].total);
+                                          {subsInCat.map(([subId, subVal]) => {
+                                            const typeItems = Object.entries(subVal.types).sort((a, b) => b[1].total - a[1].total);
                                             return (
                                               <div 
-                                                key={typeId} 
+                                                key={subId} 
                                                 style={{ 
                                                   padding: '0.75rem', 
                                                   backgroundColor: 'hsl(var(--background))', 
@@ -1027,14 +1027,14 @@ const GravimetriaDetail: React.FC = () => {
                                                 }}
                                               >
                                                 <div className="flex justify-between items-center text-xs font-semibold" style={{ borderBottom: '1px dashed hsl(var(--card-border))', paddingBottom: '0.25rem', marginBottom: '0.5rem' }}>
-                                                  <span>{typeVal.name}</span>
-                                                  <span className="text-muted">{typeVal.total.toFixed(2)} kg</span>
+                                                  <span>{subVal.name}</span>
+                                                  <span className="text-muted">{subVal.total.toFixed(2)} kg</span>
                                                 </div>
                                                 <div className="flex flex-col gap-1">
-                                                  {subItems.map(([subId, subVal]) => (
-                                                    <div key={subId} className="flex justify-between items-center text-xs text-muted" style={{ paddingLeft: '0.25rem' }}>
-                                                      <span>&bull; {subVal.name}</span>
-                                                      <span>{subVal.total.toFixed(2)} kg</span>
+                                                  {typeItems.map(([typeId, typeVal]) => (
+                                                    <div key={typeId} className="flex justify-between items-center text-xs text-muted" style={{ paddingLeft: '0.25rem' }}>
+                                                      <span>&bull; {typeVal.name}</span>
+                                                      <span>{typeVal.total.toFixed(2)} kg</span>
                                                     </div>
                                                   ))}
                                                 </div>

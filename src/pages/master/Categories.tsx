@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../../integrations/supabase/client';
-import { Plus, Trash2, ShieldAlert, Tag, Layers, Settings, ChevronRight } from 'lucide-react';
+import { Plus, Trash2, ShieldAlert, Tag, Layers, ChevronRight } from 'lucide-react';
 
 interface Category {
   id: string;
@@ -8,109 +8,58 @@ interface Category {
   color: string | null;
 }
 
-interface Classification {
-  id: string;
-  name: string;
-}
-
-interface TypeRow {
+interface SubcategoryRow {
   id: string;
   category_id: string;
   name: string;
-  color: string | null;
-  default_classification_id: string | null;
+  active: boolean;
 }
 
 const Categories: React.FC = () => {
   const [categories, setCategories] = useState<Category[]>([]);
-  const [classifications, setClassifications] = useState<Classification[]>([]);
-  const [types, setTypes] = useState<TypeRow[]>([]);
+  const [subcategories, setSubcategories] = useState<SubcategoryRow[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Navegação e Filtros
-  const [activeTab, setActiveTab] = useState<'categories' | 'types' | 'subcategories'>('categories');
+  const [activeTab, setActiveTab] = useState<'categories' | 'subcategories'>('categories');
   const [filterCatId, setFilterCatId] = useState('');
-  const [filterTypeId, setFilterTypeId] = useState('');
 
   // Form states - Category
   const [catName, setCatName] = useState('');
   const [catColor, setCatColor] = useState('#22c55e');
   const [catSubmitting, setCatSubmitting] = useState(false);
 
-  // Form states - Type
-  const [typeName, setTypeName] = useState('');
-  const [typeColor, setTypeColor] = useState('');
-  const [typeClassId, setTypeClassId] = useState('');
-  const [typeSubmitting, setTypeSubmitting] = useState(false);
-
   // Form states - Subcategory
-  const [subcategories, setSubcategories] = useState<any[]>([]);
   const [subName, setSubName] = useState('');
   const [subSubmitting, setSubSubmitting] = useState(false);
 
-  // Mappings
-  const [classMap, setClassMap] = useState<Record<string, string>>({});
-
   // Delete modals state
   const [deleteCatId, setDeleteCatId] = useState<string | null>(null);
-  const [deleteTypeId, setDeleteTypeId] = useState<string | null>(null);
+  const [deleteSubId, setDeleteSubId] = useState<string | null>(null);
 
   const fetchInitialData = async () => {
     setLoading(true);
     try {
-      const [catRes, classRes, typeRes] = await Promise.all([
+      const [catRes, subRes] = await Promise.all([
         supabase.from('categories').select('*').order('name'),
-        supabase.from('classifications').select('id, name').order('name'),
-        supabase.from('types').select('*').order('name')
+        supabase.from('subcategories').select('*').order('name')
       ]);
 
       if (catRes.error) throw catRes.error;
-      if (classRes.error) throw classRes.error;
-      if (typeRes.error) throw typeRes.error;
+      if (subRes.error) throw subRes.error;
 
-      const cats = (catRes.data || []) as Category[];
-      const classes = (classRes.data || []) as Classification[];
-      const typs = (typeRes.data || []) as TypeRow[];
-
-      setCategories(cats);
-      setClassifications(classes);
-      setTypes(typs);
-
-      setClassMap(Object.fromEntries(classes.map(c => [c.id, c.name])));
+      setCategories((catRes.data || []) as Category[]);
+      setSubcategories((subRes.data || []) as SubcategoryRow[]);
     } catch (err: any) {
-      console.error('Erro ao buscar categorias e tipos:', err);
+      console.error('Erro ao buscar categorias e subcategorias:', err);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const fetchSubcategories = async (typeId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from('subcategories')
-        .select('*')
-        .eq('type_id', typeId)
-        .is('client_id', null)
-        .order('name');
-      if (error) throw error;
-      setSubcategories(data || []);
-    } catch (err) {
-      console.error('Erro ao buscar subcategorias padrão:', err);
     }
   };
 
   useEffect(() => {
     fetchInitialData();
   }, []);
-
-  // Buscar subcategorias quando o tipo de filtro mudar
-  useEffect(() => {
-    if (filterTypeId) {
-      fetchSubcategories(filterTypeId);
-    } else {
-      setSubcategories([]);
-    }
-  }, [filterTypeId]);
 
   const handleCreateCategory = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -136,50 +85,23 @@ const Categories: React.FC = () => {
     }
   };
 
-  const handleCreateType = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!typeName.trim() || !filterCatId) return;
-
-    setTypeSubmitting(true);
-    try {
-      const { error } = await supabase
-        .from('types')
-        .insert({
-          category_id: filterCatId,
-          name: typeName.trim(),
-          color: typeColor.trim() || null,
-          default_classification_id: typeClassId || null
-        });
-
-      if (error) throw error;
-      setTypeName('');
-      setTypeColor('');
-      setTypeClassId('');
-      fetchInitialData();
-    } catch (err: any) {
-      alert('Erro ao criar tipo: ' + err.message);
-    } finally {
-      setTypeSubmitting(false);
-    }
-  };
-
   const handleCreateSubcategory = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!subName.trim() || !filterTypeId) return;
+    if (!subName.trim() || !filterCatId) return;
     setSubSubmitting(true);
     try {
       const { error } = await supabase
         .from('subcategories')
         .insert({
-          type_id: filterTypeId,
+          category_id: filterCatId,
           name: subName.trim(),
-          client_id: null
+          active: true
         });
       if (error) throw error;
       setSubName('');
-      fetchSubcategories(filterTypeId);
+      fetchInitialData();
     } catch (err: any) {
-      alert('Erro ao criar subcategoria padrão: ' + err.message);
+      alert('Erro ao criar subcategoria global: ' + err.message);
     } finally {
       setSubSubmitting(false);
     }
@@ -194,12 +116,9 @@ const Categories: React.FC = () => {
 
       if (error) {
         if (error.message.includes('foreign key')) {
-          throw new Error('Não é possível excluir esta categoria pois ela possui tipos de resíduos ou pesagens vinculados.');
+          throw new Error('Não é possível excluir esta categoria pois ela possui subcategorias ou pesagens vinculadas.');
         }
         throw error;
-      }
-      if (filterCatId === cid) {
-        setFilterCatId('');
       }
       setDeleteCatId(null);
       fetchInitialData();
@@ -208,105 +127,60 @@ const Categories: React.FC = () => {
     }
   };
 
-  const handleDeleteType = async (tid: string) => {
-    try {
-      const { error } = await supabase
-        .from('types')
-        .delete()
-        .eq('id', tid);
-
-      if (error) {
-        if (error.message.includes('foreign key')) {
-          throw new Error('Não é possível excluir este tipo de resíduo pois existem subcategorias ou pesagens vinculadas a ele.');
-        }
-        throw error;
-      }
-      if (filterTypeId === tid) {
-        setFilterTypeId('');
-      }
-      setDeleteTypeId(null);
-      fetchInitialData();
-    } catch (err: any) {
-      alert(err.message || 'Erro ao excluir tipo.');
-    }
-  };
-
-  const handleDeleteSubcategory = async (subId: string) => {
-    if (!confirm('Deseja realmente excluir esta subcategoria padrão global?')) return;
+  const handleDeleteSubcategory = async (sid: string) => {
     try {
       const { error } = await supabase
         .from('subcategories')
         .delete()
-        .eq('id', subId);
+        .eq('id', sid);
+
       if (error) {
         if (error.message.includes('foreign key')) {
-          throw new Error('Não é possível excluir esta subcategoria padrão pois ela já está em uso em pesagens de clientes.');
+          throw new Error('Não é possível excluir esta subcategoria pois ela possui tipos de resíduos ou pesagens vinculados.');
         }
         throw error;
       }
-      if (filterTypeId) {
-        fetchSubcategories(filterTypeId);
-      }
+      setDeleteSubId(null);
+      fetchInitialData();
     } catch (err: any) {
       alert(err.message || 'Erro ao excluir subcategoria.');
     }
   };
 
-  const handleUpdateCategoryColor = async (id: string, color: string) => {
+  const handleUpdateCategoryColor = async (cid: string, colorHex: string) => {
     try {
       const { error } = await supabase
         .from('categories')
-        .update({ color })
-        .eq('id', id);
+        .update({ color: colorHex })
+        .eq('id', cid);
 
       if (error) throw error;
       fetchInitialData();
     } catch (err: any) {
-      alert('Erro ao atualizar cor da categoria: ' + err.message);
+      alert('Erro ao atualizar cor: ' + err.message);
     }
   };
 
-  const handleUpdateTypeColor = async (id: string, color: string) => {
-    try {
-      const { error } = await supabase
-        .from('types')
-        .update({ color })
-        .eq('id', id);
-
-      if (error) throw error;
-      fetchInitialData();
-    } catch (err: any) {
-      alert('Erro ao atualizar cor do tipo: ' + err.message);
-    }
-  };
-
-  // Redirecionamento assistido de fluxo
-  const handleSelectCategoryFlow = (catId: string) => {
-    setFilterCatId(catId);
-    setFilterTypeId('');
-    setActiveTab('types');
-  };
-
-  const handleSelectTypeFlow = (typeId: string) => {
-    setFilterTypeId(typeId);
+  const handleSelectCategoryFlow = (cid: string) => {
+    setFilterCatId(cid);
     setActiveTab('subcategories');
   };
 
   if (loading && categories.length === 0) {
     return (
       <div className="flex items-center justify-center" style={{ minHeight: '60vh' }}>
-        <p className="text-muted font-medium pulse-active">Carregando categorias...</p>
+        <p className="text-muted font-medium pulse-active">Carregando estrutura de resíduos...</p>
       </div>
     );
   }
 
-  const filteredTypes = filterCatId ? types.filter(t => t.category_id === filterCatId) : [];
+  const filteredSubs = filterCatId ? subcategories.filter(s => s.category_id === filterCatId) : [];
 
   return (
     <div className="flex flex-col gap-4">
       <div>
-        <h1 style={{ fontSize: '2rem', margin: 0 }}>Categorias e Tipos de Resíduos</h1>
-        <p className="text-muted text-sm font-medium">Configure a estrutura de resíduos de 4 níveis da plataforma</p>
+        <h1 style={{ fontSize: '2rem', margin: 0 }}>Categorias e Subcategorias</h1>
+        <p className="text-muted text-sm font-medium">Configure a estrutura global de resíduos (L1 e L2) da plataforma</p>
       </div>
 
       {/* TABS DE NAVEGAÇÃO VERTICALIZADA */}
@@ -329,28 +203,15 @@ const Categories: React.FC = () => {
           <span>1. Categorias Globais</span>
         </button>
         <button 
-          className={`btn ${activeTab === 'types' ? 'btn-primary' : 'btn-ghost'}`}
-          style={{ padding: '0.5rem 1.25rem', borderRadius: 'var(--radius-md)' }}
-          onClick={() => setActiveTab('types')}
-        >
-          <Layers size={16} />
-          <span>2. Tipos de Resíduos</span>
-          {filterCatId && (
-            <span style={{ fontSize: '0.65rem', opacity: 0.85, marginLeft: '0.25rem' }}>
-              ({categories.find(c => c.id === filterCatId)?.name})
-            </span>
-          )}
-        </button>
-        <button 
           className={`btn ${activeTab === 'subcategories' ? 'btn-primary' : 'btn-ghost'}`}
           style={{ padding: '0.5rem 1.25rem', borderRadius: 'var(--radius-md)' }}
           onClick={() => setActiveTab('subcategories')}
         >
-          <Settings size={16} />
-          <span>3. Subcategorias Padrão</span>
-          {filterTypeId && (
+          <Layers size={16} />
+          <span>2. Subcategorias Globais</span>
+          {filterCatId && (
             <span style={{ fontSize: '0.65rem', opacity: 0.85, marginLeft: '0.25rem' }}>
-              ({types.find(t => t.id === filterTypeId)?.name})
+              ({categories.find(c => c.id === filterCatId)?.name})
             </span>
           )}
         </button>
@@ -461,7 +322,7 @@ const Categories: React.FC = () => {
                               className="btn btn-secondary flex items-center gap-1"
                               style={{ padding: '0.4rem 1rem', fontSize: '0.8rem' }}
                             >
-                              <span>Ver Tipos</span>
+                              <span>Ver Subcategorias</span>
                               <ChevronRight size={14} />
                             </button>
                             <button 
@@ -483,12 +344,12 @@ const Categories: React.FC = () => {
           </div>
         )}
 
-        {/* ABA 2: TIPOS DE RESÍDUOS */}
-        {activeTab === 'types' && (
+        {/* ABA 2: SUBCATEGORIAS */}
+        {activeTab === 'subcategories' && (
           <div className="flex flex-col gap-4">
             {/* Seletor da Categoria Ativa no topo */}
             <div className="card flex flex-row items-center gap-4 flex-wrap" style={{ padding: '1rem 1.5rem', backgroundColor: 'rgba(34, 197, 94, 0.01)' }}>
-              <label className="form-label font-semibold" style={{ marginBottom: 0 }}>Gerenciando Tipos da Categoria:</label>
+              <label className="form-label font-semibold" style={{ marginBottom: 0 }}>Gerenciando Subcategorias da Categoria:</label>
               <select 
                 className="form-select" 
                 style={{ maxWidth: '320px', marginBottom: 0 }}
@@ -502,207 +363,22 @@ const Categories: React.FC = () => {
 
             {filterCatId ? (
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-4" style={{ alignItems: 'start' }}>
-                {/* Create Type */}
-                <div className="card">
-                  <h2 className="card-title mb-4">Novo Tipo de Material</h2>
-                  <form onSubmit={handleCreateType} className="flex flex-col gap-3">
-                    <div className="form-group">
-                      <label className="form-label">Nome do Tipo</label>
-                      <input 
-                        type="text" 
-                        className="form-input" 
-                        placeholder="Ex: Plástico, Papel, Vidro" 
-                        value={typeName} 
-                        onChange={e => setTypeName(e.target.value)} 
-                        required 
-                        disabled={typeSubmitting}
-                      />
-                    </div>
-                    <div className="form-group">
-                      <label className="form-label">Classificação Legal Padrão</label>
-                      <select 
-                        className="form-select" 
-                        value={typeClassId} 
-                        onChange={e => setTypeClassId(e.target.value)}
-                        required
-                        disabled={typeSubmitting}
-                      >
-                        <option value="">Selecione...</option>
-                        {classifications.map(cl => <option key={cl.id} value={cl.id}>{cl.name}</option>)}
-                      </select>
-                      <p className="text-xs text-muted mt-1">Ao lançar a pesagem, o sistema autocompleta com este enquadramento padrão.</p>
-                    </div>
-                    <div className="form-group">
-                      <label className="form-label">Cor Opcional (Hexadecimal)</label>
-                      <input 
-                        type="text" 
-                        className="form-input" 
-                        placeholder="Ex: #3b82f6 (Deixe vazio para herdar da categoria)" 
-                        value={typeColor} 
-                        onChange={e => setTypeColor(e.target.value)} 
-                        disabled={typeSubmitting}
-                      />
-                    </div>
-                    <button type="submit" className="btn btn-primary mt-2" style={{ width: '100%' }} disabled={typeSubmitting}>
-                      <Plus size={16} />
-                      <span>Cadastrar Tipo</span>
-                    </button>
-                  </form>
-                </div>
-
-                {/* Types List */}
-                <div className="card lg:col-span-2">
-                  <h2 className="card-title mb-4">Tipos vinculados a: {categories.find(c => c.id === filterCatId)?.name}</h2>
-                  <div className="table-container">
-                    <table className="table">
-                      <thead>
-                        <tr>
-                          <th>Nome do Tipo</th>
-                          <th>Classificação Padrão</th>
-                          <th style={{ width: '70px' }}>Cor</th>
-                          <th style={{ width: '220px', textAlign: 'right' }}>Ações</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {filteredTypes.length === 0 ? (
-                          <tr>
-                            <td colSpan={4} className="text-center text-muted" style={{ padding: '3rem 0' }}>
-                              Nenhum tipo de resíduo cadastrado nesta categoria.
-                            </td>
-                          </tr>
-                        ) : (
-                          filteredTypes.map(t => {
-                            const parentCat = categories.find(c => c.id === filterCatId);
-                            const displayColor = t.color || parentCat?.color || '#ccc';
-                            return (
-                              <tr key={t.id} className="hoverable-row">
-                                <td className="font-semibold text-sm">
-                                  <span className="flex items-center gap-2">
-                                    <Layers size={14} style={{ color: displayColor }} />
-                                    {t.name}
-                                  </span>
-                                </td>
-                                <td>
-                                  <span className="text-xs font-semibold text-muted">{classMap[t.default_classification_id || ''] || '—'}</span>
-                                </td>
-                                <td>
-                                  <div 
-                                    style={{
-                                      position: 'relative',
-                                      width: '24px',
-                                      height: '24px',
-                                      borderRadius: '50%',
-                                      backgroundColor: displayColor,
-                                      border: '1px solid hsl(var(--card-border))',
-                                      cursor: 'pointer',
-                                      overflow: 'hidden',
-                                      display: 'inline-block'
-                                    }}
-                                    title="Clique para editar a cor do tipo"
-                                  >
-                                    <input 
-                                      type="color"
-                                      value={t.color || parentCat?.color || '#cccccc'}
-                                      onChange={e => handleUpdateTypeColor(t.id, e.target.value)}
-                                      style={{
-                                        position: 'absolute',
-                                        top: '-5px',
-                                        left: '-5px',
-                                        width: '34px',
-                                        height: '34px',
-                                        border: 'none',
-                                        padding: 0,
-                                        margin: 0,
-                                        cursor: 'pointer',
-                                        opacity: 0
-                                      }}
-                                    />
-                                  </div>
-                                </td>
-                                <td className="text-right">
-                                  <div className="flex gap-2 justify-end">
-                                    <button 
-                                      onClick={() => handleSelectTypeFlow(t.id)}
-                                      className="btn btn-secondary flex items-center gap-1"
-                                      style={{ padding: '0.4rem 1rem', fontSize: '0.8rem' }}
-                                    >
-                                      <span>Ver Subcategorias</span>
-                                      <ChevronRight size={14} />
-                                    </button>
-                                    <button 
-                                      onClick={() => setDeleteTypeId(t.id)} 
-                                      className="btn btn-ghost btn-icon" 
-                                      style={{ color: 'hsl(var(--destructive))' }}
-                                      title="Excluir Tipo"
-                                    >
-                                      <Trash2 size={16} />
-                                    </button>
-                                  </div>
-                                </td>
-                              </tr>
-                            );
-                          })
-                        )}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div className="card text-center flex flex-col items-center justify-center" style={{ minHeight: '350px', borderStyle: 'dashed', padding: '2rem' }}>
-                <Layers size={36} style={{ color: 'hsl(var(--muted-foreground))', opacity: 0.5, marginBottom: '1rem' }} />
-                <h3 style={{ fontSize: '1.1rem', fontWeight: 600 }}>Tipos de Resíduos</h3>
-                <p className="text-muted text-xs mt-2">
-                  Selecione uma categoria global no seletor acima para carregar a listagem e o cadastro de tipos.
-                </p>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* ABA 3: SUBCATEGORIAS PADRÃO */}
-        {activeTab === 'subcategories' && (
-          <div className="flex flex-col gap-4">
-            {/* Seletor do Tipo Ativo no topo */}
-            <div className="card flex flex-row items-center gap-4 flex-wrap" style={{ padding: '1rem 1.5rem', backgroundColor: 'rgba(34, 197, 94, 0.01)' }}>
-              <label className="form-label font-semibold" style={{ marginBottom: 0 }}>Gerenciando Subcategorias do Tipo:</label>
-              <select 
-                className="form-select" 
-                style={{ maxWidth: '320px', marginBottom: 0 }}
-                value={filterTypeId}
-                onChange={e => setFilterTypeId(e.target.value)}
-              >
-                <option value="">Selecione um tipo de material...</option>
-                {types.map(t => {
-                  const catName = categories.find(c => c.id === t.category_id)?.name || '';
-                  return (
-                    <option key={t.id} value={t.id}>
-                      {t.name} {catName ? `(${catName})` : ''}
-                    </option>
-                  );
-                })}
-              </select>
-            </div>
-
-            {filterTypeId ? (
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4" style={{ alignItems: 'start' }}>
                 {/* Create Subcategory */}
                 <div className="card">
-                  <h2 className="card-title mb-4">Nova Subcategoria Padrão</h2>
+                  <h2 className="card-title mb-4">Nova Subcategoria</h2>
                   <form onSubmit={handleCreateSubcategory} className="flex flex-col gap-3">
                     <div className="form-group">
                       <label className="form-label">Nome da Subcategoria</label>
                       <input 
                         type="text" 
                         className="form-input" 
-                        placeholder="Ex: Copo Descartável, Garrafa PET" 
+                        placeholder="Ex: Papel, Plástico Rígido, Vidro" 
                         value={subName} 
                         onChange={e => setSubName(e.target.value)} 
                         required 
                         disabled={subSubmitting}
                       />
                     </div>
-                    <p className="text-xs text-muted">Esta subcategoria será criada por padrão no painel de todos os clientes, mas cada um deles poderá ativá-la, desativá-la ou editá-la individualmente.</p>
                     <button type="submit" className="btn btn-primary mt-2" style={{ width: '100%' }} disabled={subSubmitting}>
                       <Plus size={16} />
                       <span>Cadastrar Subcategoria</span>
@@ -712,29 +388,34 @@ const Categories: React.FC = () => {
 
                 {/* Subcategories List */}
                 <div className="card lg:col-span-2">
-                  <h2 className="card-title mb-4">Subcategorias padrões em: {types.find(t => t.id === filterTypeId)?.name}</h2>
+                  <h2 className="card-title mb-4">Subcategorias vinculadas a: {categories.find(c => c.id === filterCatId)?.name}</h2>
                   <div className="table-container">
                     <table className="table">
                       <thead>
                         <tr>
                           <th>Nome da Subcategoria</th>
-                          <th style={{ width: '100px', textAlign: 'right' }}>Ações</th>
+                          <th style={{ width: '120px', textAlign: 'right' }}>Ações</th>
                         </tr>
                       </thead>
                       <tbody>
-                        {subcategories.length === 0 ? (
+                        {filteredSubs.length === 0 ? (
                           <tr>
                             <td colSpan={2} className="text-center text-muted" style={{ padding: '3rem 0' }}>
-                              Nenhuma subcategoria padrão global cadastrada para este tipo.
+                              Nenhuma subcategoria cadastrada nesta categoria.
                             </td>
                           </tr>
                         ) : (
-                          subcategories.map(sub => (
-                            <tr key={sub.id} className="hoverable-row">
-                              <td className="font-semibold text-sm">{sub.name}</td>
+                          filteredSubs.map(s => (
+                            <tr key={s.id} className="hoverable-row">
+                              <td className="font-semibold text-sm">
+                                <span className="flex items-center gap-2">
+                                  <Layers size={14} className="text-muted" />
+                                  {s.name}
+                                </span>
+                              </td>
                               <td className="text-right">
                                 <button 
-                                  onClick={() => handleDeleteSubcategory(sub.id)} 
+                                  onClick={() => setDeleteSubId(s.id)} 
                                   className="btn btn-ghost btn-icon" 
                                   style={{ color: 'hsl(var(--destructive))' }}
                                   title="Excluir Subcategoria"
@@ -752,10 +433,10 @@ const Categories: React.FC = () => {
               </div>
             ) : (
               <div className="card text-center flex flex-col items-center justify-center" style={{ minHeight: '350px', borderStyle: 'dashed', padding: '2rem' }}>
-                <Settings size={36} style={{ color: 'hsl(var(--muted-foreground))', opacity: 0.5, marginBottom: '1rem' }} />
-                <h3 style={{ fontSize: '1.1rem', fontWeight: 600 }}>Subcategorias Padrão</h3>
+                <Layers size={36} style={{ color: 'hsl(var(--muted-foreground))', opacity: 0.5, marginBottom: '1rem' }} />
+                <h3 style={{ fontSize: '1.1rem', fontWeight: 600 }}>Subcategorias</h3>
                 <p className="text-muted text-xs mt-2">
-                  Selecione um tipo de material no seletor acima para gerenciar suas subcategorias padrão globais.
+                  Selecione uma categoria global no seletor acima para carregar a listagem e o cadastro de subcategorias.
                 </p>
               </div>
             )}
@@ -775,7 +456,7 @@ const Categories: React.FC = () => {
               </h3>
             </div>
             <p className="text-sm text-muted" style={{ margin: '0.75rem 0' }}>
-              Deseja realmente excluir esta categoria global? Esta ação só terá sucesso se não houverem pesagens ou tipos de resíduos vinculados a ela.
+              Deseja realmente excluir esta categoria global? Esta ação só terá sucesso se não houverem pesagens ou subcategorias vinculadas a ela.
             </p>
             <div className="modal-footer">
               <button onClick={() => setDeleteCatId(null)} className="btn btn-secondary">Cancelar</button>
@@ -785,22 +466,22 @@ const Categories: React.FC = () => {
         </div>
       )}
 
-      {/* CONFIRM MODAL: DELETE TYPE */}
-      {deleteTypeId && (
+      {/* CONFIRM MODAL: DELETE SUBCATEGORY */}
+      {deleteSubId && (
         <div className="modal-overlay">
           <div className="modal-content" style={{ maxWidth: '400px' }}>
             <div className="modal-header">
               <h3 className="modal-title flex items-center gap-2" style={{ color: 'hsl(var(--destructive))' }}>
                 <ShieldAlert size={20} />
-                Excluir Tipo de Resíduo
+                Excluir Subcategoria
               </h3>
             </div>
             <p className="text-sm text-muted" style={{ margin: '0.75rem 0' }}>
-              Deseja realmente excluir este tipo de material? Esta ação apagará todas as subcategorias vinculadas e só terá sucesso se não houverem pesagens cadastradas.
+              Deseja realmente excluir esta subcategoria? Esta ação só terá sucesso se não houverem tipos de resíduos ou pesagens vinculados a ela.
             </p>
             <div className="modal-footer">
-              <button onClick={() => setDeleteTypeId(null)} className="btn btn-secondary">Cancelar</button>
-              <button onClick={() => handleDeleteType(deleteTypeId)} className="btn btn-danger">Excluir</button>
+              <button onClick={() => setDeleteSubId(null)} className="btn btn-secondary">Cancelar</button>
+              <button onClick={() => handleDeleteSubcategory(deleteSubId)} className="btn btn-danger">Excluir</button>
             </div>
           </div>
         </div>
