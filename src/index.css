@@ -1,131 +1,141 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&family=Roboto:wght@400;500;700;800&display=swap');
 
 /* ==========================================================================
    DESIGN TOKENS & VARIABLES
    ========================================================================== */
 :root {
   /* Fonts */
-  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --font-heading: 'Outfit', var(--font-sans);
+  --font-sans: 'Roboto', 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-heading: 'Roboto', 'Outfit', var(--font-sans);
 
-  /* Light Theme Colors (HSL) */
-  --background: 140 15% 98%;      /* Very light grayish green */
-  --foreground: 160 25% 12%;      /* Dark forest/slate */
+  /* Light Theme Colors (HSL) - Claude Artifact Design System */
+  --background: 120 7% 94%;        /* #eef1ee - Cinza-esverdeado claro */
+  --foreground: 143 17% 16%;       /* #233028 - Verde-escuro quase preto */
   
-  --card: 0 0% 100%;
-  --card-foreground: 160 25% 12%;
-  --card-border: 140 10% 90%;
+  --card: 0 0% 100%;               /* #ffffff */
+  --card-foreground: 143 17% 16%;  /* #233028 */
+  --card-border: 120 10% 91%;      /* #e7ece7 */
   
   --popover: 0 0% 100%;
-  --popover-foreground: 160 25% 12%;
+  --popover-foreground: 143 17% 16%;
   
   /* Brand/Accent Colors (Green Sustainability) */
-  --primary: 125 56% 24%;         /* Forest Green #1B5E20 */
-  --primary-foreground: 0 0% 100%;
-  --primary-hover: 125 56% 18%;
+  --primary: 133 50% 37%;          /* #2f8f43 - Verde Primário */
+  --primary-foreground: 0 0% 100%; /* #ffffff */
+  --primary-hover: 133 50% 30%;    /* #267336 */
   
-  --secondary: 122 40% 45%;
+  --secondary: 80 43% 54%;         /* #9bbb59 - Verde Secundário (Oliva) */
   --secondary-foreground: 0 0% 100%;
-  --secondary-hover: 122 40% 38%;
+  --secondary-hover: 80 45% 43%;   /* #7d9e3c */
   
-  --muted: 140 8% 94%;
-  --muted-foreground: 160 8% 45%;
+  --muted: 120 7% 94%;             /* #eef1ee */
+  --muted-foreground: 140 6% 40%;  /* #5c6b60 - Verde suave para subtextos */
   
-  --accent: 125 30% 92%;
-  --accent-foreground: 125 56% 20%;
+  --accent: 144 33% 93%;           /* #e7f4ec - Verde translúcido ativo */
+  --accent-foreground: 145 76% 21%;/* #0d5f30 - Verde acentuado */
   
   --destructive: 0 84% 60%;
   --destructive-foreground: 0 0% 100%;
   
-  --border: 140 10% 88%;
-  --input: 140 10% 92%;
-  --ring: 125 56% 24%;
+  --border: 120 10% 91%;           /* #e7ece7 */
+  --input: 120 10% 91%;            /* #e7ece7 */
+  --ring: 133 50% 37%;             /* #2f8f43 */
+
+  /* Cores específicas de resíduos e subcategorias (Claude Artifact) */
+  --color-organico: #2f8f43;
+  --color-reciclavel: #9bbb59;
+  --color-perigoso: #ef8a2b;
+  --color-rejeito: #8a938c;
+  --color-plastico: #d9534f;
+  --color-papel: #3b82c4;
+  --color-vidro: #7fc7a0;
+  --color-metal: #e0a92e;
 
   /* Borders & Shadows */
   --radius-sm: 6px;
   --radius-md: 10px;
-  --radius-lg: 16px;
-  --radius-xl: 24px;
+  --radius-lg: 14px;               /* Sintonizado com o border-radius: 14px do mockup */
+  --radius-xl: 22px;
   
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.04), 0 4px 6px -2px rgba(0, 0, 0, 0.02);
-  --shadow-elegant: 0 20px 25px -5px rgba(27, 94, 32, 0.05), 0 10px 10px -5px rgba(27, 94, 32, 0.02);
-  --glass-bg: rgba(255, 255, 255, 0.7);
-  --glass-blur: 12px;
+  --shadow-sm: 0 1px 3px rgba(20, 60, 30, 0.05); /* Sintonizado com o mockup */
+  --shadow-md: 0 4px 6px -1px rgba(20, 60, 30, 0.04), 0 2px 4px -1px rgba(20, 60, 30, 0.02);
+  --shadow-lg: 0 10px 15px -3px rgba(20, 60, 30, 0.06), 0 4px 6px -2px rgba(20, 60, 30, 0.03);
+  --shadow-elegant: 0 12px 28px rgba(20, 80, 45, 0.08); /* Sombra elegante suave de hover */
+  --glass-bg: rgba(255, 255, 255, 0.8);
+  --glass-blur: 16px;
 }
 
 /* Dark Theme Colors (HSL) */
 @media (prefers-color-scheme: dark) {
   :root:not(.light-theme) {
-    --background: 160 20% 8%;       /* Very dark slate green */
-    --foreground: 160 15% 94%;       /* Off-white */
+    --background: 145 23% 6%;        /* #0c130f - Verde escuro sustentável */
+    --foreground: 120 10% 92%;       /* #e7ece7 - Texto claro suave */
     
-    --card: 160 20% 10%;             /* Darker card */
-    --card-foreground: 160 15% 94%;
-    --card-border: 160 15% 14%;
+    --card: 147 18% 9%;              /* #131c17 - Card mais escuro */
+    --card-foreground: 120 10% 92%;
+    --card-border: 147 17% 14%;      /* #1d2a23 */
     
-    --popover: 160 20% 9%;
-    --popover-foreground: 160 15% 94%;
+    --popover: 147 18% 9%;
+    --popover-foreground: 120 10% 92%;
     
-    --primary: 125 56% 35%;          /* Slightly brighter forest */
-    --primary-foreground: 160 20% 8%;
-    --primary-hover: 125 56% 42%;
+    --primary: 133 50% 44%;          /* Verde primário mais brilhante */
+    --primary-foreground: 145 23% 6%;
+    --primary-hover: 133 48% 53%;
     
-    --secondary: 160 12% 16%;
-    --secondary-foreground: 160 10% 85%;
-    --secondary-hover: 160 12% 22%;
+    --secondary: 80 45% 60%;
+    --secondary-foreground: 145 23% 6%;
+    --secondary-hover: 80 43% 50%;
     
-    --muted: 160 12% 14%;
-    --muted-foreground: 160 8% 60%;
+    --muted: 148 18% 12%;            /* #18231e */
+    --muted-foreground: 129 6% 57%;   /* #8b968d */
     
-    --accent: 125 30% 16%;
-    --accent-foreground: 125 50% 75%;
+    --accent: 149 31% 13%;           /* #162a20 */
+    --accent-foreground: 147 38% 64%;/* #7fc7a0 */
     
-    --destructive: 350 80% 55%;
+    --destructive: 0 84% 65%;
     --destructive-foreground: 0 0% 100%;
     
-    --border: 160 12% 15%;
-    --input: 160 12% 15%;
-    --ring: 125 56% 35%;
+    --border: 147 17% 14%;
+    --input: 147 17% 14%;
+    --ring: 133 50% 44%;
     
-    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
     --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
     --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3);
     --shadow-elegant: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
-    --glass-bg: rgba(18, 24, 22, 0.75);
+    --glass-bg: rgba(18, 24, 22, 0.8);
   }
 }
 
 /* Class-based Dark Mode support */
 .dark {
-  --background: 160 20% 8%;
-  --foreground: 160 15% 94%;
-  --card: 160 20% 10%;
-  --card-foreground: 160 15% 94%;
-  --card-border: 160 15% 14%;
-  --popover: 160 20% 9%;
-  --popover-foreground: 160 15% 94%;
-  --primary: 125 56% 35%;
-  --primary-foreground: 160 20% 8%;
-  --primary-hover: 125 56% 42%;
-  --secondary: 160 12% 16%;
-  --secondary-foreground: 160 10% 85%;
-  --secondary-hover: 160 12% 22%;
-  --muted: 160 12% 14%;
-  --muted-foreground: 160 8% 60%;
-  --accent: 125 30% 16%;
-  --accent-foreground: 125 50% 75%;
-  --destructive: 350 80% 55%;
+  --background: 145 23% 6%;
+  --foreground: 120 10% 92%;
+  --card: 147 18% 9%;
+  --card-foreground: 120 10% 92%;
+  --card-border: 147 17% 14%;
+  --popover: 147 18% 9%;
+  --popover-foreground: 120 10% 92%;
+  --primary: 133 50% 44%;
+  --primary-foreground: 145 23% 6%;
+  --primary-hover: 133 48% 53%;
+  --secondary: 80 45% 60%;
+  --secondary-foreground: 145 23% 6%;
+  --secondary-hover: 80 43% 50%;
+  --muted: 148 18% 12%;
+  --muted-foreground: 129 6% 57%;
+  --accent: 149 31% 13%;
+  --accent-foreground: 147 38% 64%;
+  --destructive: 0 84% 65%;
   --destructive-foreground: 0 0% 100%;
-  --border: 160 12% 15%;
-  --input: 160 12% 15%;
-  --ring: 125 56% 35%;
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+  --border: 147 17% 14%;
+  --input: 147 17% 14%;
+  --ring: 133 50% 44%;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
   --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3);
   --shadow-elegant: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
-  --glass-bg: rgba(18, 24, 22, 0.75);
+  --glass-bg: rgba(18, 24, 22, 0.8);
 }
 
 /* ==========================================================================
@@ -189,12 +199,13 @@ button, input, select, textarea {
   border: 1px solid hsl(var(--card-border));
   border-radius: var(--radius-lg);
   padding: 1.5rem;
-  box-shadow: var(--shadow-md);
-  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease, border-color 0.2s ease;
 }
 .card:hover {
-  box-shadow: var(--shadow-elegant);
-  border-color: rgba(56, 142, 60, 0.25);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 24px rgba(20, 80, 45, 0.08), var(--shadow-elegant);
+  border-color: rgba(47, 143, 67, 0.25);
 }
 .card-header {
   margin-bottom: 1.25rem;
@@ -352,7 +363,7 @@ button, input, select, textarea {
   border-bottom: none;
 }
 .table tbody tr:hover {
-  background-color: rgba(56, 142, 60, 0.02);
+  background-color: rgba(47, 143, 67, 0.03);
 }
 
 /* Badges */
@@ -369,8 +380,8 @@ button, input, select, textarea {
   color: hsl(var(--secondary-foreground));
 }
 .badge-success {
-  background-color: rgba(27, 94, 32, 0.12);
-  color: #2E7D32;
+  background-color: rgba(47, 143, 67, 0.12);
+  color: #257035;
 }
 .badge-warning {
   background-color: rgba(245, 158, 11, 0.12);
@@ -466,9 +477,12 @@ button, input, select, textarea {
   .md\:grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   .md\:grid-cols-5 { grid-template-columns: repeat(5, minmax(0, 1fr)); }
   .md\:grid-cols-6 { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+  .md\:grid-cols-10 { grid-template-columns: repeat(10, minmax(0, 1fr)); }
   .md\:col-span-2 { grid-column: span 2 / span 2; }
   .md\:col-span-3 { grid-column: span 3 / span 3; }
   .md\:col-span-4 { grid-column: span 4 / span 4; }
+  .md\:col-span-6 { grid-column: span 6 / span 6; }
+  .md\:col-span-7 { grid-column: span 7 / span 7; }
 }
 
 /* Spacing */

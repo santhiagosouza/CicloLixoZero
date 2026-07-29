@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="_ds/modernist-daf22c0b-0c54-408d-a97a-a39d84c19631/styles.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* brand: #9BBB59 (verde-claro) + #06522C (verde-escuro) */
+  --leaf:#9bbb59;--leaf-deep:#7d9e3c;
+  --brand:#2f8f43;--brand-deep:#0d5f30;--brand-dark:#06522c;
+  --side-a:#0c6634;--side-b:#06371d;--side-act:#9bbb59;
+  --ink:#233028;--ink-soft:#5c6b60;--muted:#8b968d;--line:#e7ece7;--page:#eef1ee;
+  --card:#fff;--red:#d63d3d;--purple:#6d3fc4;
+  --org:#2f8f43;--rec:#9bbb59;--per:#ef8a2b;--rej:#8a938c;
+  --plas:#d9534f;--pap:#3b82c4;--vid:#7fc7a0;--met:#e0a92e;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:'Roboto',system-ui,sans-serif;color:var(--ink);background:var(--page);font-feature-settings:"tnum" 1}
+h1,h2,h3,h4,.ttl{font-family:'Roboto',system-ui,sans-serif}
+a{color:var(--brand-deep);text-decoration:none}a:hover{color:var(--brand-dark)}
+.c{background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:0 1px 3px rgba(20,60,30,.05)}
+.hov{transition:box-shadow .16s,transform .16s}
+.hov:hover{box-shadow:0 10px 24px rgba(20,80,45,.1);transform:translateY(-2px)}
+.nav{transition:background .14s,color .14s}
+.nav:hover{background:rgba(255,255,255,.1);color:#fff}
+.btnh{transition:filter .14s,background .14s}
+.btnh:hover{filter:brightness(1.06)}
+.rowh:hover{background:#f5f9f6}
+.dots{margin-left:auto;color:#c2ccc4;letter-spacing:2px;font-weight:800;cursor:pointer}
+.ttl{font-weight:700;font-size:14px;color:#33463a}
+input{font-family:inherit}
+::placeholder{color:#9aa79f}
+.fade{animation:fd .5s ease both}@keyframes fd{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes gw{from{width:0}}@keyframes gh{from{transform:scaleY(0)}}
+</style>
+</helmet>
+<div style="min-height:100vh;background:var(--page)">
+
+  <!-- ═══ HEADER ═══ -->
+  <header style="display:flex;align-items:center;gap:20px;background:#fff;border-bottom:1px solid var(--line);padding:12px 24px;position:sticky;top:0;z-index:20">
+    <div style="display:flex;align-items:center;width:210px;flex:none">
+      <img src="assets/logo-ciclolixozero.png" alt="CicloLixoZero" style="height:34px;width:auto;display:block">
+    </div>
+    <label style="display:flex;align-items:center;gap:8px;background:#f2f5f2;border:1px solid var(--line);border-radius:22px;padding:0 8px 0 16px;height:38px;width:340px;margin:0 auto 0 20px">
+      <input placeholder="Buscar…" style="border:0;outline:0;background:transparent;font-size:13px;width:100%;color:var(--ink)">
+      <span class="btnh" style="width:30px;height:30px;border-radius:50%;background:var(--brand);color:#fff;display:grid;place-items:center;flex:none;cursor:pointer"><span style="width:15px;height:15px;display:inline-flex" dangerouslySetInnerHTML="{{ iconSearch }}"></span></span>
+    </label>
+    <label style="display:flex;align-items:center;gap:9px;border:1px solid var(--line);border-radius:9px;height:38px;padding:0 12px;background:#fafcfa">
+      <span style="width:16px;height:16px;display:inline-flex;color:var(--brand)" dangerouslySetInnerHTML="{{ iconLock }}"></span>
+      <input placeholder="Login" style="border:0;outline:0;background:transparent;font-size:13px;width:120px;color:var(--ink)">
+    </label>
+    <a href="#" onClick="{{ noop }}" class="btnh" style="background:var(--purple);color:#fff;font-weight:700;font-size:13px;letter-spacing:.04em;padding:0 22px;height:38px;display:inline-flex;align-items:center;border-radius:9px">SAIR</a>
+  </header>
+
+  <div style="display:grid;grid-template-columns:186px 1fr">
+
+    <!-- ═══ SIDEBAR ═══ -->
+    <aside style="background:var(--brand-dark);min-height:calc(100vh - 63px);padding:18px 0 24px">
+      <nav style="display:flex;flex-direction:column">
+        <sc-for list="{{ menu }}" as="m" hint-placeholder-count="5">
+          <a href="#" onClick="{{ m.onClick }}" class="nav" style="{{ m.style }}">
+            <span style="width:17px;height:17px;flex:none;display:inline-flex" dangerouslySetInnerHTML="{{ m.icon }}"></span>
+            <span>{{ m.label }}</span>
+          </a>
+        </sc-for>
+        <div style="padding:22px 20px 8px;color:#fff;font-weight:800;font-size:14px">Painel Master</div>
+        <sc-for list="{{ menuMaster }}" as="m" hint-placeholder-count="4">
+          <a href="#" onClick="{{ m.onClick }}" class="nav" style="{{ m.style }}">
+            <span style="width:17px;height:17px;flex:none;display:inline-flex" dangerouslySetInnerHTML="{{ m.icon }}"></span>
+            <span>{{ m.label }}</span>
+          </a>
+        </sc-for>
+      </nav>
+    </aside>
+
+    <!-- ═══ MAIN ═══ -->
+    <main style="padding:22px 26px 44px;max-width:1240px;width:100%">
+
+      <!-- title row -->
+      <div style="display:flex;align-items:flex-end;gap:20px;flex-wrap:wrap;margin-bottom:18px">
+        <div>
+          <div style="font-size:13px;color:var(--muted);font-weight:600">Dados</div>
+          <h1 style="font-size:30px;font-weight:800;margin:0;letter-spacing:-.02em;color:#1f2c24">Resíduos</h1>
+        </div>
+        <div style="display:flex;gap:10px;margin-left:8px">
+          <sc-for list="{{ headChips }}" as="h" hint-placeholder-count="3">
+            <div class="c" style="display:flex;align-items:center;gap:9px;padding:8px 13px;border-radius:10px">
+              <span style="width:16px;height:16px;display:inline-flex;color:var(--brand)" dangerouslySetInnerHTML="{{ h.icon }}"></span>
+              <div style="line-height:1.15"><div style="font-size:10px;color:var(--muted);font-weight:600">{{ h.label }}</div><div style="font-size:14px;font-weight:700">{{ h.value }}</div></div>
+            </div>
+          </sc-for>
+        </div>
+        <div style="display:flex;gap:9px;margin-left:auto">
+          <sc-for list="{{ actions }}" as="a" hint-placeholder-count="3">
+            <a href="#" onClick="{{ noop }}" class="btnh" style="display:inline-flex;align-items:center;gap:8px;background:{{ a.bg }};color:#fff;font-size:12px;font-weight:700;padding:9px 14px;border-radius:9px">
+              <span style="width:15px;height:15px;display:inline-flex" dangerouslySetInnerHTML="{{ a.icon }}"></span>{{ a.label }}
+            </a>
+          </sc-for>
+        </div>
+      </div>
+
+      <!-- KPI ROW -->
+      <div style="display:grid;grid-template-columns:1.35fr 1fr 1fr 1fr 1fr 1.5fr;gap:14px;margin-bottom:16px" class="fade">
+        <div class="hov" style="background:#fdecec;border:1px solid #f6d2d2;border-radius:14px;padding:16px 18px;display:flex;align-items:center;gap:14px">
+          <span style="width:44px;height:44px;border-radius:11px;background:var(--red);color:#fff;display:grid;place-items:center;flex:none"><span style="width:23px;height:23px;display:inline-flex" dangerouslySetInnerHTML="{{ iconBag }}"></span></span>
+          <div><div style="font-size:13px;color:#a15;font-weight:600">Total Resíduos</div><div style="font-size:28px;font-weight:800;color:var(--red);line-height:1.1;letter-spacing:-.01em">18.235 <span style="font-size:13px">kg</span></div></div>
+        </div>
+        <sc-for list="{{ kpis }}" as="k" hint-placeholder-count="4">
+          <div class="c hov" style="padding:14px 16px;display:flex;flex-direction:column;justify-content:space-between">
+            <div style="display:flex;align-items:flex-start;gap:8px">
+              <div style="font-size:12px;color:var(--ink-soft);font-weight:600;line-height:1.25">{{ k.label }}</div>
+              <span style="margin-left:auto;width:16px;height:16px;display:inline-flex;color:{{ k.color }};flex:none" dangerouslySetInnerHTML="{{ k.icon }}"></span>
+            </div>
+            <div style="font-size:19px;font-weight:800;margin-top:10px;letter-spacing:-.01em">{{ k.value }} <span style="font-size:11px;font-weight:600;color:var(--muted)">{{ k.unit }}</span></div>
+          </div>
+        </sc-for>
+        <div class="c" style="padding:12px 16px">
+          <div style="font-size:12px;font-weight:700;color:var(--brand-deep);margin-bottom:8px">Selecione o período</div>
+          <div style="display:flex;flex-direction:column;gap:7px">
+            <label style="display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:8px;padding:6px 9px"><span style="font-size:10px;color:var(--muted);width:30px">Início</span><span style="font-size:12px;font-weight:600;margin-left:auto">01/01/2026</span><span style="width:14px;height:14px;display:inline-flex;color:var(--brand)" dangerouslySetInnerHTML="{{ iconCal }}"></span></label>
+            <label style="display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:8px;padding:6px 9px"><span style="font-size:10px;color:var(--muted);width:30px">Fim</span><span style="font-size:12px;font-weight:600;margin-left:auto">31/12/2026</span><span style="width:14px;height:14px;display:inline-flex;color:var(--brand)" dangerouslySetInnerHTML="{{ iconCal }}"></span></label>
+          </div>
+        </div>
+      </div>
+
+      <!-- CHART + GAUGE -->
+      <div style="display:grid;grid-template-columns:minmax(0,1.85fr) minmax(0,1fr);gap:16px;margin-bottom:16px">
+        <div class="c fade">
+          <div style="display:flex;align-items:center;gap:8px;padding:15px 18px 2px"><span style="width:17px;height:17px;display:inline-flex;color:var(--brand)" dangerouslySetInnerHTML="{{ iconTrend }}"></span><span class="ttl">Evolução de Geração de Resíduos Ano / mês</span><span class="dots">···</span></div>
+          <div style="padding:6px 14px 14px" dangerouslySetInnerHTML="{{ areaSvg }}"></div>
+        </div>
+        <div class="c fade">
+          <div style="display:flex;align-items:center;gap:8px;padding:15px 18px 2px"><span style="width:17px;height:17px;display:inline-flex;color:var(--brand)" dangerouslySetInnerHTML="{{ iconGaugeSm }}"></span><span class="ttl">Indicador | Meta</span><span class="dots">···</span></div>
+          <div style="padding:12px 18px 18px">
+            <div style="display:flex;align-items:center;gap:14px">
+              <div style="width:150px;flex:none" dangerouslySetInnerHTML="{{ gaugeSvg }}"></div>
+              <div style="flex:1">
+                <div style="font-size:12px;color:var(--muted);font-weight:600">Desvio de Aterro</div>
+                <div style="font-size:24px;font-weight:800;color:var(--ink);letter-spacing:-.01em">14.223,3 <span style="font-size:12px">Kg.</span></div>
+                <div style="height:14px;border-radius:8px;background:#eef2ee;margin-top:10px;position:relative;overflow:hidden"><div style="height:100%;width:78%;border-radius:8px;background:linear-gradient(90deg,var(--brand),var(--brand-deep));animation:gw 1s ease both"></div><span style="position:absolute;right:8px;top:0;line-height:14px;font-size:9px;font-weight:700;color:#fff">78%</span></div>
+              </div>
+            </div>
+            <div style="text-align:center;margin-top:6px;font-size:16px;font-weight:800">78% <span style="font-size:11px;color:var(--muted);font-weight:600">(Atual)</span></div>
+            <div style="text-align:center;margin-top:8px;font-size:11px;color:var(--muted)">META: <b style="color:var(--brand-deep)">90% de Desvio</b> até Dezembro/2027</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CATEGORIA / SUBCATEGORIA / CALENDARIO -->
+      <div style="display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr) minmax(0,1fr);gap:16px;margin-bottom:16px">
+        <div class="c fade">
+          <div style="display:flex;align-items:center;gap:8px;padding:15px 18px 2px"><span style="width:16px;height:16px;display:inline-flex;color:var(--brand)" dangerouslySetInnerHTML="{{ iconPie }}"></span><span class="ttl">Total por Categoria</span><span class="dots">···</span></div>
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;padding:14px 14px 18px;text-align:center">
+            <sc-for list="{{ cats }}" as="c" hint-placeholder-count="4">
+              <div>
+                <div style="font-size:10px;font-weight:700;letter-spacing:.04em;color:var(--ink-soft);text-transform:uppercase">{{ c.label }}</div>
+                <div style="width:70px;height:70px;margin:8px auto 0" dangerouslySetInnerHTML="{{ c.svg }}"></div>
+                <div style="font-size:14px;font-weight:800;margin-top:8px">{{ c.kg }}</div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+        <div class="c fade">
+          <div style="display:flex;align-items:center;gap:8px;padding:15px 18px 2px"><span style="width:16px;height:16px;display:inline-flex;color:var(--brand)" dangerouslySetInnerHTML="{{ iconRecycle }}"></span><span class="ttl">SubCategoria (Recicláveis)</span><span class="dots">···</span></div>
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:14px 14px 18px">
+            <sc-for list="{{ subs }}" as="s" hint-placeholder-count="4">
+              <div style="background:{{ s.tint }};border-radius:11px;padding:12px 8px;text-align:center">
+                <div style="font-size:11px;font-weight:600;color:var(--ink-soft)">{{ s.label }}</div>
+                <div style="width:30px;height:30px;margin:9px auto;color:{{ s.color }};display:grid;place-items:center"><span style="width:26px;height:26px;display:inline-flex" dangerouslySetInnerHTML="{{ s.icon }}"></span></div>
+                <div style="font-size:13px;font-weight:800">{{ s.kg }}</div>
+                <div style="font-size:11px;color:var(--muted);margin-top:2px">{{ s.pct }}</div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+        <div class="c fade">
+          <div style="display:flex;align-items:center;gap:8px;padding:15px 18px 2px"><span style="width:16px;height:16px;display:inline-flex;color:var(--brand)" dangerouslySetInnerHTML="{{ iconCal }}"></span><span class="ttl">Calendário de Coletas</span><span class="dots">···</span></div>
+          <div style="padding:12px 16px 18px">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px"><span style="width:24px;height:24px;border-radius:7px;background:#f2f5f2;display:grid;place-items:center;color:var(--muted);cursor:pointer" dangerouslySetInnerHTML="{{ iconLeft }}"></span><span style="font-size:13px;font-weight:800">Junho 2026</span><span style="width:24px;height:24px;border-radius:7px;background:#f2f5f2;display:grid;place-items:center;color:var(--muted);cursor:pointer" dangerouslySetInnerHTML="{{ iconRight }}"></span></div>
+            <div style="display:grid;grid-template-columns:repeat(7,1fr);text-align:center;font-size:10px;font-weight:700;color:var(--muted);margin-bottom:4px"><span style="color:var(--red)">D</span><span>S</span><span>T</span><span>Q</span><span>Q</span><span>S</span><span style="color:var(--red)">S</span></div>
+            <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px;text-align:center">
+              <sc-for list="{{ calDays }}" as="d" hint-placeholder-count="30"><span style="{{ d.style }}">{{ d.n }}</span></sc-for>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SETOR + COLETAS -->
+      <div style="display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);gap:16px;margin-bottom:16px">
+        <div class="c fade">
+          <div style="display:flex;align-items:center;gap:8px;padding:15px 18px 2px"><span style="width:16px;height:16px;display:inline-flex;color:var(--brand)" dangerouslySetInnerHTML="{{ iconLayers }}"></span><span class="ttl">Resíduos por Setor</span><span class="dots">···</span></div>
+          <div style="padding:12px 18px 18px">
+            <div style="display:flex;align-items:center;gap:14px;margin-bottom:12px">
+              <div style="display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:9px;padding:8px 12px;font-size:13px;font-weight:600;min-width:170px"><span>Cozinha</span><span style="margin-left:auto;width:14px;height:14px;display:inline-flex;color:var(--muted)" dangerouslySetInnerHTML="{{ iconDown }}"></span></div>
+              <div style="font-size:13px;color:var(--ink-soft)">Total: <b style="color:var(--ink)">58,4 Kg.</b></div>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:6px">
+              <sc-for list="{{ setorTotals }}" as="t" hint-placeholder-count="4">
+                <div style="display:flex;align-items:center;gap:8px;font-size:13px"><span style="width:24px;height:24px;border-radius:7px;background:{{ t.tint }};color:{{ t.color }};display:grid;place-items:center;flex:none"><span style="width:15px;height:15px;display:inline-flex" dangerouslySetInnerHTML="{{ t.icon }}"></span></span><span style="font-weight:600;color:var(--ink-soft)">{{ t.label }}</span> <b style="margin-left:auto">{{ t.value }}</b></div>
+              </sc-for>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0 22px;margin-top:6px">
+              <sc-for list="{{ setorItems }}" as="i" hint-placeholder-count="6">
+                <div class="rowh" style="display:flex;align-items:center;gap:9px;padding:9px 8px;border-radius:8px;border-bottom:1px solid #f1f4f1;font-size:13px"><span style="width:8px;height:8px;border-radius:50%;background:{{ i.color }};flex:none"></span><span style="color:var(--ink-soft)">{{ i.label }}</span><b style="margin-left:auto">{{ i.value }}</b></div>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+        <div class="c fade">
+          <div style="display:flex;align-items:center;gap:8px;padding:15px 18px 2px"><span style="width:16px;height:16px;display:inline-flex;color:var(--brand)" dangerouslySetInnerHTML="{{ iconClock }}"></span><span class="ttl">Programação de Coletas</span><span class="dots">···</span></div>
+          <div style="padding:12px 18px 16px;display:flex;flex-direction:column;gap:10px">
+            <sc-for list="{{ schedule }}" as="s" hint-placeholder-count="4">
+              <div style="display:flex;align-items:center;gap:12px;background:{{ s.bg }};border-left:3px solid {{ s.color }};border-radius:10px;padding:10px 12px">
+                <div style="min-width:0;flex:1"><div style="font-size:11px;color:var(--muted);font-weight:700">{{ s.time }}</div><div style="font-size:13px;font-weight:800">{{ s.title }}</div><div style="font-size:11px;color:var(--muted)">{{ s.sub }}</div></div>
+                <div style="display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end">
+                  <sc-for list="{{ s.days }}" as="d" hint-placeholder-count="3"><span style="{{ d.style }}">{{ d.label }}</span></sc-for>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+
+      <!-- FINANCEIRO + EMPRESAS -->
+      <div style="display:grid;grid-template-columns:minmax(0,1.9fr) minmax(0,1fr);gap:16px;margin-bottom:16px">
+        <div class="c fade">
+          <div style="display:flex;align-items:center;gap:10px;padding:18px 20px 4px"><span style="width:30px;height:30px;border-radius:9px;background:var(--brand);color:#fff;display:grid;place-items:center" dangerouslySetInnerHTML="{{ iconDollar }}"></span><div><div style="font-size:12px;color:var(--muted);font-weight:600;font-style:italic">Índice</div><div style="font-size:19px;font-weight:800;color:var(--brand-deep);line-height:1">Financeiro & Econômico</div></div><span class="dots">···</span></div>
+          <div style="padding:14px 20px 20px">
+            <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px">
+              <sc-for list="{{ finTop }}" as="f" hint-placeholder-count="5">
+                <div style="text-align:center;padding:12px 6px;border:1px solid var(--line);border-radius:11px"><span style="width:30px;height:30px;border-radius:8px;background:#eef7f0;color:var(--brand);display:inline-grid;place-items:center"><span style="width:17px;height:17px;display:inline-flex" dangerouslySetInnerHTML="{{ f.icon }}"></span></span><div style="font-size:11px;color:var(--ink-soft);font-weight:600;margin-top:7px">{{ f.label }}</div><div style="font-size:16px;font-weight:800;margin-top:3px">{{ f.value }}<span style="font-size:10px;color:var(--muted)">{{ f.unit }}</span></div></div>
+              </sc-for>
+            </div>
+            <div style="background:#f7faf7;border:1px solid var(--line);border-radius:13px;padding:14px 16px;margin-top:14px">
+              <div style="font-size:13px;font-weight:700;margin-bottom:12px">Valor dos Materiais:</div>
+              <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px">
+                <sc-for list="{{ materiais }}" as="m" hint-placeholder-count="5">
+                  <div style="background:{{ m.tint }};border-radius:11px;padding:12px 8px;text-align:center"><span style="width:28px;height:28px;color:{{ m.color }};display:inline-grid;place-items:center"><span style="width:24px;height:24px;display:inline-flex" dangerouslySetInnerHTML="{{ m.icon }}"></span></span><div style="font-size:12px;font-weight:600;color:var(--ink-soft);margin-top:2px">{{ m.label }}</div><div style="font-size:15px;font-weight:800">{{ m.value }}</div><div style="font-size:10px;color:var(--muted);margin-top:3px">{{ m.kg }}</div><div style="font-size:10px;color:var(--muted)">{{ m.pct }}</div></div>
+                </sc-for>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-top:14px;font-size:13px"><span style="color:var(--ink-soft)">Peso total: <b style="color:var(--ink)">16.282,0 kg</b></span><span style="color:var(--ink-soft)">Valor total estimado: <b style="color:var(--brand-deep)">R$ 24.971,00</b></span></div>
+            </div>
+          </div>
+        </div>
+        <div class="c fade">
+          <div style="display:flex;align-items:center;gap:8px;padding:16px 20px 4px"><span style="width:16px;height:16px;display:inline-flex;color:var(--brand)" dangerouslySetInnerHTML="{{ iconBuilding }}"></span><span class="ttl">Empresas Cadastradas</span><span class="dots">···</span></div>
+          <div style="padding:14px 18px 20px;display:flex;flex-direction:column;gap:9px">
+            <sc-for list="{{ empresas }}" as="e" hint-placeholder-count="4">
+              <div style="display:flex;align-items:center;gap:11px;background:{{ e.tint }};border-radius:11px;padding:12px 14px">
+                <span style="width:9px;height:9px;border-radius:50%;background:{{ e.color }};flex:none"></span>
+                <span style="font-size:13px;font-weight:600;flex:1">{{ e.name }}</span>
+                <span style="font-size:9px;font-weight:800;letter-spacing:.05em;color:{{ e.pillFg }};background:{{ e.pillBg }};padding:3px 9px;border-radius:20px">{{ e.status }}</span>
+              </div>
+            </sc-for>
+            <a href="#" onClick="{{ noop }}" class="btnh" style="align-self:center;margin-top:8px;background:var(--brand);color:#fff;font-weight:700;font-size:12px;letter-spacing:.05em;padding:11px 34px;border-radius:9px">CADASTRAR</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- IMPACTO + EMISSOES -->
+      <div style="display:grid;grid-template-columns:minmax(0,1.9fr) minmax(0,1fr);gap:16px">
+        <div class="c fade">
+          <div style="display:flex;align-items:center;gap:10px;padding:18px 20px 4px"><span style="width:30px;height:30px;border-radius:9px;background:var(--brand);color:#fff;display:grid;place-items:center" dangerouslySetInnerHTML="{{ iconRecycle }}"></span><div><div style="font-size:12px;color:var(--muted);font-weight:600;font-style:italic">Índice</div><div style="font-size:19px;font-weight:800;color:var(--brand-deep);line-height:1">Impacto Ambiental</div></div>
+            <div style="margin-left:auto;display:flex;gap:8px">
+              <sc-for list="{{ impactBadges }}" as="b" hint-placeholder-count="3"><div style="text-align:center"><span style="width:32px;height:32px;border-radius:50%;background:var(--brand);color:#fff;display:grid;place-items:center;margin:0 auto"><span style="width:17px;height:17px;display:inline-flex" dangerouslySetInnerHTML="{{ b.icon }}"></span></span><div style="font-size:9px;color:var(--muted);margin-top:2px">{{ b.label }}</div></div></sc-for>
+            </div>
+          </div>
+          <div style="padding:14px 20px 20px">
+            <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px">
+              <sc-for list="{{ impactCards }}" as="c" hint-placeholder-count="5">
+                <div style="text-align:center;padding:12px 6px;border:1px solid var(--line);border-radius:11px"><span style="width:30px;height:30px;border-radius:8px;background:#eef7f0;color:{{ c.color }};display:inline-grid;place-items:center"><span style="width:17px;height:17px;display:inline-flex" dangerouslySetInnerHTML="{{ c.icon }}"></span></span><div style="font-size:11px;color:var(--ink-soft);font-weight:600;margin-top:7px">{{ c.label }}</div><div style="font-size:16px;font-weight:800;margin-top:3px;color:{{ c.valColor }}">{{ c.value }}<span style="font-size:10px;color:var(--muted)">{{ c.unit }}</span></div></div>
+              </sc-for>
+            </div>
+            <div style="border:1px solid var(--line);border-radius:13px;padding:14px 16px;margin-top:14px">
+              <div style="display:flex;align-items:center;gap:14px;margin-bottom:6px"><span style="font-size:14px;font-weight:800;margin-right:auto">Linha do Tempo Emissões</span><span style="display:inline-flex;align-items:center;gap:6px;font-size:11px;color:var(--ink-soft)"><span style="width:11px;height:11px;border-radius:3px;background:var(--brand)"></span>Emissões Evitadas</span><span style="display:inline-flex;align-items:center;gap:6px;font-size:11px;color:var(--ink-soft)"><span style="width:11px;height:11px;border-radius:3px;background:#c3ccc5"></span>Emissões Aterro</span></div>
+              <div dangerouslySetInnerHTML="{{ barSvg }}"></div>
+            </div>
+          </div>
+        </div>
+        <div class="c fade">
+          <div style="display:flex;align-items:center;gap:8px;padding:16px 20px 4px"><span style="width:16px;height:16px;display:inline-flex;color:var(--brand)" dangerouslySetInnerHTML="{{ iconCloud }}"></span><span class="ttl">Emissões por Tipo de Material</span><span class="dots">···</span></div>
+          <div style="padding:12px 18px 18px">
+            <div style="display:grid;grid-template-columns:1.6fr .9fr .6fr;padding:8px 6px;font-size:10px;font-weight:700;letter-spacing:.04em;color:var(--muted);border-bottom:1px solid var(--line)"><span>MATERIAL</span><span style="text-align:right">PESO</span><span style="text-align:right">%</span></div>
+            <sc-for list="{{ emiMat }}" as="m" hint-placeholder-count="6">
+              <div class="rowh" style="display:grid;grid-template-columns:1.6fr .9fr .6fr;align-items:center;padding:9px 6px;font-size:12px;border-bottom:1px solid #f1f4f1"><span style="display:flex;align-items:center;gap:8px"><span style="width:9px;height:9px;border-radius:50%;background:{{ m.color }}"></span>{{ m.label }}</span><span style="text-align:right;font-weight:700">{{ m.peso }}</span><span style="text-align:right;color:var(--muted)">{{ m.pct }}</span></div>
+            </sc-for>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;background:var(--brand);color:#fff;border-radius:8px;margin-top:12px;font-size:10px;font-weight:700;letter-spacing:.03em"><span style="padding:8px 10px">ATERRO</span><span style="padding:8px 10px;text-align:right">RECICLAGEM</span><span style="padding:8px 10px;text-align:right">EVITADAS</span></div>
+            <sc-for list="{{ emiBal }}" as="b" hint-placeholder-count="6">
+              <div style="display:grid;grid-template-columns:1fr 1fr 1fr;background:{{ b.tint }};font-size:12px;border-bottom:1px solid #f1f4f1"><span style="padding:9px 10px">{{ b.aterro }}</span><span style="padding:9px 10px;text-align:right;color:{{ b.recColor }}">{{ b.rec }}</span><span style="padding:9px 10px;text-align:right;font-weight:800;color:{{ b.evColor }}">{{ b.ev }}</span></div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const I=(p,sw)=>`<svg viewBox="0 0 24 24" width="100%" height="100%" fill="none" stroke="currentColor" stroke-width="${sw||2}" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
+const IC={
+  mark:I('<path d="M7 19H4.8a2 2 0 0 1-1.7-3l1.4-2.5M11 4l1-1.7a2 2 0 0 1 3.4 0l1.4 2.5M20 12l1.2 2a2 2 0 0 1-1.7 3H16"/><path d="m14 16-3 3 3 3M8 8 5 9M18 8l-1-3"/>',1.8),
+  gravi:I('<path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1ZM2 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1ZM7 21h10M12 3v18M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/>'),
+  setores:I('<path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>'),
+  sub:I('<path d="M3 6h18M7 12h14M7 18h14M3 12h.01M3 18h.01"/>'),
+  user:I('<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>'),
+  report:I('<path d="M4 20V10M10 20V4M16 20v-8M22 20H2"/>'),
+  dash:I('<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/>'),
+  clients:I('<circle cx="9" cy="8" r="3.5"/><path d="M3 21a6 6 0 0 1 12 0M17 11a3 3 0 1 0-1-5.8M21 21a5 5 0 0 0-4-4.9"/>'),
+  cat:I('<path d="M20.6 13.4 12 22l-9-9V3h10l7.6 7.6a2 2 0 0 1 0 2.8Z"/><circle cx="7.5" cy="7.5" r="1.3"/>'),
+  company:I('<path d="M3 21V7l7-4 7 4v14M3 21h18M8 10h.01M12 10h.01M8 14h.01M12 14h.01"/>'),
+  search:I('<circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>'),
+  lock:I('<rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>'),
+  printer:I('<path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2h-2M6 14h12v8H6Z"/>'),
+  sheet:I('<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6M9 13l6 6M15 13l-6 6"/>'),
+  dl:I('<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5M12 15V3"/>'),
+  users:I('<circle cx="12" cy="8" r="3.5"/><path d="M5 21a7 7 0 0 1 14 0"/>'),
+  gaugeM:I('<path d="M12 13 16 9"/><path d="M4 17a8 8 0 1 1 16 0"/><circle cx="12" cy="13" r="1.3"/>'),
+  square:I('<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18M3 9h18"/>'),
+  bag:I('<path d="M4 7h16l-1 13a2 2 0 0 1-2 1.9H7A2 2 0 0 1 5 20Z"/><path d="M8 7V5a4 4 0 0 1 8 0v2M9 11v6M15 11v6"/>'),
+  coin:I('<circle cx="12" cy="12" r="9"/><path d="M15 9.5a3 3 0 0 0-3-1.5c-1.7 0-3 .9-3 2s1.3 2 3 2 3 .9 3 2-1.3 2-3 2a3 3 0 0 1-3-1.5M12 6v1.5M12 16.5V18"/>'),
+  tag:I('<path d="M20.6 13.4 12 22l-9-9V3h10l7.6 7.6a2 2 0 0 1 0 2.8Z"/><circle cx="7.5" cy="7.5" r="1.3"/>'),
+  dollar:I('<path d="M12 2v20M17 6.5c-.7-1.5-2.7-2.5-5-2.5-3 0-5 1.6-5 3.6S9 11 12 11s5 1.4 5 3.4-2 3.6-5 3.6c-2.5 0-4.5-1.1-5-2.7"/>'),
+  cloud:I('<path d="M17.5 19a4.5 4.5 0 0 0 .5-9 6 6 0 0 0-11.7 1.5A4 4 0 0 0 6.5 19Z"/>'),
+  cal:I('<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>'),
+  trend:I('<path d="M3 15c3-4 5-6 7-6s3 3 5 3 4-3 6-6"/><path d="M3 20h18"/>'),
+  gaugeSm:I('<path d="M12 13 15 10"/><path d="M5 17a7 7 0 1 1 14 0"/><circle cx="12" cy="13" r="1.2"/>'),
+  pie:I('<path d="M12 2v10l7 5A9 9 0 1 0 12 2Z"/><path d="M12 2a9 9 0 0 1 8 5"/>'),
+  recycle:I('<path d="M7 19H4.8a2 2 0 0 1-1.7-3l1.4-2.5M11 4l1-1.7a2 2 0 0 1 3.4 0l1.4 2.5M20 12l1.2 2a2 2 0 0 1-1.7 3H16"/><path d="m14 16-3 3 3 3M8 8 5 9M18 8l-1-3"/>',1.7),
+  layers:I('<path d="M12 3 2 8l10 5 10-5-10-5ZM2 16l10 5 10-5M2 12l10 5 10-5"/>'),
+  clock:I('<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>'),
+  down:I('<path d="m6 9 6 6 6-6"/>'),
+  left:I('<path d="m15 18-6-6 6-6"/>'),
+  right:I('<path d="m9 18 6-6-6-6"/>'),
+  building:I('<path d="M3 21V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16M15 21V9h4a2 2 0 0 1 2 2v10M3 21h18M7 7h4M7 11h4M7 15h4"/>'),
+  bottle:I('<path d="M9 2h6M10 2v3l-1 2v13a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2V7l-1-2V2M9 12h6"/>'),
+  papers:I('<path d="M4 8l8-4 8 4-8 4-8-4ZM4 12l8 4 8-4M4 16l8 4 8-4"/>'),
+  glass:I('<path d="M8 3h8l-1 8a3 3 0 0 1-6 0ZM12 14v5M9 21h6"/>'),
+  metal:I('<path d="M6 3h12v4a3 3 0 0 1-6 0 3 3 0 0 1-6 0ZM6 7v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7"/>'),
+  leaf:I('<path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.5 19 2c1 2 2 4.2 2 8 0 5.5-4.8 10-9 10Z"/><path d="M2 21c0-3 1.9-6 5-8"/>'),
+  x:I('<circle cx="12" cy="12" r="9"/><path d="m9 9 6 6M15 9l-6 6"/>'),
+  warn:I('<path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/><path d="M12 9v4M12 17h.01"/>'),
+  building2:I('<path d="M3 21V7l7-4 7 4v14M3 21h18M8 10h.01M12 10h.01M8 14h.01M12 14h.01"/>'),
+  target:I('<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.3"/>'),
+  bar:I('<path d="M3 3v18h18"/><rect x="7" y="10" width="3" height="7"/><rect x="12" y="6" width="3" height="11"/><rect x="17" y="13" width="3" height="4"/>'),
+  social:I('<circle cx="12" cy="7" r="3"/><path d="M6 21a6 6 0 0 1 12 0"/>'),
+  cash:I('<rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/><path d="M6 10v4M18 10v4"/>')
+};
+const CATC={org:'#1f9d55',rec:'#16a085',per:'#ef8a2b',rej:'#8a938c'};
+const MATC={org:'#1f9d55',met:'#e0a92e',plas:'#d9534f',pap:'#3b82c4',vid:'#7fc7a0',rej:'#8a938c'};
+function donut(pct,color){
+  const r=27,C=2*Math.PI*r,dash=(pct/100*C);
+  return `<svg viewBox="0 0 70 70" width="100%" height="100%"><circle cx="35" cy="35" r="${r}" fill="none" stroke="#eef2ee" stroke-width="9"/><circle cx="35" cy="35" r="${r}" fill="none" stroke="${color}" stroke-width="9" stroke-linecap="round" stroke-dasharray="${dash.toFixed(1)} ${C.toFixed(1)}" transform="rotate(-90 35 35)"/><text x="35" y="39" text-anchor="middle" font-family="Roboto,sans-serif" font-weight="800" font-size="13" fill="#233028">${pct.toString().replace('.',',')}%</text></svg>`;
+}
+class Component extends DCLogic {
+  renderVals(){
+    const noop=(e)=>e&&e.preventDefault&&e.preventDefault();
+    const D=s=>({__html:s});
+    const nb='display:flex;align-items:center;gap:12px;padding:10px 20px;font-size:13.5px;font-weight:500;color:rgba(255,255,255,.82);border:0;text-decoration:none';
+    const na='display:flex;align-items:center;gap:12px;padding:10px 20px;font-size:13.5px;font-weight:800;color:var(--brand-dark);background:var(--side-act);border:0;text-decoration:none';
+    const menu=[['gravi','Gravimetria'],['setores','Setores'],['sub','Subcategoria'],['user','Usuário'],['report','Relatório',true]]
+      .map(([k,l,on])=>({label:l,icon:D(IC[k]),onClick:noop,style:on?na:nb}));
+    const menuMaster=[['dash','Dashboard'],['clients','Clientes'],['cat','Categoria'],['company','Tipo de Empresa']]
+      .map(([k,l])=>({label:l,icon:D(IC[k]),onClick:noop,style:nb}));
+
+    const headChips=[['Nº de Pessoas','636','users'],['Média Resíduos / Hab.','28,67 kg/hab.','gaugeM'],['Área Total','4.832 m²','square']]
+      .map(([label,value,ic])=>({label,value,icon:D(IC[ic])}));
+    const actions=[['Imprimir','printer','#3b8a52'],['Excel (XSLX)','sheet','#1f9d55'],['CSV','dl','#3b8a52']]
+      .map(([label,ic,bg])=>({label,icon:D(IC[ic]),bg}));
+
+    const kpis=[
+      ['Despesas Evitadas','R$ 9.844','','coin','#3b8a52'],
+      ['Valor do Material','R$ 24.972','','tag','#16a085'],
+      ['Resultado Econômico','R$ 34.816','','dollar','#1f9d55'],
+      ['Emissões Evitadas','13.913','kg','cloud','#3b8a52']
+    ].map(([label,value,unit,ic,color])=>({label,value,unit,icon:D(IC[ic]),color}));
+
+    const cats=[['Orgânico',61.4,'11.196 kg','org'],['Reciclável',27.9,'5.087 kg','rec'],['Perigoso',2.9,'415 kg','per'],['Rejeito',8.4,'1.532 kg','rej']]
+      .map(([label,pct,kg,ck])=>({label,kg,svg:D(donut(pct,CATC[ck]))}));
+
+    const subs=[['Plástico','1.612 kg','31,6%','plas','bottle','#fbeceb'],['Papel','1.643 kg','32,3%','pap','papers','#e9f2fb'],['Vidro','0,0 kg','0,0%','vid','glass','#eef5f0'],['Metal','1.831 kg','35,9%','met','metal','#f7efdd']]
+      .map(([label,kg,pct,ck,ic,tint])=>({label,kg,pct,color:MATC[ck],icon:D(IC[ic]),tint}));
+
+    // calendar June 2026 — Jun 1 2026 is Monday (getDay=1)
+    const first=1,dim=30,marked={4:1,11:1,18:1,25:1},today=19,sel=30;
+    const calDays=[];
+    for(let i=0;i<first;i++)calDays.push({n:'',style:''});
+    for(let d=1;d<=dim;d++){
+      let st='font-size:11px;padding:5px 0;border-radius:7px;color:var(--ink)';
+      if(d===sel)st='font-size:11px;padding:5px 0;border-radius:7px;background:var(--brand);color:#fff;font-weight:800';
+      else if(d===today)st='font-size:11px;padding:5px 0;border-radius:7px;border:1.5px solid var(--brand);color:var(--brand-deep);font-weight:800';
+      else if(marked[d])st='font-size:11px;padding:5px 0;border-radius:7px;background:#e7f4ec;color:var(--brand-deep);font-weight:700';
+      calDays.push({n:d,style:st});
+    }
+
+    const dchip=on=>`display:inline-flex;font-size:10px;font-weight:700;padding:4px 8px;border-radius:6px;${on?'background:var(--brand);color:#fff':'background:#eef2ee;color:#b3bdb5'}`;
+    const mkdays=(labels)=>['seg','ter','qua','qui','sex','sab'].map(l=>({label:l,style:dchip(labels.includes(l))}));
+    const schedule=[
+      ['10:30','Orgânico','Compostagem na Escola','org',['seg','qua','sex']],
+      ['14:00','Recicláveis','Cooperativa Aliança','rec',['ter','qui']],
+      ['16:00','Perigoso','Logística Reversa (Coleta)','per',['ter']],
+      ['12:00','Rejeitos','Prefeitura Municipal','rej',['seg','qua','sex','sab']]
+    ].map(([time,title,sub,ck,days])=>({time,title,sub,color:CATC[ck],bg:ck==='org'?'#f0f8f3':ck==='rec'?'#eef6f4':ck==='per'?'#fdf3e8':'#f3f4f3',days:mkdays(days)}));
+
+    const setorTotals=[['Orgânicos','47,0 kg','org','leaf','#eef7f0'],['Recicláveis','8,7 kg','rec','recycle','#e9f5f2'],['Perigosos','--','per','warn','#fdf3e8'],['Rejeito','2,7 kg','rej','x','#f0f2f0']]
+      .map(([label,value,ck,ic,tint])=>({label,value,color:CATC[ck],icon:D(IC[ic]),tint}));
+    const setorItems=[
+      ['Restos de Alimentos','47,0 kg','org'],['Papelão','6,1 kg','rec'],['Embalagens Sujas','1,2 kg','rej'],
+      ['Plásticos','2,6 kg','rec'],['Descartáveis','1,4 kg','rej'],['Outros','0,1 kg','rej']
+    ].map(([label,value,ck])=>({label,value,color:CATC[ck]}));
+
+    const finTop=[['Reciclagem','16.282','kg','recycle'],['Valor do Material','R$24.971','','tag'],['Aterro Evitado','R$9.844','','cloud'],['Res. Econômico','R$34.816','','dollar'],['Previsão Mensal','R$2.901','','cal']]
+      .map(([label,value,unit,ic])=>({label,value,unit,icon:D(IC[ic])}));
+    const materiais=[['Plástico','R$ 6.869','1.612 kg','9,0 %','plas','bottle','#fbeceb'],['Papel','R$ 1.380','1.643 kg','9,2 %','pap','papers','#e9f2fb'],['Vidro','R$ 0,00','0,0 kg','0,0 %','vid','glass','#eef5f0'],['Metal','R$ 5.750','1.831 kg','10,3 %','met','metal','#f7efdd'],['Orgânico','R$ 10.972','11.196 kg','64 %','org','leaf','#eef7f0']]
+      .map(([label,value,kg,pct,ck,ic,tint])=>({label,value,kg,pct,color:MATC[ck],icon:D(IC[ic]),tint}));
+
+    const empresas=[['Cooperativa Nova Esperança','ATIVA',1],['Prefeitura de Socorro','INCOMPLETA',0],['Casa de Sucata Marcos','ATIVA',1],['Associação Composte-se Urbano','ATIVA',1]]
+      .map(([name,status,ok])=>({name,status,color:ok?'#1f9d55':'#d9534f',tint:ok?'#f2f9f4':'#fdf0ef',pillFg:ok?'#15803d':'#c0392b',pillBg:ok?'#dbf0e2':'#fbdcda'}));
+
+    const impactBadges=[['Social','social'],['Ambiental','leaf'],['Econômico','cash']].map(([label,ic])=>({label,icon:D(IC[ic])}));
+    const impactCards=[
+      ['Aterro','8.869','kg','cloud','#8a938c','var(--ink)'],
+      ['Reciclagem','- 5.043','kg','cloud','#1f9d55','#1f9d55'],
+      ['Evitadas','13.913','kg','cloud','#1f9d55','var(--ink)'],
+      ['Crédito Carbono','R$ 367,75','','dollar','#1f9d55','var(--ink)'],
+      ['Compensação','1.914','','leaf','#1f9d55','var(--ink)']
+    ].map(([label,value,unit,ic,color,valColor])=>({label,value,unit,icon:D(IC[ic]),color,valColor}));
+
+    const emiMat=[['Orgânico','11.196 kg','61,4 %','org'],['Metal','1.831 kg','10,28 %','met'],['Plástico','1.612 kg','9,05 %','plas'],['Papel','1.643 kg','9,22 %','pap'],['Vidro','0,0 kg','0,0 %','vid'],['Não Reciclável (Rejeito)','1.531 kg','8,4 %','rej']]
+      .map(([label,peso,pct,ck])=>({label,peso,pct,color:MATC[ck]}));
+    const emiBal=[
+      ['7.613,5','796,1','6.817,42','#fff','var(--ink)','#15803d'],
+      ['--,--','- 3.018,3','3.018,84','#f2f9f4','#1f9d55','#15803d'],
+      ['--,--','- 2.418,8','2.418,82','#f2f9f4','#1f9d55','#15803d'],
+      ['854,5','- 479,8','1.334,34','#fff','#1f9d55','#15803d'],
+      ['--,--','--,--','--,--','#fdf0ef','#8a938c','#8a938c'],
+      ['306,3','18','288,35','#fff','var(--ink)','#15803d']
+    ].map(([aterro,rec,ev,tint,recColor,evColor])=>({aterro,rec,ev,tint,recColor,evColor}));
+
+    // area chart
+    const months=['JAN','FEV','MAR','ABR','MAI','JUN','JUL','AGO','SET','OUT','NOV','DEZ'];
+    const av=[1548,1678,1752,1695,1736,945,933,1845,1900,1645,1590,968];
+    const AW=680,AH=210,aL=18,aR=14,aT=30,aB=26,aMax=2000;
+    const axw=AW-aL-aR,ayh=AH-aT-aB;
+    const ax=i=>aL+i/(av.length-1)*axw, ay=v=>aT+(1-v/aMax)*ayh;
+    const apts=av.map((v,i)=>[ax(i),ay(v)]);
+    const sm=p=>{let d=`M${p[0][0].toFixed(1)} ${p[0][1].toFixed(1)}`;for(let i=0;i<p.length-1;i++){const[x0,y0]=p[i],[x1,y1]=p[i+1];const cx=(x0+x1)/2;d+=` C${cx.toFixed(1)} ${y0.toFixed(1)} ${cx.toFixed(1)} ${y1.toFixed(1)} ${x1.toFixed(1)} ${y1.toFixed(1)}`;}return d;};
+    const aln=sm(apts),aar=`${aln} L${ax(av.length-1).toFixed(1)} ${AH-aB} L${aL} ${AH-aB} Z`;
+    const alab=av.map((v,i)=>`<text x="${ax(i).toFixed(1)}" y="${(ay(v)-8).toFixed(1)}" text-anchor="middle" font-size="10" font-weight="700" fill="#5c6b60" stroke="none">${v}</text>`).join('');
+    const adot=apts.map(([x,y])=>`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="2.6" fill="#1f9d55"/>`).join('');
+    const amon=months.map((m,i)=>`<text x="${ax(i).toFixed(1)}" y="${AH-7}" text-anchor="middle" font-size="9" fill="#9aa79f" stroke="none">${m}</text>`).join('');
+    const areaSvg=D(`<svg viewBox="0 0 ${AW} ${AH}" width="100%" height="auto" style="display:block" font-family="Roboto,sans-serif"><defs><linearGradient id="ag" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1f9d55" stop-opacity=".22"/><stop offset="1" stop-color="#1f9d55" stop-opacity="0"/></linearGradient></defs><path d="${aar}" fill="url(#ag)" stroke="none"/><path d="${aln}" fill="none" stroke="#1f9d55" stroke-width="2.4"/>${adot}${alab}${amon}</svg>`);
+
+    // gauge
+    const gpolar=(cx,cy,r,ang)=>{const a=ang*Math.PI/180;return [cx+r*Math.cos(a),cy-r*Math.sin(a)];};
+    const garc=(cx,cy,r,p0,p1)=>{const a0=180-p0*180,a1=180-p1*180;const[x0,y0]=gpolar(cx,cy,r,a0),[x1,y1]=gpolar(cx,cy,r,a1);return `M${x0.toFixed(1)} ${y0.toFixed(1)} A${r} ${r} 0 0 1 ${x1.toFixed(1)} ${y1.toFixed(1)}`;};
+    const gcx=75,gcy=68,gr=52;
+    const nAng=180-0.78*180, [nx,ny]=gpolar(gcx,gcy,gr-14,nAng);
+    const gaugeSvg=D(`<svg viewBox="0 0 150 92" width="100%" height="auto" font-family="Roboto,sans-serif">
+      <path d="${garc(gcx,gcy,gr,0,.34)}" fill="none" stroke="#e05a4d" stroke-width="13" stroke-linecap="round"/>
+      <path d="${garc(gcx,gcy,gr,.36,.64)}" fill="none" stroke="#e6b800" stroke-width="13"/>
+      <path d="${garc(gcx,gcy,gr,.66,1)}" fill="none" stroke="#1f9d55" stroke-width="13" stroke-linecap="round"/>
+      <line x1="${gcx}" y1="${gcy}" x2="${nx.toFixed(1)}" y2="${ny.toFixed(1)}" stroke="#33463a" stroke-width="3" stroke-linecap="round"/>
+      <circle cx="${gcx}" cy="${gcy}" r="5" fill="#33463a"/>
+      <text x="16" y="86" font-size="9" fill="#9aa79f">0%</text>
+      <text x="66" y="14" font-size="9" fill="#9aa79f">50%</text>
+      <text x="126" y="86" font-size="9" fill="#9aa79f">100%</text>
+    </svg>`);
+
+    // bar chart emissoes
+    const evit=[1181,1282,1339,1295,1327,714,705,1412,1454,1257,1214,732];
+    const ater=[753,816,852,824,844,460,454,897,924,800,773,471];
+    const BW=680,BH=230,bT=24,bB=42,bMax=1600,bL=8,bR=8;
+    const bxw=BW-bL-bR,byh=BH-bT-bB;
+    const bx=i=>bL+i/(evit.length-1)*bxw, by=v=>bT+(1-v/bMax)*byh;
+    const bw=26;
+    const apG=ater.map((v,i)=>[bx(i),by(v)]);
+    const gArea=`${sm(apG)} L${bx(evit.length-1).toFixed(1)} ${BH-bB} L${bL} ${BH-bB} Z`;
+    let bars='';
+    evit.forEach((v,i)=>{
+      const x=bx(i),h=(v/bMax)*byh,y=(BH-bB)-h;
+      bars+=`<rect x="${(x-bw/2).toFixed(1)}" y="${y.toFixed(1)}" width="${bw}" height="${h.toFixed(1)}" rx="5" fill="#25a95e"/>`;
+      bars+=`<text x="${x.toFixed(1)}" y="${(y-6).toFixed(1)}" text-anchor="middle" font-size="9.5" font-weight="700" fill="#5c6b60" stroke="none">${v}</text>`;
+      bars+=`<text x="${x.toFixed(1)}" y="${(BH-bB+13).toFixed(1)}" text-anchor="middle" font-size="9" font-weight="700" fill="#8a938c" stroke="none">${ater[i]}</text>`;
+      bars+=`<text x="${x.toFixed(1)}" y="${(BH-6).toFixed(1)}" text-anchor="middle" font-size="8.5" fill="#9aa79f" stroke="none">${months[i]}</text>`;
+    });
+    const barSvg=D(`<svg viewBox="0 0 ${BW} ${BH}" width="100%" height="auto" style="display:block" font-family="Roboto,sans-serif"><path d="${gArea}" fill="#dfe5e0" stroke="#c3ccc5" stroke-width="1.5"/>${bars}<line x1="${bL}" y1="${BH-bB}" x2="${BW-bR}" y2="${BH-bB}" stroke="#e7ece7"/></svg>`);
+
+    return {
+      menu,menuMaster,headChips,actions,kpis,cats,subs,calDays,schedule,
+      setorTotals,setorItems,finTop,materiais,empresas,impactBadges,impactCards,emiMat,emiBal,
+      areaSvg,gaugeSvg,barSvg,noop,
+      iconMark:D(IC.mark),iconSearch:D(IC.search),iconLock:D(IC.lock),iconCal:D(IC.cal),
+      iconTrend:D(IC.trend),iconGaugeSm:D(IC.gaugeSm),iconPie:D(IC.pie),iconRecycle:D(IC.recycle),
+      iconLayers:D(IC.layers),iconClock:D(IC.clock),iconDown:D(IC.down),iconLeft:D(IC.left),iconRight:D(IC.right),
+      iconDollar:D(IC.dollar),iconBuilding:D(IC.building),iconCloud:D(IC.cloud),iconBag:D(IC.bag)
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style data-omelette-print-defaults>
+@media print {
+  @page { margin: 0.5in; }
+  h1, h2, h3, h4, h5, h6 { break-after: avoid; }
+  figure, table, pre, blockquote, img, svg, tr, [class~="card" i] { break-inside: avoid; }
+  img, svg { max-width: 100%; }
+  p { orphans: 3; widows: 3; }
+}
+</style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="_ds/modernist-daf22c0b-0c54-408d-a97a-a39d84c19631/styles.css">
+<script src="_ds/modernist-daf22c0b-0c54-408d-a97a-a39d84c19631/_ds_bundle.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --g:#3aae6f;--g-deep:#1f8f57;--g-dark:#14532d;--g-band:#4f7a2f;
+  --g-t1:#e7f5ec;--g-t2:#d9f0e0;--g-soft:#c9e9d3;
+  --navy:#2a5aa0;--ink:#20302a;--muted:#7c8a82;--line:#eaeee9;
+  --org:#a86a32;--rec:#3aae6f;--rej:#8a938c;--per:#ef8a2b;
+  --canvas:#dfe9e1;--panel:#f7faf7;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:'Open Sans',system-ui,sans-serif;color:var(--ink);background:var(--canvas)}
+a{color:var(--g-deep);text-decoration:none}a:hover{color:var(--g-dark)}
+.clz-card{transition:box-shadow .18s ease,transform .18s ease}
+.clz-card:hover{box-shadow:0 14px 30px rgba(20,83,45,.12);transform:translateY(-2px)}
+.clz-nav:hover{background:rgba(255,255,255,.13);color:#fff}
+.clz-btn{transition:background .15s,border-color .15s}
+.clz-btn:hover{background:#eef5ef;border-color:#c2d8c7}
+.clz-row:hover{background:#f4f9f5}
+.clz-input::placeholder{color:#9aa79f}
+.clz-fade{animation:clzFade .5s ease both}
+@keyframes clzFade{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes growW{from{width:0}}
+</style>
+</helmet>
+<div style="padding:20px;min-height:100vh">
+<div style="display:grid;grid-template-columns:236px 1fr;background:#fff;border-radius:22px;overflow:hidden;box-shadow:0 24px 60px rgba(20,83,45,.12);min-height:calc(100vh - 40px)">
+
+  <!-- ══ SIDEBAR ══ -->
+  <aside style="display:flex;flex-direction:column;padding:22px 16px;background:linear-gradient(165deg,#157a43,#0c4a24)">
+    <div style="padding:6px 6px 24px;text-align:center">
+      <div style="font-weight:800;font-size:20px;letter-spacing:.01em;line-height:1;color:#fff"><span>CICLO</span><span style="font-weight:400;opacity:.92">LIXO</span><span>ZERO</span></div>
+    </div>
+
+    <nav style="display:flex;flex-direction:column;gap:3px">
+      <sc-for list="{{ menu }}" as="m" hint-placeholder-count="8">
+        <a href="#" onClick="{{ m.onClick }}" class="{{ m.cls }}" style="{{ m.style }}">
+          <span style="width:19px;height:19px;flex:none;display:inline-flex" dangerouslySetInnerHTML="{{ m.icon }}"></span>
+          <span>{{ m.label }}</span>
+        </a>
+      </sc-for>
+    </nav>
+
+    <div style="margin-top:auto;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.18);border-radius:16px;padding:18px">
+      <div style="font-family:'Open Sans';font-weight:800;font-size:15px;line-height:1.25;color:#fff">Assine o CicloZero Pro</div>
+      <div style="font-size:11px;color:rgba(255,255,255,.8);margin-top:6px;line-height:1.4">Relatórios avançados, metas por setor e exportação ilimitada.</div>
+      <a href="#" onClick="{{ noop }}" style="display:block;text-align:center;margin-top:12px;padding:9px;background:#fff;color:var(--g-dark);border-radius:9px;font-size:12px;font-weight:800">Conhecer o Pro</a>
+    </div>
+    <div style="display:flex;align-items:center;gap:11px;margin-top:16px;padding-top:16px;border-top:1px solid rgba(255,255,255,.16)">
+      <div style="width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.16);color:#fff;display:grid;place-items:center;flex:none" dangerouslySetInnerHTML="{{ iconUser }}"></div>
+      <div style="line-height:1.25;min-width:0">
+        <div style="font-size:13px;font-weight:700;color:#fff">Santhiago Souza</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.72);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Escola União Ventura</div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ══ MAIN ══ -->
+  <main style="display:flex;flex-direction:column;min-width:0;background:var(--panel)">
+
+    <!-- topbar -->
+    <header style="display:flex;align-items:center;gap:18px;padding:22px 28px 6px">
+      <div style="margin-right:auto">
+        <h1 style="font-family:'Open Sans';font-weight:800;font-size:24px;margin:0;letter-spacing:-.01em">Gravimetria</h1>
+        <div style="font-size:12px;color:var(--muted);font-weight:600;margin-top:2px">Dashboard / Gravimetria</div>
+      </div>
+      <label style="display:flex;align-items:center;gap:9px;background:#fff;border-radius:12px;padding:0 14px;height:44px;box-shadow:var(--shadow-sm);width:260px">
+        <span style="width:17px;height:17px;display:inline-flex;color:var(--muted)" dangerouslySetInnerHTML="{{ iconSearch }}"></span>
+        <input class="clz-input" placeholder="Buscar setor, resíduo…" style="border:0;outline:0;background:transparent;font:inherit;font-size:13px;width:100%;color:var(--ink)">
+      </label>
+    </header>
+
+    <!-- content grid -->
+    <div style="padding:14px 28px 24px;display:grid;grid-template-columns:minmax(0,2.2fr) minmax(0,1fr);gap:20px">
+
+      <!-- ─ LEFT COLUMN ─ -->
+      <div style="display:flex;flex-direction:column;gap:20px;min-width:0">
+
+        <!-- stats row -->
+        <div style="display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1.15fr) minmax(0,1.5fr);gap:18px" class="clz-fade">
+          <!-- hero -->
+          <div style="position:relative;overflow:hidden;background:linear-gradient(155deg,#1c7a4a,#12401f);border-radius:18px;padding:20px;color:#fff;display:flex;flex-direction:column">
+            <div style="position:absolute;right:-20px;top:-10px;width:120px;height:120px;opacity:.12;color:#fff" dangerouslySetInnerHTML="{{ iconMark }}"></div>
+            <div style="width:48px;height:48px;border-radius:13px;background:rgba(255,255,255,.16);display:grid;place-items:center" dangerouslySetInnerHTML="{{ iconScale }}"></div>
+            <div style="margin-top:auto;padding-top:26px;display:flex;align-items:center;gap:9px;flex-wrap:wrap">
+              <span style="font-size:26px;font-weight:800;line-height:1;letter-spacing:-.01em">111,70</span>
+              <span style="font-size:11px;font-weight:700;background:rgba(214,240,224,.25);padding:3px 8px;border-radius:20px">+8,2%</span>
+            </div>
+            <div style="font-size:12px;opacity:.85;margin-top:6px">Total pesagem (Kg) · vs. mês anterior</div>
+          </div>
+          <!-- two stacked small -->
+          <div style="display:flex;flex-direction:column;gap:18px">
+            <sc-for list="{{ ministats }}" as="s" hint-placeholder-count="2">
+              <div class="clz-card" style="flex:1;background:#fff;border-radius:16px;padding:15px 16px;box-shadow:var(--shadow-sm);display:flex;flex-direction:column;min-width:0">
+                <div style="display:flex;align-items:center;gap:9px">
+                  <span style="width:34px;height:34px;border-radius:10px;background:var(--g-t1);color:var(--g-deep);display:grid;place-items:center;flex:none" dangerouslySetInnerHTML="{{ s.icon }}"></span>
+                  <span style="font-size:12px;color:var(--muted);font-weight:600;flex:1;line-height:1.2">{{ s.label }}</span>
+                </div>
+                <div style="display:flex;align-items:baseline;gap:8px;margin-top:8px;flex-wrap:wrap">
+                  <span style="font-size:23px;font-weight:800;line-height:1">{{ s.value }}</span>
+                  <span style="font-size:11px;font-weight:700;color:var(--g-deep);background:var(--g-t1);padding:2px 8px;border-radius:20px;white-space:nowrap">{{ s.pill }}</span>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+          <!-- monthly line -->
+          <div class="clz-card" style="background:#fff;border-radius:16px;padding:16px 18px;box-shadow:var(--shadow-sm);min-width:0">
+            <div style="display:flex;align-items:center;gap:10px">
+              <span style="font-size:15px;font-weight:800;margin-right:auto">Geração mensal</span>
+              <span class="clz-btn" style="display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:700;color:var(--muted);background:#fff;border:1px solid var(--line);padding:5px 10px;border-radius:8px">Últimos 6 meses <span style="width:12px;height:12px;display:inline-flex" dangerouslySetInnerHTML="{{ iconDown }}"></span></span>
+            </div>
+            <div style="margin-top:10px" dangerouslySetInnerHTML="{{ lineSvg }}"></div>
+          </div>
+        </div>
+
+        <!-- setores + bar chart -->
+        <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px">
+          <!-- setores -->
+          <div class="clz-card" style="background:#fff;border-radius:18px;padding:20px;box-shadow:var(--shadow-sm)">
+            <div style="display:flex;align-items:center;margin-bottom:14px">
+              <span style="font-size:16px;font-weight:800;margin-right:auto">Setores geradores</span>
+              <span class="clz-btn" style="display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:700;color:var(--muted);border:1px solid var(--line);padding:6px 11px;border-radius:9px"><span style="width:13px;height:13px;display:inline-flex" dangerouslySetInnerHTML="{{ iconFilter }}"></span>Filtrar</span>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+              <sc-for list="{{ setores }}" as="s" hint-placeholder-count="4">
+                <div class="clz-row" style="border:1px solid var(--line);border-radius:13px;padding:13px 14px;cursor:pointer">
+                  <div style="font-size:14px;font-weight:700">{{ s.name }}</div>
+                  <div style="display:flex;align-items:center;gap:8px;margin-top:9px;flex-wrap:wrap">
+                    <span style="font-size:11px;font-weight:700;color:{{ s.c1 }};background:{{ s.b1 }};padding:3px 9px;border-radius:20px">{{ s.t1 }}</span>
+                    <span style="font-size:11px;font-weight:600;color:var(--muted);background:#f0f3f0;padding:3px 9px;border-radius:20px">{{ s.t2 }}</span>
+                    <span style="margin-left:auto;display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:700;color:var(--muted)"><span style="width:14px;height:14px;display:inline-flex" dangerouslySetInnerHTML="{{ iconStack }}"></span>{{ s.n }}</span>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+          <!-- bar chart -->
+          <div class="clz-card" style="background:#fff;border-radius:18px;padding:20px;box-shadow:var(--shadow-sm);min-width:0">
+            <div style="display:flex;align-items:center"><span style="font-size:16px;font-weight:800;margin-right:auto">Geração por setor</span><span style="font-size:11px;color:var(--muted)">Kg no período</span></div>
+            <div style="margin-top:12px" dangerouslySetInnerHTML="{{ barSvg }}"></div>
+          </div>
+        </div>
+
+        <!-- coletas table -->
+        <div class="clz-card" style="background:#fff;border-radius:18px;padding:20px 22px 8px;box-shadow:var(--shadow-sm);min-width:0">
+          <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:8px">
+            <span style="font-size:16px;font-weight:800;margin-right:auto">Coletas</span>
+            <div style="display:flex;gap:6px;flex-wrap:wrap">
+              <sc-for list="{{ tabs }}" as="t" hint-placeholder-count="4">
+                <span onClick="{{ t.onClick }}" style="{{ t.style }}">{{ t.label }}</span>
+              </sc-for>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:2.2fr 1.1fr .8fr .8fr 1.5fr;gap:10px;padding:10px 12px;font-size:11px;font-weight:700;letter-spacing:.05em;color:var(--muted);border-bottom:1px solid var(--line)">
+            <div>ORIGEM</div><div>RESÍDUO</div><div>DATA</div><div>FREQ.</div><div>ETAPA</div>
+          </div>
+          <sc-for list="{{ coletas }}" as="c" hint-placeholder-count="5">
+            <div class="clz-row" style="display:grid;grid-template-columns:2.2fr 1.1fr .8fr .8fr 1.5fr;gap:10px;align-items:center;padding:13px 12px;border-bottom:1px solid var(--line)">
+              <div style="display:flex;align-items:center;gap:11px;min-width:0">
+                <span style="width:34px;height:34px;border-radius:10px;flex:none;display:grid;place-items:center;background:{{ c.tint }};color:{{ c.color }}"><span style="width:18px;height:18px;display:inline-flex" dangerouslySetInnerHTML="{{ c.icon }}"></span></span>
+                <div style="min-width:0"><div style="font-size:13px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ c.origem }}</div><div style="font-size:11px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ c.sub }}</div></div>
+              </div>
+              <div style="font-size:13px">{{ c.residuo }}</div>
+              <div style="font-size:13px;color:var(--muted)">{{ c.data }}</div>
+              <div><span style="font-size:11px;font-weight:700;color:var(--g-deep);background:var(--g-t1);padding:3px 9px;border-radius:20px">{{ c.freq }}</span></div>
+              <div>
+                <div style="font-size:11px;font-weight:700;margin-bottom:5px">{{ c.etapa }}</div>
+                <div style="display:flex;gap:5px">
+                  <sc-for list="{{ c.steps }}" as="st" hint-placeholder-count="5">
+                    <span style="{{ st.style }}">{{ st.n }}</span>
+                  </sc-for>
+                </div>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+
+      <!-- ─ RIGHT RAIL ─ -->
+      <div style="display:flex;flex-direction:column;gap:20px;min-width:0">
+
+        <!-- destino -->
+        <div class="clz-card" style="background:#fff;border-radius:18px;padding:20px;box-shadow:var(--shadow-sm)">
+          <div style="display:flex;align-items:center;margin-bottom:16px"><span style="font-size:16px;font-weight:800;margin-right:auto">Destino dos resíduos</span><span style="color:var(--muted);font-weight:800">···</span></div>
+          <div style="display:flex;flex-direction:column;gap:15px">
+            <sc-for list="{{ destino }}" as="d" hint-placeholder-count="4">
+              <div>
+                <div style="display:flex;align-items:center;font-size:13px;margin-bottom:7px"><span style="font-weight:600;margin-right:auto">{{ d.label }}</span><span style="color:var(--muted);margin-right:12px">{{ d.pct }}%</span><b style="font-weight:800">{{ d.kg }}</b></div>
+                <div style="height:9px;border-radius:6px;background:#eef2ee;overflow:hidden"><div style="height:100%;border-radius:6px;width:{{ d.w }};background:{{ d.color }};animation:growW 1s ease both"></div></div>
+              </div>
+            </sc-for>
+            <div style="display:flex;justify-content:space-between;font-size:10px;color:#9aa79f;margin-top:-4px"><span>0</span><span>25</span><span>50</span><span>75</span><span>100</span></div>
+          </div>
+        </div>
+
+        <!-- schedules -->
+        <div class="clz-card" style="background:#fff;border-radius:18px;padding:20px;box-shadow:var(--shadow-sm)">
+          <div style="display:flex;align-items:center;margin-bottom:14px"><span style="font-size:16px;font-weight:800;margin-right:auto">Coletas agendadas</span><span style="color:var(--muted);font-weight:800">···</span></div>
+          <div style="background:var(--panel);border-radius:14px;padding:14px">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+              <span class="clz-btn" style="width:26px;height:26px;border-radius:8px;background:#fff;display:grid;place-items:center;color:var(--muted);cursor:pointer" dangerouslySetInnerHTML="{{ iconLeft }}"></span>
+              <span style="font-size:13px;font-weight:800">Junho 2026</span>
+              <span class="clz-btn" style="width:26px;height:26px;border-radius:8px;background:#fff;display:grid;place-items:center;color:var(--muted);cursor:pointer" dangerouslySetInnerHTML="{{ iconRight }}"></span>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center;font-size:10px;color:var(--muted);font-weight:700;margin-bottom:4px">
+              <span>D</span><span>S</span><span>T</span><span>Q</span><span>Q</span><span>S</span><span>S</span>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center">
+              <sc-for list="{{ calDays }}" as="d" hint-placeholder-count="30">
+                <span style="{{ d.style }}">{{ d.n }}</span>
+              </sc-for>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:10px;margin-top:14px">
+            <sc-for list="{{ timeline }}" as="t" hint-placeholder-count="4">
+              <div style="display:flex;gap:11px">
+                <div style="display:flex;flex-direction:column;align-items:center;padding-top:4px"><span style="width:9px;height:9px;border-radius:50%;background:{{ t.dot }}"></span><span style="flex:1;width:2px;background:var(--line);margin-top:3px"></span></div>
+                <div style="flex:1;background:{{ t.bg }};border-radius:12px;padding:10px 13px">
+                  <div style="font-size:11px;font-weight:700;color:var(--muted)">{{ t.time }}</div>
+                  <div style="font-size:13px;font-weight:800;margin-top:1px">{{ t.title }}</div>
+                  <div style="font-size:11px;color:var(--muted);margin-top:1px">{{ t.sub }}</div>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- footer -->
+    <footer style="margin-top:auto;display:flex;align-items:center;gap:22px;padding:16px 28px;border-top:1px solid var(--line);font-size:12px;color:var(--muted);flex-wrap:wrap">
+      <span>© 2026 CicloLixoZero</span>
+      <a href="#" onClick="{{ noop }}" style="color:var(--muted)">Privacidade</a>
+      <a href="#" onClick="{{ noop }}" style="color:var(--muted)">Termos</a>
+      <a href="#" onClick="{{ noop }}" style="color:var(--muted)">Contato</a>
+      <span style="margin-left:auto;font-weight:600">Escola União Ventura · Arquivo 01</span>
+    </footer>
+  </main>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+const I=(p,sw)=>`<svg viewBox="0 0 24 24" width="100%" height="100%" fill="none" stroke="currentColor" stroke-width="${sw||2}" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
+const ICONS={
+  mark:I('<path d="M7 19H4.8a2 2 0 0 1-1.7-3l1.5-2.6M11 4l1.1-1.9a2 2 0 0 1 3.4 0l1.5 2.6M20 12l1.2 2a2 2 0 0 1-1.7 3H16"/><path d="m14 16-3 3 3 3M8.3 8 5.2 9.1M18 8l-1.1-3"/>',1.7),
+  dash:I('<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/>'),
+  gravi:I('<path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1ZM2 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1ZM7 21h10M12 3v18M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/>'),
+  sectors:I('<path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>'),
+  sub:I('<path d="M3 7h18M3 12h18M3 17h12"/>'),
+  truck:I('<path d="M14 18V6H2v12M14 9h5l3 3v6h-8"/><circle cx="6.5" cy="18.5" r="2"/><circle cx="17.5" cy="18.5" r="2"/>'),
+  report:I('<path d="M4 20V10M10 20V4M16 20v-8M22 20H2"/>'),
+  users:I('<circle cx="9" cy="8" r="3.5"/><path d="M3 21a6 6 0 0 1 12 0M17 11a3 3 0 1 0-1-5.8M21 21a5 5 0 0 0-4-4.9"/>'),
+  cog:I('<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/>'),
+  scale:I('<path d="M3 6h18M6 6l-3 6a4 4 0 0 0 6 0L6 6ZM18 6l-3 6a4 4 0 0 0 6 0l-3-6ZM12 3v18M8 21h8"/>'),
+  recycle:I('<path d="M7 19H4.8a2 2 0 0 1-1.7-3l1.5-2.6M11 4l1.1-1.9a2 2 0 0 1 3.4 0l1.5 2.6M20 12l1.2 2a2 2 0 0 1-1.7 3H16"/><path d="m14 16-3 3 3 3M8.3 8 5.2 9.1M18 8l-1.1-3"/>',1.7),
+  leaf:I('<path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.5 19 2c1 2 2 4.2 2 8 0 5.5-4.8 10-9 10Z"/><path d="M2 21c0-3 1.9-6 5-8"/>'),
+  x:I('<circle cx="12" cy="12" r="9"/><path d="m9 9 6 6M15 9l-6 6"/>'),
+  warn:I('<path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/><path d="M12 9v4M12 17h.01"/>'),
+  target:I('<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.4"/>'),
+  gauge:I('<path d="M12 14 16 9"/><path d="M4 18a8 8 0 1 1 16 0"/><circle cx="12" cy="14" r="1.4"/>'),
+  search:I('<circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>'),
+  gear:I('<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/>'),
+  bell:I('<path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0"/>'),
+  user:I('<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>'),
+  filter:I('<path d="M4 5h16l-6 8v6l-4-2v-4Z"/>'),
+  stack:I('<path d="M12 3 2 8l10 5 10-5-10-5ZM2 16l10 5 10-5M2 12l10 5 10-5"/>'),
+  down:I('<path d="m6 9 6 6 6-6"/>'),
+  left:I('<path d="m15 18-6-6 6-6"/>'),
+  right:I('<path d="m9 18 6-6-6-6"/>')
+};
+class Component extends DCLogic {
+  state={tab:0};
+  renderVals(){
+    const noop=(e)=>e&&e.preventDefault&&e.preventDefault();
+    const D=(s)=>({__html:s});
+    const cat={org:'#a86a32',rec:'#3aae6f',rej:'#8a938c',per:'#ef8a2b'};
+    const tint={org:'#f3ebe1',rec:'var(--g-t1)',rej:'#eef0ee',per:'#fdeede'};
+
+    const navB='display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:11px;font-size:14px;font-weight:600;color:rgba(255,255,255,.82);transition:background .15s';
+    const navA='display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:11px;font-size:14px;font-weight:700;color:var(--g-dark);background:#fff;box-shadow:0 6px 16px rgba(0,0,0,.18)';
+    const menu=[['dash','Dashboard'],['gravi','Gravimetria',true],['sectors','Setores'],['sub','Subcategoria'],['truck','Coletas'],['report','Relatório'],['users','Usuários'],['cog','Configurações']]
+      .map(([k,label,on])=>({label,icon:D(ICONS[k]),onClick:noop,cls:'clz-nav',style:on?navA:navB}));
+
+    const ministats=[
+      {label:'Desvio de aterro',value:'91,5%',pill:'Meta 90%',icon:D(ICONS.target)},
+      {label:'Média por dia',value:'15,96',pill:'↑ 4%',icon:D(ICONS.gauge)}
+    ];
+
+    // monthly line
+    const months=['Jan','Fev','Mar','Abr','Mai','Jun'];
+    const mv=[92,101,88,132,118,111.7];
+    const W=340,H=150,PL=8,PR=8,PT=12,PB=22,maxV=160;
+    const xw=W-PL-PR,yh=H-PT-PB;
+    const xOf=i=>PL+i/(mv.length-1)*xw, yOf=v=>PT+(1-v/maxV)*yh;
+    const pts=mv.map((v,i)=>[xOf(i),yOf(v)]);
+    const sm=(p)=>{let d=`M${p[0][0].toFixed(1)} ${p[0][1].toFixed(1)}`;for(let i=0;i<p.length-1;i++){const[x0,y0]=p[i],[x1,y1]=p[i+1];const cx=(x0+x1)/2;d+=` C${cx.toFixed(1)} ${y0.toFixed(1)} ${cx.toFixed(1)} ${y1.toFixed(1)} ${x1.toFixed(1)} ${y1.toFixed(1)}`;}return d;};
+    const ln=sm(pts), ar=`${ln} L${xOf(mv.length-1).toFixed(1)} ${H-PB} L${PL} ${H-PB} Z`;
+    const xl=months.map((m,i)=>`<text x="${xOf(i).toFixed(1)}" y="${H-6}" text-anchor="middle" font-size="9" fill="#9aa79f" stroke="none">${m}</text>`).join('');
+    const dots=pts.map(([x,y],i)=>`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${i===pts.length-1?4:2.4}" fill="${i===pts.length-1?'#fff':'#3aae6f'}" stroke="#3aae6f" stroke-width="${i===pts.length-1?3:0}"/>`).join('');
+    const lineSvg=D(`<svg viewBox="0 0 ${W} ${H}" width="100%" height="auto" style="display:block"><defs><linearGradient id="lg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3aae6f" stop-opacity=".22"/><stop offset="1" stop-color="#3aae6f" stop-opacity="0"/></linearGradient></defs><path d="${ar}" fill="url(#lg)" stroke="none"/><path d="${ln}" fill="none" stroke="#3aae6f" stroke-width="2.4" stroke-linecap="round"/>${dots}${xl}</svg>`);
+
+    // bar chart geração por setor
+    const bd=[['Cozinha',38],['Refeit.',31],['Pátio',19],['Adm',14],['Sala',22],['Limpeza',11]];
+    const bmax=42,BW=340,BH=170,bPB=26,bPT=16,gap=14;
+    const bw=(BW-gap*(bd.length+1))/bd.length, byh=BH-bPB-bPT;
+    const bars=bd.map(([lab,v],i)=>{const bh=v/bmax*byh;const x=gap+i*(bw+gap);const y=bPT+(byh-bh);const hi=i===0;return `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${bw.toFixed(1)}" height="${bh.toFixed(1)}" rx="5" fill="${hi?'#14532d':'#63c294'}"/><text x="${(x+bw/2).toFixed(1)}" y="${(y-6).toFixed(1)}" text-anchor="middle" font-size="10" font-weight="700" fill="#20302a" stroke="none">${v}</text><text x="${(x+bw/2).toFixed(1)}" y="${BH-8}" text-anchor="middle" font-size="9" fill="#9aa79f" stroke="none">${lab}</text>`;}).join('');
+    const barSvg=D(`<svg viewBox="0 0 ${BW} ${BH}" width="100%" height="auto" style="display:block" font-family="Open Sans,sans-serif">${bars}</svg>`);
+
+    const setores=[
+      ['Cozinha','Orgânico','org','Diário',34],['Refeitório','Reciclável','rec','Diário',28],
+      ['Pátio','Rejeito','rej','Semanal',19],['Administrativo','Papel','org','Semanal',22]
+    ].map(([name,t1,ck,t2,n])=>({name,t1,t2,n,c1:cat[ck],b1:tint[ck]}));
+
+    const destino=[
+      ['Reciclagem',57.5,'84','rec'],['Compostagem',20.5,'30','org'],
+      ['Aterro',15.1,'22','rej'],['Coprocessamento',6.9,'10','per']
+    ].map(([label,pct,kg,ck])=>({label,pct:String(pct).replace('.',','),kg,w:pct+'%',color:cat[ck]}));
+
+    // calendar June 2026
+    const first=new Date(2026,5,1).getDay(), dim=30, marked={4:1,11:1,18:1,25:1};
+    const calDays=[];
+    for(let i=0;i<first;i++)calDays.push({n:'',style:''});
+    for(let d=1;d<=dim;d++){
+      const on=d===20, mk=marked[d];
+      let st='font-size:12px;padding:6px 0;border-radius:8px;color:var(--ink)';
+      if(on)st='font-size:12px;padding:6px 0;border-radius:8px;background:var(--g);color:#fff;font-weight:800';
+      else if(mk)st='font-size:12px;padding:6px 0;border-radius:8px;background:var(--g-t1);color:var(--g-deep);font-weight:700';
+      calDays.push({n:d,style:st});
+    }
+
+    const timeline=[
+      ['08:00','Coleta Orgânicos','Cozinha · TransLog Verde','#3aae6f','#effaf3'],
+      ['10:30','Coleta Recicláveis','Refeitório · BioColeta','#2a5aa0','#eef3fb'],
+      ['13:00','Pesagem da amostra','Laboratório interno','#ef8a2b','#fdf3e8'],
+      ['15:10','Coleta Rejeito','Pátio · Limpa Cidade','#8a938c','#f2f4f2']
+    ].map(([time,title,sub,dot,bg])=>({time,title,sub,dot,bg}));
+
+    const tabLabels=['Todas','Agendadas','Em rota','Concluídas'];
+    const tabs=tabLabels.map((label,i)=>({label,onClick:()=>this.setState({tab:i}),
+      style:`cursor:pointer;font-size:12px;font-weight:700;padding:7px 13px;border-radius:9px;${i===this.state.tab?'background:var(--g);color:#fff':'color:var(--muted);background:#f0f3f0'}`}));
+
+    const step=(active,total)=>Array.from({length:total},(_,i)=>({n:i+1,
+      style:`width:22px;height:22px;border-radius:6px;display:grid;place-items:center;font-size:11px;font-weight:700;${i<active?'background:var(--g);color:#fff':'background:#eef2ee;color:#9aa79f'}`}));
+    const allColetas=[
+      ['Cozinha Central','Bloco A · diária','Orgânicos','15 Jun','Diário','org','leaf','Destinada',5,'concl'],
+      ['Refeitório','Bloco B · diária','Recicláveis','14 Jun','Diário','rec','recycle','Em rota',3,'rota'],
+      ['Pátio Externo','Área comum','Rejeito','14 Jun','Semanal','rej','x','Pesagem',2,'rota'],
+      ['Administrativo','Bloco C','Papel/Papelão','13 Jun','Semanal','org','leaf','Classificada',4,'concl'],
+      ['Laboratório','Amostragem','Perigosos','12 Jun','Mensal','per','warn','Agendada',1,'agen']
+    ];
+    const tabKey=['all','agen','rota','concl'][this.state.tab];
+    const coletas=allColetas.filter(r=>tabKey==='all'||r[9]===tabKey).map(([origem,sub,residuo,data,freq,ck,ic,etapa,act])=>({
+      origem,sub,residuo,data,freq,etapa,color:cat[ck],tint:tint[ck],icon:D(ICONS[ic]),steps:step(act,5)
+    }));
+
+    return {menu,ministats,setores,destino,timeline,tabs,coletas,calDays,lineSvg,barSvg,noop,
+      iconMark:D(ICONS.mark),iconScale:D(ICONS.scale),iconSearch:D(ICONS.search),iconGear:D(ICONS.gear),
+      iconBell:D(ICONS.bell),iconUser:D(ICONS.user),iconFilter:D(ICONS.filter),iconStack:D(ICONS.stack),
+      iconDown:D(ICONS.down),iconLeft:D(ICONS.left),iconRight:D(ICONS.right)};
+  }
+}
+</script>
+<script>
+(async () => {
+  if (!document.title || !document.title.trim()) document.title = "Dashboard";
+  // rAF raced with a short timeout: inside a cross-origin iframe (PrintMode),
+  // rAF can be throttled or paused even while the tab is focused, which would
+  // hang the scroll loop and never reach print(). Same pattern as
+  // buildExportSettleScript (export/shared.ts).
+  var raf = function () {
+    return Promise.race([
+      new Promise(function (r) { requestAnimationFrame(r); }),
+      new Promise(function (r) { setTimeout(r, 50); }),
+    ]);
+  };
+  var t0 = performance.now();
+  var mark = function (phase) {
+    var ms = Math.round(performance.now() - t0);
+    console.info('[autoprint]', phase, ms + 'ms');
+    try { parent.postMessage({ __omelette_autoprint: { phase: phase, ms: ms } }, '*'); } catch (e) {}
+  };
+  mark('start');
+  // Prepend so page-supplied @page / break rules (deck-stage's margin:0,
+  // author CSS) keep source-order precedence over the baseline.
+  const baseCss = document.createElement('style');
+  baseCss.textContent = "@media print {\n  figure, table { break-inside: avoid; }\n  *, *::before, *::after {\n    print-color-adjust: exact; -webkit-print-color-adjust: exact;\n    backdrop-filter: none !important; -webkit-backdrop-filter: none !important;\n    animation-delay: -99s !important; animation-duration: .001s !important;\n    animation-iteration-count: 1 !important; animation-fill-mode: both !important;\n    animation-play-state: running !important; transition-duration: 0s !important;\n  }\n}";
+  document.head.prepend(baseCss);
+  if (document.readyState === 'loading') {
+    await new Promise((r) => document.addEventListener('DOMContentLoaded', r, { once: true }));
+  }
+  let ds = document.querySelector('deck-stage');
+  // whenDefined never resolves when nothing registers the element, so only
+  // await it when a <deck-stage> tag exists (and race a timeout regardless).
+  if (ds && !customElements.get('deck-stage')) {
+    try {
+      await Promise.race([
+        customElements.whenDefined('deck-stage'),
+        new Promise((r) => setTimeout(r, 3000)),
+      ]);
+    } catch (e) {}
+    ds = document.querySelector('deck-stage');
+  }
+  // dc-runtime assigns window.DCLogic at init and mounts into #dc-root on
+  // DOMContentLoaded; settle on that subtree so React has rendered before
+  // print(). Non-DC pages fall through to weighing body.
+  const isDc = !ds && 'DCLogic' in window;
+  const settleRoot = ds || (isDc ? document.getElementById('dc-root') : null) || document.body;
+  if (settleRoot) {
+    // Weigh only content children — skip script/style/template so inline
+    // Babel/CSS doesn't register as stable "content" before the framework
+    // has mounted anything.
+    const MEDIA = 'img,svg,canvas,video,picture,iframe,embed,object';
+    const weigh = () => {
+      let text = 0, media = 0;
+      for (const c of settleRoot.children) {
+        const t = c.tagName;
+        if (t === 'SCRIPT' || t === 'STYLE' || t === 'TEMPLATE') continue;
+        text += (c.textContent || '').trim().length;
+        media += c.querySelectorAll(MEDIA).length + (c.matches(MEDIA) ? 1 : 0);
+      }
+      return text + media * 100;
+    };
+    // "Non-zero and stable" alone is not sufficient to mean rendered: generic
+    // body can carry a static shell while async main content is pending, and
+    // #dc-root can carry the root DC's static text while child refs are still
+    // .sc-placeholder boxes. Gate generic on readyState 'complete', and never
+    // accept stability while a dc-runtime placeholder is present.
+    const isGeneric = settleRoot === document.body;
+    // A placeholder whose fetch failed (.sc-placeholder-error inside) keeps
+    // .sc-placeholder forever — don't wait on it. JS loop, not :has(), so an
+    // engine without :has() support can't throw out of the while and skip
+    // print() entirely.
+    var pendingPlaceholders = function () {
+      var all = settleRoot.querySelectorAll('.sc-placeholder'), n = 0;
+      for (var i = 0; i < all.length; i++)
+        if (!all[i].querySelector('.sc-placeholder-error')) n++;
+      return n;
+    };
+    const deadline = Date.now() + 15000;
+    let last = -1, stable = 0;
+    while (Date.now() < deadline) {
+      const n = weigh();
+      const ready =
+        (!isGeneric || document.readyState === 'complete') &&
+        pendingPlaceholders() === 0;
+      if (n > 0 && n === last && ready) { if (++stable >= 2) break; } else { stable = 0; }
+      last = n;
+      await new Promise((r) => setTimeout(r, 250));
+    }
+  }
+  mark('settle-done' + (settleRoot ? ' (errs=' + settleRoot.querySelectorAll('.sc-placeholder-error').length + ' pending=' + pendingPlaceholders() + ')' : ''));
+  // Project support.js may predate runtime default-seeding; push via bridge.
+  if (isDc && window.__dcSetProps && window.__dcRootName) {
+    try {
+      const dpEl = document.querySelector('script[data-dc-script]');
+      const meta = JSON.parse((dpEl && dpEl.getAttribute('data-props')) || '{}');
+      const bag = {};
+      for (const k in meta)
+        if (k[0] !== '$' && meta[k] && meta[k].default !== undefined)
+          bag[k] = meta[k].default;
+      if (Object.keys(bag).length) {
+        window.__dcSetProps(window.__dcRootName(), bag);
+        await new Promise((r) => setTimeout(r, 50));
+      }
+    } catch (e) {}
+  }
+  // Reveal content gated on scroll or visibility before printing. Lazy <img>,
+  // IntersectionObserver fade-ins, and collapsed <details> don't render while
+  // off-screen, so a long page would print with them blank or closed. Open
+  // every <details>, force native-lazy images eager, and scroll the document
+  // through its full height to trip lazy-load + IO; then wait (bounded) for the
+  // newly-triggered images. Inert for deck-stage (slides aren't scroll-gated).
+  try {
+    for (const d of document.querySelectorAll('details')) d.open = true;
+    for (const img of document.querySelectorAll('img[loading="lazy"]'))
+      img.loading = 'eager';
+    const scroller = document.scrollingElement || document.documentElement;
+    const full = Math.max(scroller.scrollHeight, document.body.scrollHeight);
+    const step = window.innerHeight || 800;
+    var scrollDeadline = Date.now() + 4000;
+    for (let y = 0; y <= full && Date.now() < scrollDeadline; y += step) {
+      window.scrollTo(0, y);
+      await raf();
+    }
+    window.scrollTo(0, 0);
+    await Promise.race([
+      Promise.all(
+        [...document.images].map((img) =>
+          img.complete
+            ? null
+            : new Promise((res) => {
+                img.addEventListener('load', res, { once: true });
+                img.addEventListener('error', res, { once: true });
+              })
+        )
+      ),
+      new Promise((r) => setTimeout(r, 4000)),
+    ]);
+  } catch (e) {}
+  mark('scroll-done');
+  try { await Promise.race([document.fonts.ready, new Promise((r) => setTimeout(r, 3000))]); } catch (e) {}
+  mark('fonts-done');
+  // Jump every animation to its end state so print() never captures a slide
+  // mid-entrance. Ordering matters: the 0s-transition style must be live
+  // BEFORE data-deck-active is set so attribute-keyed transitions don't
+  // start a (now-0s) run from the pre-active base.
+  const st = document.createElement('style');
+  st.textContent = '*,*::before,*::after{animation-delay:-99s !important;animation-duration:.001s !important;animation-iteration-count:1 !important;animation-fill-mode:both !important;animation-play-state:running !important;transition-duration:0s !important}';
+  document.head.appendChild(st);
+  for (const d of document.querySelectorAll('deck-stage')) {
+    for (const c of d.children) {
+      const t = c.tagName;
+      if (t === 'SCRIPT' || t === 'STYLE' || t === 'TEMPLATE') continue;
+      c.setAttribute('data-deck-active', '');
+    }
+  }
+  // Re-append deck-stage's @page last so no author @page can add a margin and
+  // spill each full-bleed slide onto two sheets. Backstop for old copies.
+  if (ds) {
+    let pg = document.getElementById('deck-stage-print-page');
+    if (!pg) {
+      pg = document.createElement('style');
+      pg.textContent = '@page{size:' + (+ds.getAttribute('width') || 1920) +
+        'px ' + (+ds.getAttribute('height') || 1080) + 'px;margin:0}';
+    }
+    document.body.appendChild(pg);
+  }
+  try {
+    const sweep = () => {
+      for (const a of document.getAnimations()) {
+        try { a.finish(); } catch (e) {
+          try { a.currentTime = (a.effect && a.effect.getComputedTiming().duration) || 0; a.pause(); } catch (e2) {}
+        }
+      }
+    };
+    sweep();
+    await raf();
+    sweep();
+    await raf();
+  } catch (e) {}
+  // A document that owns its print CSS (the doc-page starter injects the
+  // meta at runtime; hand-rolled print designs author it) gets no automatic
+  // page geometry and keeps its forced breaks: strip the injected default
+  // @page — write time cannot see a runtime-injected meta — skip the frame
+  // override below, and skip the fakepage-flattening further down. What
+  // still applies: the print baseline and break-hygiene defaults (no @page
+  // in either; low specificity, so the document's own print CSS wins) and
+  // the break-inside relaxation on >page elements (avoid on those cannot
+  // be honored whoever authored it).
+  var ownsPrint = !!document.querySelector('meta[name="omelette-owns-print" i]');
+  if (ownsPrint) {
+    var dst = document.querySelector('style[data-omelette-print-defaults]');
+    if (dst && dst.textContent) {
+      dst.textContent = dst.textContent.replace(/@page\b[^{}]*\{[^}]*\}/, '');
+    }
+  }
+  // Size the PDF page to the rendered design unless the file opted into
+  // standard paper via @page{size:letter|A4|…} or declared print ownership
+  // via the meta above. Decks own their own @page.
+  // Wrappers (body, …) lose padding+margin so the frame sits at (0,0); the
+  // frame itself loses only margin — its padding is INSIDE the measured
+  // rect and must stay, or content shifts and leaves a gap at bottom/right.
+  var __m = null;
+  try { __m = (() => {
+  var STAMP = true;
+  var docEl = document.documentElement;
+  var doc = { width: docEl.scrollWidth, height: docEl.scrollHeight };
+  // Name-presence check, case-insensitive — the same contract as the
+  // instant-PDF path's runtime check in deck-stage-export.ts. The name is
+  // a string literal here because that file interpolates this script into
+  // its print script, so importing a shared constant from it would be a
+  // cycle; measure.test.ts pins the literal so the two cannot drift apart
+  // silently.
+  var ownsPrint = !!document.querySelector('meta[name="omelette-owns-print" i]');
+
+  var ds = document.querySelector('deck-stage');
+  if (ds) {
+    var dw = Number(ds.getAttribute('width')) || 1920;
+    var dh = Number(ds.getAttribute('height')) || 1080;
+    var n = typeof ds.length === 'number' ? ds.length : ds.children.length;
+    var idx = typeof ds.index === 'number' ? ds.index : 0;
+    var frames = [];
+    for (var i = 0; i < n; i++) frames.push({ left: 0, top: 0, width: dw, height: dh });
+    return { kind: 'deck', source: 'declared', doc: doc, frames: frames,
+      authored: frames.map(function(){return{width:true,height:true}}),
+      deck: { width: dw, height: dh, slideCount: n, index: idx },
+      signals: { paperPage: false, pxPage: false, ownsPrint: ownsPrint } };
+  }
+
+  // Declared kind: a doc-page tag names the kind outright, so no signal
+  // heuristics run (like the deck branch above, signals report false —
+  // they describe inferred classifications only). The tag alone is not
+  // trusted: the element must have upgraded (shadowRoot present), so a
+  // leftover tag whose script was deleted falls through to the heuristics
+  // that handle plain markup.
+  var stageSx = window.scrollX || 0, stageSy = window.scrollY || 0;
+  var dp = document.querySelector('doc-page');
+  if (dp && dp.shadowRoot) {
+    // Crop to the sheet, not the host — the desk around it is screen-only
+    // chrome that must not land in PNG exports.
+    var sheet = dp.shadowRoot.querySelector('.sheet');
+    var sr = (sheet || dp).getBoundingClientRect();
+    return { kind: 'paper-doc', source: 'declared', doc: doc,
+      frames: [{ left: sr.left + stageSx, top: sr.top + stageSy,
+        width: sr.width, height: sr.height }],
+      authored: [{ width: false, height: false }],
+      signals: { paperPage: false, pxPage: false, ownsPrint: ownsPrint } };
+  }
+  var paperPage = false, pxPage = false;
+  var eachRule = function (fn) {
+    for (var s = 0; s < document.styleSheets.length; s++) {
+      var rs; try { rs = document.styleSheets[s].cssRules; } catch (e) { continue; }
+      for (var r = 0; r < rs.length; r++) {
+        fn(rs[r]);
+        if (rs[r].cssRules) for (var n = 0; n < rs[r].cssRules.length; n++) fn(rs[r].cssRules[n]);
+      }
+    }
+  };
+  eachRule(function (r) {
+    if (r.type !== 6) return;
+    var m = /\bsize\s*:\s*([^;}]+)/i.exec(r.cssText || '');
+    if (!m) return;
+    if (/\b(letter|a[3-5]|legal|ledger)\b/i.test(m[1])) paperPage = true;
+    if (/\d+(?:\.\d+)?px\b/i.test(m[1])) pxPage = true;
+  });
+  var signals = { paperPage: paperPage, pxPage: pxPage, ownsPrint: ownsPrint };
+
+  var pxVal = function (v) {
+    var m = /^(\d+(?:\.\d+)?)px$/.exec(v || ''); return m ? +m[1] : 0;
+  };
+  var authoredPx = function (el, prop) {
+    if (pxVal(el.style[prop])) return true;
+    var attr = el.getAttribute(prop);
+    if (attr && /^\d+$/.test(attr)) return true;
+    var hit = false;
+    eachRule(function (r) {
+      if (hit || r.type !== 1 || !r.style) return;
+      try { if (el.matches(r.selectorText) && pxVal(r.style[prop])) hit = true; } catch (e) {}
+    });
+    return hit;
+  };
+
+  var el = document.body, rootPxW = false;
+  for (;;) {
+    var kids = [];
+    for (var c = 0; c < el.children.length; c++) {
+      var t = el.children[c].tagName;
+      if (t !== 'SCRIPT' && t !== 'STYLE' && t !== 'TEMPLATE') kids.push(el.children[c]);
+    }
+    if (kids.length !== 1 || !(kids[0] instanceof HTMLElement)) break;
+    if (STAMP) el.setAttribute('data-om-frame-wrap', '');
+    el = kids[0];
+    rootPxW = authoredPx(el, 'width');
+    if (rootPxW) break;
+  }
+  if (!rootPxW) rootPxW = authoredPx(el, 'width');
+
+  // @page{size:letter} alone is a flowing doc; with a px-width root it's a
+  // fixed sheet pretending to be paper — fall through and size to render.
+  if (paperPage && !rootPxW) {
+    return { kind: 'paper-doc', source: 'inferred', doc: doc, signals: signals,
+      frames: [{ left: 0, top: 0, width: doc.width, height: doc.height }],
+      authored: [{ width: false, height: false }] };
+  }
+
+  var sx = window.scrollX || 0, sy = window.scrollY || 0;
+  var rectOf = function (e) {
+    var r = e.getBoundingClientRect();
+    var oy; try { oy = getComputedStyle(e).overflowY; } catch (err) {}
+    var h = oy === 'visible' ? Math.max(r.height, e.scrollHeight || 0) : r.height;
+    return { left: r.left + sx, top: r.top + sy, width: r.width, height: h };
+  };
+
+  // Multi-frame: off unless the page opts in via data-om-multi-frame on the
+  // stop element — the explicit opt-in is what guards against card grids
+  // and pricing tables that match the geometry but aren't separate
+  // canvases. Two ways to name the frames, explicit first:
+  // 1. Descendants marked data-om-frame-export (the social-frames starter
+  //    marks each asset frame; shells/panels around them are presentation,
+  //    so nesting is expected). Document order.
+  // 2. Fallback, no marked descendants: direct children with an authored px
+  //    width AND height (the original geometry heuristic).
+  // Frames may be different sizes (a gallery mixes 1080×1920 stories with
+  // 728×90 banners); data-om-frame-label rides along for export filenames.
+  if (el.hasAttribute('data-om-multi-frame')) {
+    var visOk = function (e) {
+      var cs; try { cs = getComputedStyle(e); } catch (err) { return false; }
+      return cs.display !== 'none' && cs.visibility !== 'hidden' && cs.position !== 'fixed';
+    };
+    // A frame's crop is its VISUAL box — never the scrollHeight-inflated
+    // rect that rectOf computes for page roots. Shadow-DOM hover controls
+    // (image-slot's Replace bar parks 29px below its host) and similar
+    // escaping UI contribute scrollable overflow to the frame, and the
+    // inflated height both squashes the nominal-size resize and drags
+    // content below the frame into the crop. Zoom-independent; bit every
+    // slot-bearing frame.
+    var frameRectOf = function (e) {
+      var r = e.getBoundingClientRect();
+      return { left: r.left + sx, top: r.top + sy, width: r.width, height: r.height };
+    };
+    var pushCand = function (list, e) {
+      if (!visOk(e)) return;
+      var rc = frameRectOf(e);
+      if (rc.width < 2 || rc.height < 2) return;
+      var lbl = e.getAttribute('data-om-frame-label');
+      if (lbl) rc.label = lbl;
+      list.push(rc);
+    };
+    var cands = [];
+    var marked = el.querySelectorAll('[data-om-frame-export]');
+    if (marked.length) {
+      for (var mk = 0; mk < marked.length; mk++) pushCand(cands, marked[mk]);
+    } else {
+      for (var k = 0; k < el.children.length; k++) {
+        var ch = el.children[k];
+        if (!authoredPx(ch, 'width') || !authoredPx(ch, 'height')) continue;
+        pushCand(cands, ch);
+      }
+    }
+    if (cands.length >= 2) {
+      return { kind: 'multi-frame', source: 'inferred', doc: doc, signals: signals,
+        frames: cands, authored: cands.map(function(){return{width:true,height:true}}) };
+    }
+  }
+
+  if (STAMP) el.setAttribute('data-om-frame', '');
+  return { kind: 'single-canvas', source: 'inferred', doc: doc, signals: signals,
+    frames: [rectOf(el)],
+    authored: [{ width: rootPxW, height: authoredPx(el, 'height') }] };
+})(); } catch (e) {}
+  var frame = null;
+  if (!ownsPrint && __m && __m.kind === 'single-canvas') {
+    var f = __m.frames && __m.frames[0];
+    if (f && f.width >= 200 && f.height >= 200) {
+      frame = f;
+      var fst = document.createElement('style');
+      fst.textContent = '@media print{@page{size:' + Math.ceil(f.width) + 'px ' +
+        Math.ceil(f.height) + 'px;margin:0}' +
+        'html,body,[data-om-frame-wrap]{padding:0!important;margin:0!important;background:none!important}' +
+        '[data-om-frame]{margin:0!important}}';
+      document.body.appendChild(fst);
+    }
+  }
+  // Relax break-inside on oversized elements. An element taller than a
+  // printable page can't honor break-inside: avoid — browsers either overflow
+  // it or push it whole to the next page, leaving a blank gap, then break it
+  // anyway at an arbitrary point. After the final layout (content revealed,
+  // animations jumped), find elements taller than a page that still compute
+  // break-inside: avoid and reset them to auto, so the browser breaks them at
+  // their children's boundaries instead (children keep their own avoid). PAGE_PX
+  // is a conservative portrait estimate at 96 CSS px/in — Letter/A4 usable
+  // height minus our 0.5in margins — so only clearly-oversized elements are
+  // touched and under-page elements still stay whole. Skipped for decks (slides
+  // are sized to the page) and for fixed-size canvases (frame set, or an author
+  // px-based @page) — runs as before for flowing docs on letter/A4.
+  try {
+    if (!ds && !frame && !(__m && __m.signals && __m.signals.pxPage)) {
+      const PAGE_PX = 1024;
+      // Our print defaults add a real @page margin only when the source has
+      // no @page of its own; computed style can't tell us (it reports screen
+      // media), so read the injected rule directly.
+      const defaults = document.querySelector('style[data-omelette-print-defaults]');
+      const pageInset = /@page\s*\{[^}]*margin/.test(defaults ? defaults.textContent || '' : '');
+      const SEL = 'section,article,figure,table,pre,blockquote,[class~="card" i],[class~="page" i],[class~="sheet" i]';
+      for (const el of document.body.querySelectorAll(SEL)) {
+        if (el instanceof HTMLElement && el.offsetHeight > PAGE_PX) {
+          el.setAttribute('data-om-oversized', '');
+          // Fake-paged docs simulate sheets with over-tall break-after:page
+          // boxes; honoring the break spills half-blank pages and ends a
+          // colored box mid-sheet. Flow them, and (only when we own the page
+          // inset) drop the redundant padding/background via the rule below.
+          const cs = getComputedStyle(el);
+          // An owns-print doc's forced breaks are intentional sheet
+          // boundaries, never fake-paged simulation — don't strip them.
+          // The break-inside relaxation above still applies: avoid on a
+          // >page element is impossible to honor whoever authored it.
+          if (
+            !ownsPrint &&
+            (cs.breakAfter === 'page' || cs.pageBreakAfter === 'always')
+          ) {
+            el.setAttribute('data-om-fakepage', '');
+          }
+        }
+      }
+      const ost = document.createElement('style');
+      ost.textContent = '@media print{' +
+        '[data-om-oversized]{break-inside:auto !important;page-break-inside:auto !important}' +
+        '[data-om-fakepage]{break-after:auto !important;page-break-after:auto !important}' +
+        (pageInset ? '[data-om-fakepage]{padding:0 !important;background:none !important}' : '') +
+        '}';
+      document.head.appendChild(ost);
+    }
+  } catch (e) {}
+  // macOS Preview renders Skia-PDF Luminosity soft-masks as opaque grey boxes;
+  // swap the CSS that triggers them for Preview-safe forms.
+  try {
+    for (const el of document.body.querySelectorAll('*')) {
+      const cs = getComputedStyle(el);
+
+      if (cs.boxShadow !== 'none' && cs.filter === 'none') {
+        const outs = [], kept = [];
+        for (const s of cs.boxShadow.split(/,(?![^(]*[)])/)) {
+          const t = s.trim();
+          const m = t.match(/^(rgba?[(][^)]+[)]) (-?[0-9.]+px) (-?[0-9.]+px) ([0-9.]+px) -?[0-9.]+px$/);
+          if (m && parseFloat(m[4]) > 0) outs.push('drop-shadow(' + m[2] + ' ' + m[3] + ' ' + m[4] + ' ' + m[1] + ')');
+          else kept.push(t);
+        }
+        if (outs.length) {
+          el.style.setProperty('filter', outs.join(' '), 'important');
+          el.style.setProperty('box-shadow', kept.join(', ') || 'none', 'important');
+        }
+      }
+
+      const mask = cs.maskImage && cs.maskImage !== 'none' ? cs.maskImage : cs.webkitMaskImage;
+      if (mask && mask !== 'none' && cs.filter === 'none') el.style.setProperty('filter', 'opacity(1)', 'important');
+    }
+  } catch (e) {}
+  mark('print-calling');
+  setTimeout(() => { try { window.print(); } catch (e) {} }, 200);
+})();
+</script>
+</body>
+</html>

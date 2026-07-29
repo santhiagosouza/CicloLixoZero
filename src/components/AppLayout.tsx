@@ -16,7 +16,6 @@ import {
   User as UserIcon,
   Menu,
   X,
-  ChevronRight,
   EyeOff
 } from 'lucide-react';
 
@@ -87,42 +86,7 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
   return (
     <div style={{ display: 'flex', minHeight: '100vh', flexDirection: 'column' }}>
       
-      {/* Impersonation Banner */}
-      {isMasterAdmin && impersonatedClientId && (
-        <div 
-          style={{
-            backgroundColor: '#fbbf24',
-            color: '#78350f',
-            padding: '0.5rem 1.5rem',
-            fontSize: '0.875rem',
-            fontWeight: 600,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            zIndex: 1100,
-            boxShadow: 'var(--shadow-sm)',
-            borderBottom: '1px solid #d97706',
-          }}
-        >
-          <div className="flex items-center gap-2">
-            <EyeOff size={16} />
-            <span>Você está acessando o sistema como: <strong>{clientName || 'Carregando...'}</strong></span>
-          </div>
-          <button 
-            onClick={handleStopImpersonation}
-            className="btn"
-            style={{
-              padding: '0.25rem 0.75rem',
-              fontSize: '0.75rem',
-              backgroundColor: '#78350f',
-              color: '#fef3c7',
-              borderRadius: 'var(--radius-sm)'
-            }}
-          >
-            Sair do acesso simulado
-          </button>
-        </div>
-      )}
+
 
       <div style={{ display: 'flex', flex: 1, position: 'relative' }}>
         
@@ -135,9 +99,8 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
             left: 0,
             right: 0,
             height: '60px',
-            backgroundColor: 'var(--glass-bg)',
-            backdropFilter: 'blur(var(--glass-blur))',
-            borderBottom: '1px solid hsl(var(--card-border))',
+            background: 'linear-gradient(135deg, #157a43, #0c4a24)',
+            borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
             padding: '0 1rem',
             alignItems: 'center',
             justifyContent: 'space-between',
@@ -148,15 +111,13 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
           <button 
             onClick={toggleSidebar} 
             className="btn btn-ghost btn-icon"
+            style={{ color: '#ffffff' }}
             aria-label="Abrir menu"
           >
             <Menu size={20} />
           </button>
-          <div className="flex items-center gap-2">
-            <img src="/logo.png" alt="Logo" style={{ width: '1.75rem', height: '1.75rem', borderRadius: '4px' }} />
-            <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 700, fontSize: '1.1rem' }}>
-              Ciclo Lixo Zero
-            </span>
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <img src="/logo_ciclo.png?v=3" alt="Logo" style={{ height: '40px', width: 'auto', display: 'block' }} />
           </div>
           <div style={{ width: '36px' }} /> {/* Spacer */}
         </header>
@@ -165,12 +126,12 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
         <aside 
           style={{
             width: '260px',
-            backgroundColor: 'hsl(var(--card))',
-            borderRight: '1px solid hsl(var(--card-border))',
+            background: 'linear-gradient(165deg, #157a43, #0c4a24)',
+            borderRight: '1px solid rgba(255, 255, 255, 0.1)',
             display: 'flex',
             flexDirection: 'column',
             position: 'fixed',
-            top: isMasterAdmin && impersonatedClientId ? '45px' : 0,
+            top: 0,
             bottom: 0,
             left: 0,
             zIndex: 950,
@@ -181,32 +142,29 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
           {/* Sidebar Header */}
           <div 
             style={{
-              padding: '1.5rem 1.25rem',
-              borderBottom: '1px solid hsl(var(--card-border))',
+              padding: '1.5rem 0.75rem',
+              borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between'
             }}
           >
-             <div className="flex items-center gap-2">
+             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
               <img 
-                src="/logo.png" 
+                src="/logo_ciclo.png?v=3" 
                 alt="Ciclo Lixo Zero Logo" 
                 style={{
-                  width: '2.25rem',
-                  height: '2.25rem',
-                  borderRadius: 'var(--radius-sm)',
-                  objectFit: 'cover'
+                  width: '92%',
+                  maxWidth: '220px',
+                  height: 'auto',
+                  display: 'block'
                 }}
               />
-              <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 700, fontSize: '1.15rem', letterSpacing: '-0.02em' }}>
-                Ciclo Lixo Zero
-              </span>
             </div>
             <button 
               onClick={toggleSidebar} 
               className="btn btn-ghost btn-icon mobile-close-btn"
-              style={{ display: 'none' }}
+              style={{ display: 'none', color: '#fff' }}
               aria-label="Fechar menu"
             >
               <X size={18} />
@@ -218,29 +176,28 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
             <div 
               style={{
                 padding: '0.875rem 1.25rem',
-                borderBottom: '1px solid hsl(var(--card-border))',
-                backgroundColor: 'rgba(34, 197, 94, 0.02)',
+                borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+                backgroundColor: 'rgba(255, 255, 255, 0.05)',
               }}
             >
-              <p className="text-muted text-xs font-medium uppercase" style={{ letterSpacing: '0.05em' }}>Cliente Ativo</p>
-              <p className="font-semibold text-sm truncate" style={{ marginTop: '0.125rem' }}>{clientName}</p>
+              <p className="text-xs font-medium uppercase" style={{ letterSpacing: '0.05em', color: 'rgba(255, 255, 255, 0.6)' }}>Cliente Ativo</p>
+              <p className="font-semibold text-sm truncate" style={{ marginTop: '0.125rem', color: '#fff' }}>{clientName}</p>
             </div>
           )}
 
           {/* Navigation Links */}
-          <nav style={{ flex: 1, padding: '1.25rem 0.75rem', overflowY: 'auto' }} className="flex flex-col gap-1">
+          <nav style={{ flex: 1, padding: '1.25rem 0', overflowY: 'auto' }} className="flex flex-col">
             {menuItems.map((item, idx) => {
               if ('isHeader' in item) {
                 return (
                   <div 
                     key={`header-${idx}`} 
                     style={{ 
-                      padding: '1.25rem 0.5rem 0.5rem', 
-                      fontSize: '0.75rem', 
-                      fontWeight: 700, 
-                      textTransform: 'uppercase', 
-                      color: 'hsl(var(--muted-foreground))',
-                      letterSpacing: '0.08em'
+                      padding: '1.5rem 1.25rem 0.5rem', 
+                      fontSize: '0.875rem', 
+                      fontWeight: 800, 
+                      color: '#ffffff',
+                      letterSpacing: '0.02em'
                     }}
                   >
                     {item.label}
@@ -259,32 +216,71 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
                   style={{
                     display: 'flex',
                     alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: '0.75rem 0.875rem',
-                    borderRadius: 'var(--radius-md)',
-                    fontWeight: 500,
-                    fontSize: '0.925rem',
-                    color: isActive ? 'hsl(var(--primary-foreground))' : 'hsl(var(--foreground))',
-                    backgroundColor: isActive ? 'hsl(var(--primary))' : 'transparent',
-                    transition: 'all 0.2s ease',
+                    padding: '0.75rem 1.25rem',
+                    fontWeight: isActive ? 800 : 500,
+                    fontSize: '0.85rem',
+                    color: isActive ? '#06522c' : 'rgba(255, 255, 255, 0.82)',
+                    backgroundColor: isActive ? '#9bbb59' : 'transparent',
+                    transition: 'all 0.15s ease',
                   }}
                   className={`menu-link ${isActive ? '' : 'hoverable'}`}
                 >
                   <div className="flex items-center gap-3">
-                    <Icon size={18} opacity={isActive ? 1 : 0.75} />
+                    <Icon size={17} opacity={isActive ? 1 : 0.85} style={{ color: isActive ? '#06522c' : 'inherit' }} />
                     <span>{item.label}</span>
                   </div>
-                  {isActive && <ChevronRight size={14} />}
                 </Link>
               );
             })}
           </nav>
 
+          {/* Impersonation Card */}
+          {isMasterAdmin && impersonatedClientId && (
+            <div 
+              style={{
+                margin: '0 0.75rem 1rem',
+                backgroundColor: '#fbbf24',
+                color: '#78350f',
+                padding: '0.75rem 1rem',
+                borderRadius: 'var(--radius-md)',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                <EyeOff size={14} />
+                <span>Acesso Simulado</span>
+              </div>
+              <div style={{ fontSize: '0.8rem', marginTop: '0.375rem', lineHeight: '1.3', fontWeight: 500 }}>
+                Visualizando como: <strong style={{ fontWeight: 700 }}>{clientName || 'Carregando...'}</strong>
+              </div>
+              <button 
+                onClick={handleStopImpersonation}
+                style={{
+                  width: '100%',
+                  marginTop: '0.625rem',
+                  padding: '0.4rem 0.75rem',
+                  fontSize: '0.75rem',
+                  fontWeight: 700,
+                  backgroundColor: '#78350f',
+                  color: '#fef3c7',
+                  border: 'none',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                  transition: 'background-color 0.2s'
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#92400e'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#78350f'}
+              >
+                Voltar ao Painel Master
+              </button>
+            </div>
+          )}
+
           {/* Sidebar Footer (Logout) */}
           <div 
             style={{
               padding: '1rem 0.75rem',
-              borderTop: '1px solid hsl(var(--card-border))',
+              borderTop: '1px solid rgba(255, 255, 255, 0.1)',
               display: 'flex',
               flexDirection: 'column',
               gap: '0.75rem',
@@ -296,24 +292,38 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
                   width: '2.25rem',
                   height: '2.25rem',
                   borderRadius: '50%',
-                  backgroundColor: 'hsl(var(--secondary))',
+                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  color: 'hsl(var(--secondary-foreground))'
+                  color: '#ffffff'
                 }}
               >
                 <UserIcon size={16} />
               </div>
               <div style={{ overflow: 'hidden' }}>
-                <p className="font-semibold text-xs truncate">{profile?.full_name || user?.email}</p>
-                <p className="text-muted text-xs truncate" style={{ fontSize: '0.7rem' }}>{user?.email}</p>
+                <p className="font-semibold text-xs truncate" style={{ color: '#ffffff' }}>{profile?.full_name || user?.email}</p>
+                <p className="text-xs truncate" style={{ fontSize: '0.7rem', color: 'rgba(255, 255, 255, 0.6)' }}>{user?.email}</p>
               </div>
             </div>
             <button 
               onClick={signOut}
-              className="btn btn-outline"
-              style={{ width: '100%', padding: '0.5rem 1rem', fontSize: '0.85rem' }}
+              className="btn"
+              style={{ 
+                width: '100%', 
+                padding: '0.5rem 1rem', 
+                fontSize: '0.85rem',
+                backgroundColor: 'transparent',
+                border: '1px solid rgba(255, 255, 255, 0.25)',
+                color: '#ffffff',
+                transition: 'all 0.2s ease',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'transparent';
+              }}
             >
               <LogOut size={16} />
               <span>Sair do sistema</span>
@@ -379,8 +389,9 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
           }
         }
         .menu-link.hoverable:hover {
-          background-color: hsl(var(--muted));
-          color: hsl(var(--primary));
+          background-color: rgba(255, 255, 255, 0.08) !important;
+          color: #ffffff !important;
+          border-radius: 0 !important;
         }
       `}</style>
     </div>
