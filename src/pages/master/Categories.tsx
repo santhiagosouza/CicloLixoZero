@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../../integrations/supabase/client';
-import { Plus, Trash2, ShieldAlert, Tag, Layers, Settings, ChevronRight, ToggleLeft, ToggleRight } from 'lucide-react';
+import { Plus, Trash2, Pencil, ShieldAlert, Tag, Layers, Settings, ChevronRight, ToggleLeft, ToggleRight } from 'lucide-react';
 
 interface Category {
   id: string;
@@ -59,6 +59,11 @@ const Categories: React.FC = () => {
   // Mappings
   const [classMap, setClassMap] = useState<Record<string, string>>({});
   const [subMap, setSubMap] = useState<Record<string, { name: string; catName: string }>>({});
+
+  // Edit states
+  const [editingCategoryId, setEditingCategoryId] = useState<string | null>(null);
+  const [editingSubcategoryId, setEditingSubcategoryId] = useState<string | null>(null);
+  const [editingDefaultTypeId, setEditingDefaultTypeId] = useState<string | null>(null);
 
   // Delete modals state
   const [deleteCatId, setDeleteCatId] = useState<string | null>(null);
@@ -138,6 +143,32 @@ const Categories: React.FC = () => {
     }
   };
 
+  const handleEditCategory = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!catName.trim() || !editingCategoryId) return;
+
+    setCatSubmitting(true);
+    try {
+      const { error } = await supabase
+        .from('categories')
+        .update({
+          name: catName.trim(),
+          color: catColor
+        })
+        .eq('id', editingCategoryId);
+
+      if (error) throw error;
+      setCatName('');
+      setCatColor('#22c55e');
+      setEditingCategoryId(null);
+      fetchInitialData();
+    } catch (err: any) {
+      alert('Erro ao editar categoria: ' + err.message);
+    } finally {
+      setCatSubmitting(false);
+    }
+  };
+
   const handleCreateSubcategory = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!subName.trim() || !filterCatId) return;
@@ -155,6 +186,30 @@ const Categories: React.FC = () => {
       fetchInitialData();
     } catch (err: any) {
       alert('Erro ao criar subcategoria global: ' + err.message);
+    } finally {
+      setSubSubmitting(false);
+    }
+  };
+
+  const handleEditSubcategory = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!subName.trim() || !filterCatId || !editingSubcategoryId) return;
+    setSubSubmitting(true);
+    try {
+      const { error } = await supabase
+        .from('subcategories')
+        .update({
+          name: subName.trim(),
+          category_id: filterCatId
+        })
+        .eq('id', editingSubcategoryId);
+
+      if (error) throw error;
+      setSubName('');
+      setEditingSubcategoryId(null);
+      fetchInitialData();
+    } catch (err: any) {
+      alert('Erro ao editar subcategoria: ' + err.message);
     } finally {
       setSubSubmitting(false);
     }
@@ -179,6 +234,34 @@ const Categories: React.FC = () => {
       fetchInitialData();
     } catch (err: any) {
       alert('Erro ao criar tipo padrão: ' + err.message);
+    } finally {
+      setDefTypeSubmitting(false);
+    }
+  };
+
+  const handleEditDefaultType = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!defTypeName.trim() || !filterSubId || !defTypeClassId || !editingDefaultTypeId) return;
+    setDefTypeSubmitting(true);
+    try {
+      const { error } = await supabase
+        .from('default_types')
+        .update({
+          subcategory_id: filterSubId,
+          name: defTypeName.trim(),
+          color: defTypeColor,
+          default_classification_id: defTypeClassId
+        })
+        .eq('id', editingDefaultTypeId);
+
+      if (error) throw error;
+      setDefTypeName('');
+      setDefTypeColor('#3b82f6');
+      setDefTypeClassId('');
+      setEditingDefaultTypeId(null);
+      fetchInitialData();
+    } catch (err: any) {
+      alert('Erro ao editar tipo padrão: ' + err.message);
     } finally {
       setDefTypeSubmitting(false);
     }
@@ -281,14 +364,33 @@ const Categories: React.FC = () => {
     }
   };
 
+  const handleTabChange = (tab: 'categories' | 'subcategories' | 'default_types') => {
+    setActiveTab(tab);
+    setEditingCategoryId(null);
+    setEditingSubcategoryId(null);
+    setEditingDefaultTypeId(null);
+    setCatName('');
+    setCatColor('#22c55e');
+    setSubName('');
+    setDefTypeName('');
+    setDefTypeColor('#3b82f6');
+    setDefTypeClassId('');
+  };
+
   const handleSelectCategoryFlow = (cid: string) => {
     setFilterCatId(cid);
+    setEditingCategoryId(null);
+    setEditingSubcategoryId(null);
+    setEditingDefaultTypeId(null);
     setActiveTab('subcategories');
   };
 
   const handleSelectSubcategoryFlow = (sid: string, cid: string) => {
     setFilterCatId(cid);
     setFilterSubId(sid);
+    setEditingCategoryId(null);
+    setEditingSubcategoryId(null);
+    setEditingDefaultTypeId(null);
     setActiveTab('default_types');
   };
 
@@ -324,7 +426,7 @@ const Categories: React.FC = () => {
         <button 
           className={`btn ${activeTab === 'categories' ? 'btn-primary' : 'btn-ghost'}`}
           style={{ padding: '0.5rem 1.25rem', borderRadius: 'var(--radius-md)' }}
-          onClick={() => setActiveTab('categories')}
+          onClick={() => handleTabChange('categories')}
         >
           <Tag size={16} />
           <span>1. Categorias Globais</span>
@@ -332,7 +434,7 @@ const Categories: React.FC = () => {
         <button 
           className={`btn ${activeTab === 'subcategories' ? 'btn-primary' : 'btn-ghost'}`}
           style={{ padding: '0.5rem 1.25rem', borderRadius: 'var(--radius-md)' }}
-          onClick={() => setActiveTab('subcategories')}
+          onClick={() => handleTabChange('subcategories')}
         >
           <Layers size={16} />
           <span>2. Subcategorias Globais</span>
@@ -345,7 +447,7 @@ const Categories: React.FC = () => {
         <button 
           className={`btn ${activeTab === 'default_types' ? 'btn-primary' : 'btn-ghost'}`}
           style={{ padding: '0.5rem 1.25rem', borderRadius: 'var(--radius-md)' }}
-          onClick={() => setActiveTab('default_types')}
+          onClick={() => handleTabChange('default_types')}
         >
           <Settings size={16} />
           <span>3. Tipos Padrão (Seed)</span>
@@ -363,10 +465,12 @@ const Categories: React.FC = () => {
         {/* ABA 1: CATEGORIAS */}
         {activeTab === 'categories' && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4" style={{ alignItems: 'start' }}>
-            {/* Create Category */}
+            {/* Create / Edit Category */}
             <div className="card">
-              <h2 className="card-title mb-4">Nova Categoria Global</h2>
-              <form onSubmit={handleCreateCategory} className="flex flex-col gap-3">
+              <h2 className="card-title mb-4">
+                {editingCategoryId ? 'Editar Categoria' : 'Nova Categoria Global'}
+              </h2>
+              <form onSubmit={editingCategoryId ? handleEditCategory : handleCreateCategory} className="flex flex-col gap-3">
                 <div className="form-group">
                   <label className="form-label">Nome da Categoria</label>
                   <input 
@@ -385,7 +489,7 @@ const Categories: React.FC = () => {
                     <input 
                       type="color" 
                       className="form-input" 
-                      style={{ padding: '0.2,rem', height: '41px', width: '60px', cursor: 'pointer' }}
+                      style={{ padding: '0.2rem', height: '41px', width: '60px', cursor: 'pointer' }}
                       value={catColor} 
                       onChange={e => setCatColor(e.target.value)} 
                       disabled={catSubmitting}
@@ -394,9 +498,24 @@ const Categories: React.FC = () => {
                   </div>
                 </div>
                 <button type="submit" className="btn btn-primary mt-2" style={{ width: '100%' }} disabled={catSubmitting}>
-                  <Plus size={16} />
-                  <span>Cadastrar Categoria</span>
+                  {editingCategoryId ? <Settings size={16} /> : <Plus size={16} />}
+                  <span>{editingCategoryId ? 'Salvar Alterações' : 'Cadastrar Categoria'}</span>
                 </button>
+                {editingCategoryId && (
+                  <button 
+                    type="button" 
+                    onClick={() => {
+                      setEditingCategoryId(null);
+                      setCatName('');
+                      setCatColor('#22c55e');
+                    }}
+                    className="btn btn-secondary mt-1"
+                    style={{ width: '100%' }}
+                    disabled={catSubmitting}
+                  >
+                    Cancelar
+                  </button>
+                )}
               </form>
             </div>
 
@@ -466,6 +585,18 @@ const Categories: React.FC = () => {
                               <ChevronRight size={14} />
                             </button>
                             <button 
+                              onClick={() => {
+                                setEditingCategoryId(c.id);
+                                setCatName(c.name);
+                                setCatColor(c.color || '#22c55e');
+                              }}
+                              className="btn btn-ghost btn-icon" 
+                              style={{ color: 'hsl(var(--primary))' }}
+                              title="Editar Categoria"
+                            >
+                              <Pencil size={16} />
+                            </button>
+                            <button 
                               onClick={() => setDeleteCatId(c.id)} 
                               className="btn btn-ghost btn-icon" 
                               style={{ color: 'hsl(var(--destructive))' }}
@@ -503,10 +634,12 @@ const Categories: React.FC = () => {
 
             {filterCatId ? (
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-4" style={{ alignItems: 'start' }}>
-                {/* Create Subcategory */}
+                {/* Create / Edit Subcategory */}
                 <div className="card">
-                  <h2 className="card-title mb-4">Nova Subcategoria</h2>
-                  <form onSubmit={handleCreateSubcategory} className="flex flex-col gap-3">
+                  <h2 className="card-title mb-4">
+                    {editingSubcategoryId ? 'Editar Subcategoria' : 'Nova Subcategoria'}
+                  </h2>
+                  <form onSubmit={editingSubcategoryId ? handleEditSubcategory : handleCreateSubcategory} className="flex flex-col gap-3">
                     <div className="form-group">
                       <label className="form-label">Nome da Subcategoria</label>
                       <input 
@@ -520,9 +653,23 @@ const Categories: React.FC = () => {
                       />
                     </div>
                     <button type="submit" className="btn btn-primary mt-2" style={{ width: '100%' }} disabled={subSubmitting}>
-                      <Plus size={16} />
-                      <span>Cadastrar Subcategoria</span>
+                      {editingSubcategoryId ? <Settings size={16} /> : <Plus size={16} />}
+                      <span>{editingSubcategoryId ? 'Salvar Alterações' : 'Cadastrar Subcategoria'}</span>
                     </button>
+                    {editingSubcategoryId && (
+                      <button 
+                        type="button" 
+                        onClick={() => {
+                          setEditingSubcategoryId(null);
+                          setSubName('');
+                        }}
+                        className="btn btn-secondary mt-1"
+                        style={{ width: '100%' }}
+                        disabled={subSubmitting}
+                      >
+                        Cancelar
+                      </button>
+                    )}
                   </form>
                 </div>
 
@@ -562,6 +709,17 @@ const Categories: React.FC = () => {
                                   >
                                     <span>Ver Tipos Padrão</span>
                                     <ChevronRight size={14} />
+                                  </button>
+                                  <button 
+                                    onClick={() => {
+                                      setEditingSubcategoryId(s.id);
+                                      setSubName(s.name);
+                                    }}
+                                    className="btn btn-ghost btn-icon" 
+                                    style={{ color: 'hsl(var(--primary))' }}
+                                    title="Editar Subcategoria"
+                                  >
+                                    <Pencil size={16} />
                                   </button>
                                   <button 
                                     onClick={() => setDeleteSubId(s.id)} 
@@ -627,10 +785,12 @@ const Categories: React.FC = () => {
 
             {filterSubId ? (
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-4" style={{ alignItems: 'start' }}>
-                {/* Create Default Type */}
+                {/* Create / Edit Default Type */}
                 <div className="card">
-                  <h2 className="card-title mb-4">Novo Tipo Padrão (Seed)</h2>
-                  <form onSubmit={handleCreateDefaultType} className="flex flex-col gap-3">
+                  <h2 className="card-title mb-4">
+                    {editingDefaultTypeId ? 'Editar Tipo Padrão' : 'Novo Tipo Padrão (Seed)'}
+                  </h2>
+                  <form onSubmit={editingDefaultTypeId ? handleEditDefaultType : handleCreateDefaultType} className="flex flex-col gap-3">
                     <div className="form-group">
                       <label className="form-label">Nome do Tipo Padrão</label>
                       <input 
@@ -676,9 +836,25 @@ const Categories: React.FC = () => {
                     <p className="text-xs text-muted">Novos tipos padrão cadastrados aqui servirão de sementes ("seed") automáticas para todas as novas empresas clientes que se cadastrarem.</p>
                     
                     <button type="submit" className="btn btn-primary mt-2" style={{ width: '100%' }} disabled={defTypeSubmitting}>
-                      <Plus size={16} />
-                      <span>Cadastrar Tipo Padrão</span>
+                      {editingDefaultTypeId ? <Settings size={16} /> : <Plus size={16} />}
+                      <span>{editingDefaultTypeId ? 'Salvar Alterações' : 'Cadastrar Tipo Padrão'}</span>
                     </button>
+                    {editingDefaultTypeId && (
+                      <button 
+                        type="button" 
+                        onClick={() => {
+                          setEditingDefaultTypeId(null);
+                          setDefTypeName('');
+                          setDefTypeColor('#3b82f6');
+                          setDefTypeClassId('');
+                        }}
+                        className="btn btn-secondary mt-1"
+                        style={{ width: '100%' }}
+                        disabled={defTypeSubmitting}
+                      >
+                        Cancelar
+                      </button>
+                    )}
                   </form>
                 </div>
 
@@ -774,14 +950,29 @@ const Categories: React.FC = () => {
                                 </button>
                               </td>
                               <td className="text-right">
-                                <button 
-                                  onClick={() => setDeleteDefTypeId(dt.id)} 
-                                  className="btn btn-ghost btn-icon" 
-                                  style={{ color: 'hsl(var(--destructive))' }}
-                                  title="Excluir Tipo Padrão"
-                                >
-                                  <Trash2 size={16} />
-                                </button>
+                                <div className="flex gap-2 justify-end">
+                                  <button 
+                                    onClick={() => {
+                                      setEditingDefaultTypeId(dt.id);
+                                      setDefTypeName(dt.name);
+                                      setDefTypeColor(dt.color || '#3b82f6');
+                                      setDefTypeClassId(dt.default_classification_id || '');
+                                    }}
+                                    className="btn btn-ghost btn-icon" 
+                                    style={{ color: 'hsl(var(--primary))' }}
+                                    title="Editar Tipo Padrão"
+                                  >
+                                    <Pencil size={16} />
+                                  </button>
+                                  <button 
+                                    onClick={() => setDeleteDefTypeId(dt.id)} 
+                                    className="btn btn-ghost btn-icon" 
+                                    style={{ color: 'hsl(var(--destructive))' }}
+                                    title="Excluir Tipo Padrão"
+                                  >
+                                    <Trash2 size={16} />
+                                  </button>
+                                </div>
                               </td>
                             </tr>
                           ))
