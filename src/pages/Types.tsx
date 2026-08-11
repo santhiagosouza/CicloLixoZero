@@ -34,6 +34,8 @@ const Types: React.FC = () => {
   const [color, setColor] = useState('#3b82f6');
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategoryFilter, setSelectedCategoryFilter] = useState('all');
 
   // Mappings
   const [subMap, setSubMap] = useState<Record<string, { name: string; catName: string }>>({});
@@ -176,6 +178,13 @@ const Types: React.FC = () => {
 
   const filteredSubs = subcategories.filter(s => s.category_id === selectedCatId);
 
+  const filteredTypes = types.filter(tp => {
+    const matchesSearch = tp.name.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = selectedCategoryFilter === 'all' || 
+      subcategories.find(s => s.id === tp.subcategory_id)?.category_id === selectedCategoryFilter;
+    return matchesSearch && matchesCategory;
+  });
+
   return (
     <div className="flex flex-col gap-4">
       <div>
@@ -218,14 +227,6 @@ const Types: React.FC = () => {
               </div>
 
               <div className="form-group">
-                <label className="form-label">Classificação Normativa</label>
-                <select className="form-select" value={selectedClassId} onChange={e => setSelectedClassId(e.target.value)} required>
-                  <option value="">Selecione...</option>
-                  {classifications.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                </select>
-              </div>
-
-              <div className="form-group">
                 <label className="form-label">Nome do Tipo</label>
                 <input 
                   type="text" 
@@ -236,6 +237,14 @@ const Types: React.FC = () => {
                   required 
                   disabled={submitting || !selectedSubId}
                 />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Classificação Normativa</label>
+                <select className="form-select" value={selectedClassId} onChange={e => setSelectedClassId(e.target.value)} required>
+                  <option value="">Selecione...</option>
+                  {classifications.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                </select>
               </div>
 
               <div className="form-group">
@@ -272,31 +281,83 @@ const Types: React.FC = () => {
         )}
 
         {/* LIST TABLE CARD */}
-        <div className="card md:col-span-2">
+        <div className="card md:col-span-2" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          
+          {/* Filtros no topo superior direito */}
+          <div style={{ 
+            display: 'flex', 
+            justifyContent: 'flex-end', 
+            alignItems: 'center', 
+            gap: '12px', 
+            borderBottom: '1px solid rgba(0,0,0,0.03)', 
+            paddingBottom: '0.75rem',
+            flexWrap: 'wrap'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#6b7280' }}>FILTRO:</span>
+              <input 
+                type="text" 
+                placeholder="Buscar tipo..." 
+                value={searchTerm}
+                onChange={e => setSearchTerm(e.target.value)}
+                className="form-input"
+                style={{ width: '170px', padding: '6px 12px', fontSize: '0.8rem', marginBottom: 0, border: '1px solid #d1d5db', borderRadius: '6px' }}
+              />
+            </div>
+            <select 
+              value={selectedCategoryFilter}
+              onChange={e => setSelectedCategoryFilter(e.target.value)}
+              className="form-select"
+              style={{ width: '150px', padding: '6px 12px', fontSize: '0.8rem', marginBottom: 0, border: '1px solid #d1d5db', borderRadius: '6px' }}
+            >
+              <option value="all">Todas Categorias</option>
+              {categories.map(c => (
+                <option key={c.id} value={c.id}>{c.name}</option>
+              ))}
+            </select>
+          </div>
+
           <div className="table-container">
             <table className="table">
               <thead>
                 <tr>
-                  <th>Nome do Tipo</th>
-                  <th>Subcategoria</th>
                   <th>Categoria</th>
+                  <th>Subcategoria</th>
+                  <th>Tipo</th>
                   <th>Classificação</th>
                   <th style={{ width: '80px', textAlign: 'center' }}>Status</th>
                   {canManage && <th style={{ width: '80px', textAlign: 'right' }}>Ações</th>}
                 </tr>
               </thead>
               <tbody>
-                {types.length === 0 ? (
+                {filteredTypes.length === 0 ? (
                   <tr>
                     <td colSpan={canManage ? 6 : 5} className="text-center text-muted" style={{ padding: '4rem 0' }}>
-                      Nenhum tipo de resíduo cadastrado.
+                      Nenhum tipo de resíduo encontrado.
                     </td>
                   </tr>
                 ) : (
-                  types.map(tp => {
+                  filteredTypes.map(tp => {
                     const subInfo = subMap[tp.subcategory_id] || { name: '—', catName: '—' };
                     return (
                       <tr key={tp.id}>
+                        {/* 1. Categoria */}
+                        <td>
+                          <span className="flex items-center gap-1 font-bold">
+                            <Tag size={13} className="text-muted" style={{ color: tp.color || undefined }} />
+                            {subInfo.catName}
+                          </span>
+                        </td>
+                        
+                        {/* 2. Subcategoria */}
+                        <td>
+                          <span className="flex items-center gap-1 font-semibold">
+                            <Layers size={13} className="text-muted" />
+                            {subInfo.name}
+                          </span>
+                        </td>
+
+                        {/* 3. Tipo (Nome do Tipo) */}
                         <td className="font-semibold">
                           <span className="flex items-center gap-2">
                             <span 
@@ -311,23 +372,15 @@ const Types: React.FC = () => {
                             {tp.name}
                           </span>
                         </td>
-                        <td>
-                          <span className="flex items-center gap-1">
-                            <Layers size={13} className="text-muted" />
-                            {subInfo.name}
-                          </span>
-                        </td>
-                        <td>
-                          <span className="flex items-center gap-1">
-                            <Tag size={13} className="text-muted" />
-                            {subInfo.catName}
-                          </span>
-                        </td>
+                        
+                        {/* 4. Classificação */}
                         <td>
                           <span className="text-xs font-semibold text-muted">
                             {classMap[tp.default_classification_id || ''] || '—'}
                           </span>
                         </td>
+
+                        {/* 5. Status */}
                         <td style={{ textAlign: 'center' }}>
                           {canManage ? (
                             <button 
@@ -348,6 +401,8 @@ const Types: React.FC = () => {
                             </span>
                           )}
                         </td>
+
+                        {/* 6. Ações */}
                         {canManage && (
                           <td style={{ textAlign: 'right' }}>
                             <button 

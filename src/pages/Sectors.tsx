@@ -33,7 +33,53 @@ const Sectors: React.FC = () => {
         .order('name');
 
       if (error) throw error;
-      setSectors((data || []) as Sector[]);
+
+      let clientSectors = (data || []) as Sector[];
+
+      // Se a lista de setores estiver vazia OU contiver apenas "Geral"
+      if (clientSectors.length === 0 || (clientSectors.length === 1 && clientSectors[0].name.toLowerCase() === 'geral')) {
+        const { data: clientData, error: clientErr } = await supabase
+          .from('clients')
+          .select('company_type_id')
+          .eq('id', clientId)
+          .single();
+
+        if (!clientErr && clientData?.company_type_id) {
+          const { data: defaultSectors, error: defSectorsErr } = await supabase
+            .from('company_type_default_sectors')
+            .select('name')
+            .eq('company_type_id', clientData.company_type_id);
+
+          if (!defSectorsErr && defaultSectors && defaultSectors.length > 0) {
+            const existingNames = new Set(clientSectors.map(s => s.name.toLowerCase()));
+            const toInsert = defaultSectors
+              .filter(ds => !existingNames.has(ds.name.toLowerCase()))
+              .map(ds => ({
+                client_id: clientId,
+                name: ds.name,
+                active: true
+              }));
+
+            if (toInsert.length > 0) {
+              const { error: insertErr } = await supabase
+                .from('sectors')
+                .insert(toInsert);
+
+              if (!insertErr) {
+                const { data: refreshedSectors } = await supabase
+                  .from('sectors')
+                  .select('*')
+                  .eq('client_id', clientId)
+                  .order('name');
+                
+                clientSectors = (refreshedSectors || []) as Sector[];
+              }
+            }
+          }
+        }
+      }
+
+      setSectors(clientSectors);
     } catch (err: any) {
       console.error('Erro ao buscar setores:', err);
     } finally {

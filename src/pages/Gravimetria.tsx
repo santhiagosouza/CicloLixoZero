@@ -125,8 +125,60 @@ const Gravimetria: React.FC = () => {
     const fetchConfig = async () => {
       setLoadingData(true);
       try {
-        const [secRes, classRes, catRes, typeRes, subRes] = await Promise.all([
-          supabase.from('sectors').select('id, name').eq('client_id', clientId).eq('active', true).order('name'),
+        // Busca setores do cliente
+        let secRes = await supabase
+          .from('sectors')
+          .select('id, name')
+          .eq('client_id', clientId)
+          .eq('active', true)
+          .order('name');
+
+        let secs = (secRes.data || []) as Sector[];
+
+        // Se a lista de setores estiver vazia OU contiver apenas "Geral"
+        if (secs.length === 0 || (secs.length === 1 && secs[0].name.toLowerCase() === 'geral')) {
+          const { data: clientData } = await supabase
+            .from('clients')
+            .select('company_type_id')
+            .eq('id', clientId)
+            .single();
+
+          if (clientData?.company_type_id) {
+            const { data: defaultSectors } = await supabase
+              .from('company_type_default_sectors')
+              .select('name')
+              .eq('company_type_id', clientData.company_type_id);
+
+            if (defaultSectors && defaultSectors.length > 0) {
+              const existingNames = new Set(secs.map(s => s.name.toLowerCase()));
+              const toInsert = defaultSectors
+                .filter(ds => !existingNames.has(ds.name.toLowerCase()))
+                .map(ds => ({
+                  client_id: clientId,
+                  name: ds.name,
+                  active: true
+                }));
+
+              if (toInsert.length > 0) {
+                const { error: insertErr } = await supabase
+                  .from('sectors')
+                  .insert(toInsert);
+
+                if (!insertErr) {
+                  const reSecRes = await supabase
+                    .from('sectors')
+                    .select('id, name')
+                    .eq('client_id', clientId)
+                    .eq('active', true)
+                    .order('name');
+                  secs = (reSecRes.data || []) as Sector[];
+                }
+              }
+            }
+          }
+        }
+
+        const [classRes, catRes, typeRes, subRes] = await Promise.all([
           supabase.from('classifications').select('id, name'),
           supabase.from('categories').select('id, name, color').order('name'),
           supabase.from('types').select('id, subcategory_id, name, color, default_classification_id').eq('client_id', clientId).eq('active', true).order('name'),
@@ -136,7 +188,6 @@ const Gravimetria: React.FC = () => {
             .order('name')
         ]);
 
-        const secs = (secRes.data || []) as Sector[];
         const classes = (classRes.data || []) as Classification[];
         const cats = (catRes.data || []) as Category[];
         const typs = (typeRes.data || []) as Type[];
