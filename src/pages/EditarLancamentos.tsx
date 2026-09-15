@@ -305,40 +305,98 @@ const EditarLancamentos: React.FC = () => {
 
                   if (isEditingThisRow) {
                     return (
-                      <tr key={w.id} style={{ backgroundColor: 'rgba(56, 142, 60, 0.04)' }}>
-                        <td><input type="date" className="form-input" style={{ padding: '0.25rem 0.5rem', minWidth: '110px' }} value={editData} onChange={e => setEditData(e.target.value)} /></td>
-                        <td>
-                          <select className="form-select" style={{ padding: '0.25rem 0.5rem', minWidth: '100px' }} value={editSector} onChange={e => setEditSector(e.target.value)}>
+                      <tr key={w.id} style={{ backgroundColor: '#f0fdf4', borderLeft: '4px solid #157a43' }}>
+                        <td style={{ padding: '0.5rem 0.35rem' }}>
+                          <input 
+                            type="date" 
+                            className="form-input" 
+                            style={{ height: '34px', padding: '0.25rem 0.5rem', fontSize: '0.8rem', borderRadius: '6px', border: '1px solid #cbd5e1', backgroundColor: '#ffffff' }}
+                            value={editData} 
+                            onChange={e => setEditData(e.target.value)} 
+                          />
+                        </td>
+                        <td style={{ padding: '0.5rem 0.35rem' }}>
+                          <select 
+                            className="form-select" 
+                            style={{ height: '34px', padding: '0.25rem 0.5rem', fontSize: '0.8rem', borderRadius: '6px', border: '1px solid #cbd5e1', backgroundColor: '#ffffff' }}
+                            value={editSector} 
+                            onChange={e => setEditSector(e.target.value)}
+                          >
                             <option value="">Selecione...</option>
                             {sectors.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                           </select>
                         </td>
-                        <td>
-                          <select className="form-select" style={{ padding: '0.25rem 0.5rem', minWidth: '100px' }} value={editCategory} onChange={e => { setEditCategory(e.target.value); handleEditSubChange(''); }}>
+                        <td style={{ padding: '0.5rem 0.35rem' }}>
+                          <select 
+                            className="form-select" 
+                            style={{ height: '34px', padding: '0.25rem 0.5rem', fontSize: '0.8rem', borderRadius: '6px', border: '1px solid #cbd5e1', backgroundColor: '#ffffff' }}
+                            value={editCategory} 
+                            onChange={e => { setEditCategory(e.target.value); handleEditSubChange(''); }}
+                          >
                             <option value="">Selecione...</option>
                             {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                           </select>
                         </td>
-                        <td>
-                          <select className="form-select" style={{ padding: '0.25rem 0.5rem', minWidth: '100px' }} value={editSub} onChange={e => handleEditSubChange(e.target.value)} disabled={!editCategory}>
+                        <td style={{ padding: '0.5rem 0.35rem' }}>
+                          <select 
+                            className="form-select" 
+                            style={{ height: '34px', padding: '0.25rem 0.5rem', fontSize: '0.8rem', borderRadius: '6px', border: '1px solid #cbd5e1', backgroundColor: '#ffffff' }}
+                            value={editSub} 
+                            onChange={e => handleEditSubChange(e.target.value)} 
+                            disabled={!editCategory}
+                          >
                             <option value="">Selecione...</option>
                             {editFilteredSubs.map((s: Subcategory) => <option key={s.id} value={s.id}>{s.name}</option>)}
                           </select>
                         </td>
-                        <td>
-                          <select className="form-select" style={{ padding: '0.25rem 0.5rem', minWidth: '100px' }} value={editType} onChange={e => handleEditTypeChange(e.target.value)} disabled={!editSub}>
+                        <td style={{ padding: '0.5rem 0.35rem' }}>
+                          <select 
+                            className="form-select" 
+                            style={{ height: '34px', padding: '0.25rem 0.5rem', fontSize: '0.8rem', borderRadius: '6px', border: '1px solid #cbd5e1', backgroundColor: '#ffffff' }}
+                            value={editType} 
+                            onChange={e => handleEditTypeChange(e.target.value)} 
+                            disabled={!editSub}
+                          >
                             <option value="">Selecione...</option>
                             {editFilteredTypes.map((t: Type) => <option key={t.id} value={t.id}>{t.name}</option>)}
                           </select>
                         </td>
-                        <td>
-                          <span className="text-sm font-medium">{classMap[editClass] || '—'}</span>
+                        <td style={{ padding: '0.5rem 0.35rem', verticalAlign: 'middle' }}>
+                          {editClass ? (
+                            <span className="badge" style={{ backgroundColor: '#e0f2fe', color: '#0369a1', fontWeight: 700, fontSize: '0.75rem', padding: '0.25rem 0.5rem', borderRadius: '9999px', border: '1px solid #bae6fd' }}>
+                              {classMap[editClass]}
+                            </span>
+                          ) : (
+                            <span style={{ color: '#94a3b8', fontSize: '0.8rem' }}>-</span>
+                          )}
                         </td>
-                        <td><input type="number" step="0.001" min="0.001" className="form-input text-right" style={{ padding: '0.25rem 0.5rem', width: '80px', display: 'inline-block' }} value={editPeso} onChange={e => setEditPeso(e.target.value)} /></td>
-                        <td>
-                          <div className="flex gap-2 justify-end">
-                            <button onClick={() => handleSaveInlineEdit(w.id)} className="btn btn-ghost btn-icon" style={{ color: 'hsl(var(--primary))' }} title="Salvar"><Check size={16} /></button>
-                            <button onClick={() => setEditId(null)} className="btn btn-ghost btn-icon" style={{ color: 'hsl(var(--destructive))' }} title="Cancelar"><X size={16} /></button>
+                        <td className="text-right" style={{ padding: '0.5rem 0.35rem' }}>
+                          <input 
+                            type="number" 
+                            step="0.001" 
+                            min="0.001" 
+                            className="form-input text-right font-semibold" 
+                            style={{ height: '34px', padding: '0.25rem 0.5rem', fontSize: '0.8rem', width: '80px', borderRadius: '6px', border: '1px solid #cbd5e1', backgroundColor: '#ffffff', display: 'inline-block' }}
+                            value={editPeso} 
+                            onChange={e => setEditPeso(e.target.value)} 
+                          />
+                        </td>
+                        <td style={{ padding: '0.5rem 0.35rem', verticalAlign: 'middle' }}>
+                          <div className="flex gap-1.5 justify-end items-center">
+                            <button 
+                              onClick={() => handleSaveInlineEdit(w.id)} 
+                              style={{ backgroundColor: '#157a43', color: '#ffffff', border: 'none', borderRadius: '6px', width: '32px', height: '32px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 1px 2px rgba(0,0,0,0.1)' }}
+                              title="Salvar alterações"
+                            >
+                              <Check size={16} />
+                            </button>
+                            <button 
+                              onClick={() => setEditId(null)} 
+                              style={{ backgroundColor: '#ffffff', color: '#64748b', border: '1px solid #cbd5e1', borderRadius: '6px', width: '32px', height: '32px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+                              title="Cancelar"
+                            >
+                              <X size={16} />
+                            </button>
                           </div>
                         </td>
                       </tr>

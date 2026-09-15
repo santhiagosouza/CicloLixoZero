@@ -61,7 +61,10 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
   // 1. Regular Client/Impersonated Client Menu
   if (clientId) {
     menuItems.push(
-      { path: '/', label: 'Gravimetria', icon: Scale },
+      { path: '/dashboard', label: 'Dashboard', icon: BarChart2 },
+      { path: '/empresa', label: 'Empresa', icon: Building2 },
+      { path: '/lancamentos-reais', label: 'Lançamentos Reais', icon: Scale },
+      { path: '/gravimetria', label: 'Gravimetria', icon: Layers },
       { path: '/sectors', label: 'Setores', icon: Grid },
       { path: '/types', label: 'Tipos', icon: Layers },
       { path: '/users', label: 'Usuários', icon: Users },

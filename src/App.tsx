@@ -14,6 +14,10 @@ import Reports from './pages/Reports';
 import NotFound from './pages/NotFound';
 import EditarLancamentos from './pages/EditarLancamentos';
 
+import DashboardResiduos from './pages/DashboardResiduos';
+import GerenciarLancamentosReais from './pages/GerenciarLancamentosReais';
+import CadastroEmpresa from './pages/CadastroEmpresa';
+
 import MasterDashboard from './pages/master/MasterDashboard';
 import Clients from './pages/master/Clients';
 import ClientForm from './pages/master/ClientForm';
@@ -37,8 +41,8 @@ const HomeRedirect = () => {
     return <Navigate to="/master" replace />;
   }
 
-  // Otherwise, default landing is Gravimetria weighings page
-  return <AppLayout><Gravimetria /></AppLayout>;
+  // Default landing page for clients: Dashboard Resíduos
+  return <AppLayout><DashboardResiduos /></AppLayout>;
 };
 
 const App: React.FC = () => {
@@ -51,6 +55,11 @@ const App: React.FC = () => {
 
           {/* Authenticated Client/General Routes */}
           <Route path="/" element={<ProtectedRoute><HomeRedirect /></ProtectedRoute>} />
+          <Route path="/dashboard" element={<ProtectedRoute><AppLayout><DashboardResiduos /></AppLayout></ProtectedRoute>} />
+          <Route path="/empresa" element={<ProtectedRoute><AppLayout><CadastroEmpresa /></AppLayout></ProtectedRoute>} />
+          <Route path="/lancamentos-reais" element={<ProtectedRoute><AppLayout><GerenciarLancamentosReais /></AppLayout></ProtectedRoute>} />
+
+          <Route path="/gravimetria" element={<ProtectedRoute><AppLayout><Gravimetria /></AppLayout></ProtectedRoute>} />
           <Route path="/gravimetria/:id" element={<ProtectedRoute><AppLayout><GravimetriaDetail /></AppLayout></ProtectedRoute>} />
           <Route path="/gravimetria/:id/lancamentos" element={<ProtectedRoute><AppLayout><EditarLancamentos /></AppLayout></ProtectedRoute>} />
           <Route path="/sectors" element={<ProtectedRoute><AppLayout><Sectors /></AppLayout></ProtectedRoute>} />
