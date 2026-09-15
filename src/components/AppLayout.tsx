@@ -245,25 +245,15 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
                       }}
                       className="menu-link hoverable"
                     >
-                      <div className="flex items-center gap-3">
-                        <Settings size={17} opacity={0.85} />
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                        <Settings size={17} style={{ flexShrink: 0, opacity: 0.9 }} />
                         <span>Configurações</span>
                       </div>
-                      {configOpen ? <ChevronDown size={16} opacity={0.8} /> : <ChevronRight size={16} opacity={0.8} />}
+                      {configOpen ? <ChevronDown size={15} style={{ flexShrink: 0, opacity: 0.8 }} /> : <ChevronRight size={15} style={{ flexShrink: 0, opacity: 0.8 }} />}
                     </button>
 
                     {configOpen && (
-                      <div 
-                        className="flex flex-col gap-1 py-1 my-1" 
-                        style={{ 
-                          backgroundColor: 'rgba(0, 0, 0, 0.18)', 
-                          borderLeft: '2px solid rgba(255, 255, 255, 0.25)', 
-                          marginLeft: '1.25rem', 
-                          marginRight: '0.75rem',
-                          borderRadius: '6px',
-                          paddingLeft: '0.25rem'
-                        }}
-                      >
+                      <div className="flex flex-col my-0.5">
                         {configSubItems.map(sub => {
                           const SubIcon = sub.icon;
                           const isSubActive = location.pathname === sub.path;
@@ -275,20 +265,18 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
                               style={{
                                 display: 'flex',
                                 alignItems: 'center',
-                                padding: '0.55rem 0.85rem',
+                                gap: '0.75rem',
+                                padding: '0.65rem 1.25rem 0.65rem 2.5rem',
                                 fontWeight: isSubActive ? 800 : 500,
                                 fontSize: '0.825rem',
                                 color: isSubActive ? '#06522c' : 'rgba(255, 255, 255, 0.85)',
                                 backgroundColor: isSubActive ? '#9bbb59' : 'transparent',
-                                borderRadius: '4px',
                                 transition: 'all 0.15s ease',
                               }}
                               className={`menu-link ${isSubActive ? '' : 'hoverable'}`}
                             >
-                              <div className="flex items-center gap-2.5">
-                                <SubIcon size={15} opacity={isSubActive ? 1 : 0.85} style={{ color: isSubActive ? '#06522c' : 'inherit' }} />
-                                <span>{sub.label}</span>
-                              </div>
+                              <SubIcon size={16} style={{ flexShrink: 0, color: isSubActive ? '#06522c' : 'rgba(255, 255, 255, 0.85)' }} />
+                              <span style={{ whiteSpace: 'nowrap' }}>{sub.label}</span>
                             </Link>
                           );
                         })}
