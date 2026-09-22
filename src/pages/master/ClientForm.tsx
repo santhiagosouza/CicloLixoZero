@@ -543,11 +543,11 @@ const ClientForm: React.FC = () => {
                         setOperatingDays(prev => isChecked ? prev.filter(d => d !== day) : [...prev, day]);
                       }} 
                       style={{ 
-                        border: isChecked ? '1px solid #157a43' : '1px solid #cbd5e1', 
+                        border: isChecked ? '1px solid #157a43' : '1px solid #dc2626', 
                         borderRadius: '6px', 
                         padding: '0.45rem 0.85rem', 
-                        backgroundColor: isChecked ? '#157a43' : '#ffffff', 
-                        color: isChecked ? '#ffffff' : '#334155', 
+                        backgroundColor: isChecked ? '#157a43' : '#dc2626', 
+                        color: '#ffffff', 
                         fontWeight: 700, 
                         fontSize: '0.8rem', 
                         cursor: 'pointer', 
@@ -579,11 +579,11 @@ const ClientForm: React.FC = () => {
                         setOperatingShifts(prev => isChecked ? prev.filter(s => s !== shift) : [...prev, shift]);
                       }} 
                       style={{ 
-                        border: isChecked ? '1px solid #157a43' : '1px solid #cbd5e1', 
+                        border: isChecked ? '1px solid #157a43' : '1px solid #dc2626', 
                         borderRadius: '6px', 
                         padding: '0.45rem 0.85rem', 
-                        backgroundColor: isChecked ? '#157a43' : '#ffffff', 
-                        color: isChecked ? '#ffffff' : '#334155', 
+                        backgroundColor: isChecked ? '#157a43' : '#dc2626', 
+                        color: '#ffffff', 
                         fontWeight: 700, 
                         fontSize: '0.8rem', 
                         cursor: 'pointer', 
