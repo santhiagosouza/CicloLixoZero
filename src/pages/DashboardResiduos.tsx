@@ -35,10 +35,9 @@ export const DashboardResiduos: React.FC = () => {
   const [activeTab, setActiveTab] = useState<1 | 2 | 3>(2);
 
   // Filters
+  // Filters
   const [dataInicio, setDataInicio] = useState('2026-01-01');
   const [dataFim, setDataFim] = useState('2026-12-31');
-  const [selectedYear, setSelectedYear] = useState('2026');
-  const [selectedMonth, setSelectedMonth] = useState('MAR');
 
   // Client context metrics
   const [clientInfo, setClientInfo] = useState({
@@ -57,20 +56,20 @@ export const DashboardResiduos: React.FC = () => {
 
   // Computed totals & statistics
   const [pesosCategorias, setPesosCategorias] = useState({
-    organicoKg: 9665,
-    reciclavelKg: 9665,
-    especialKg: 9665,
-    aterroKg: 9665,
-    totalKg: 18235
+    organicoKg: 1450.5,
+    reciclavelKg: 915,
+    especialKg: 15,
+    aterroKg: 195,
+    totalKg: 2575.5
   });
 
-  const [destinosData] = useState([
-    { name: 'ATERRO', percent: 15, color: '#9ca3af' },
-    { name: 'COMPOSTAGEM', percent: 54, color: '#157a43' },
-    { name: 'COOPERATIVA', percent: 30.5, color: '#9bbb59' }
+  const [destinosData, setDestinosData] = useState([
+    { name: 'ATERRO', percent: 7.6, color: '#9ca3af' },
+    { name: 'COMPOSTAGEM', percent: 56.3, color: '#157a43' },
+    { name: 'COOPERATIVA', percent: 36.1, color: '#9bbb59' }
   ]);
 
-  const [geracaoMensal] = useState([
+  const [geracaoMensal, setGeracaoMensal] = useState([
     { mes: 'JAN', kg: 1548, valor: 2000, labelValor: 'R$ 2000', co2Evitado: 1548 },
     { mes: 'FEV', kg: 1678, valor: 2000, labelValor: 'R$ 2000', co2Evitado: 1678 },
     { mes: 'MAR', kg: 1752, valor: 2000, labelValor: 'R$ 2000', co2Evitado: 1752 },
@@ -85,7 +84,7 @@ export const DashboardResiduos: React.FC = () => {
     { mes: 'DEZ', kg: 968, valor: 2000, labelValor: 'R$ 2000', co2Evitado: 968 }
   ]);
 
-  const [geracaoSetor] = useState([
+  const [geracaoSetor, setGeracaoSetor] = useState([
     { item: 'Papel', kg: 14469, color: '#157a43' },
     { item: 'Plástico', kg: 2625, color: '#157a43' },
     { item: 'Vidro', kg: 2418, color: '#9ca3af' },
@@ -94,11 +93,11 @@ export const DashboardResiduos: React.FC = () => {
 
   // Derived metrics
   const [carbonMetrics, setCarbonMetrics] = useState<CarbonMetrics>({
-    emissoesAterroKg: 24357.0,
-    emissoesReciclagemKg: 8781.0,
-    emissoesEvitadasKg: 15576.0,
-    creditoCarbonoR$: 412.77,
-    arvoresPoupadas: 9665,
+    emissoesAterroKg: 3444.0,
+    emissoesReciclagemKg: 1242.0,
+    emissoesEvitadasKg: 2202.0,
+    creditoCarbonoR$: 58.35,
+    arvoresPoupadas: 242,
     emissaoEnergiaKg: 4109.0,
     emissaoAguaKg: 0.8,
     emissaoTransporteAterroKg: 3938.7,
@@ -107,17 +106,17 @@ export const DashboardResiduos: React.FC = () => {
   });
 
   const [financialMetrics, setFinancialMetrics] = useState<FinancialMetrics>({
-    saldoEconomico: 34815,
-    valorMaterialTotal: 24971,
-    aterroEvitadoTotal: 9844,
+    saldoEconomico: 4927,
+    valorMaterialTotal: 3535,
+    aterroEvitadoTotal: 1392,
     custoConsumoTotal: 3243,
-    valorLiquido: 31572,
+    valorLiquido: 1684,
     valorPorMaterial: {
-      'ORGÂNICO': 10000,
-      'PLÁSTICO': 10000,
-      'PAPEL': 10000,
-      'METAL': 10000,
-      'VIDRO': 10000
+      'ORGÂNICO': 1450,
+      'PLÁSTICO': 915,
+      'PAPEL': 500,
+      'METAL': 400,
+      'VIDRO': 270
     }
   });
 
@@ -202,9 +201,9 @@ export const DashboardResiduos: React.FC = () => {
   const recalcularPainel = (dados: WasteLaunchRow[], uf: string) => {
     if (dados.length === 0) {
       // Cálculo proporcional baseado no protótipo das imagens fornecidas
-      const pCat = { organicoKg: 9665, reciclavelKg: 9665, especialKg: 9665, aterroKg: 2735, totalKg: 18235 };
-      const pMat = { 'ORGÂNICO': 9846, 'PLÁSTICO': 2370, 'PAPEL': 1823, 'VIDRO': 455, 'METAL': 911, 'REJEITO': 2735, 'PERIGOSO': 91 };
-      const pTipos = { 'PET Transparente': 1500, 'Papelão': 1800, 'Composto Orgânico': 9665 };
+      const pCat = { organicoKg: 1450.5, reciclavelKg: 915, especialKg: 15, aterroKg: 195, totalKg: 2575.5 };
+      const pMat = { 'ORGÂNICO': 1450.5, 'PLÁSTICO': 400, 'PAPEL': 315, 'VIDRO': 100, 'METAL': 100, 'REJEITO': 195, 'PERIGOSO': 15 };
+      const pTipos = { 'Composto Orgânico': 1450.5, 'Reciclável Diverso': 915, 'Resíduo Especial': 15 };
 
       setPesosCategorias(pCat);
 
@@ -216,7 +215,7 @@ export const DashboardResiduos: React.FC = () => {
       return;
     }
 
-    // Processamento real
+    // Processamento real dos lançamentos do banco
     let totalKg = 0;
     let organicoKg = 0;
     let reciclavelKg = 0;
@@ -227,6 +226,10 @@ export const DashboardResiduos: React.FC = () => {
       'ORGÂNICO': 0, 'PLÁSTICO': 0, 'PAPEL': 0, 'VIDRO': 0, 'METAL': 0, 'REJEITO': 0, 'PERIGOSO': 0
     };
     const tiposNomeMap: Record<string, number> = {};
+    const mesNomes = ['JAN', 'FEV', 'MAR', 'ABR', 'MAI', 'JUN', 'JUL', 'AGO', 'SET', 'OUT', 'NOV', 'DEZ'];
+    const mensalMap: Record<number, { kg: number; valor: number; co2: number }> = {};
+    const setorMap: Record<string, number> = {};
+    const destinoMap: Record<string, number> = {};
 
     dados.forEach(row => {
       const kg = row.peso_kg;
@@ -240,6 +243,22 @@ export const DashboardResiduos: React.FC = () => {
 
       const typeName = row.type_name || 'Diversos';
       tiposNomeMap[typeName] = (tiposNomeMap[typeName] || 0) + kg;
+
+      const sector = row.sector_name || 'Geral';
+      setorMap[sector] = (setorMap[sector] || 0) + kg;
+
+      const dest = (row.destino || 'OUTROS').toUpperCase();
+      destinoMap[dest] = (destinoMap[dest] || 0) + kg;
+
+      if (row.data) {
+        const d = new Date(row.data);
+        const mIdx = d.getMonth();
+        if (!isNaN(mIdx)) {
+          if (!mensalMap[mIdx]) mensalMap[mIdx] = { kg: 0, valor: 0, co2: 0 };
+          mensalMap[mIdx].kg += kg;
+          mensalMap[mIdx].co2 += Math.round(kg * 0.85);
+        }
+      }
 
       const tLower = typeName.toLowerCase();
       if (tLower.includes('orgânic') || catLower.includes('orgânic')) matMap['ORGÂNICO'] += kg;
@@ -259,6 +278,38 @@ export const DashboardResiduos: React.FC = () => {
 
     const fin = calcularMetricasFinanceiras(uf, tiposNomeMap, pCat);
     setFinancialMetrics(fin);
+
+    // Atualizar mensal dinâmico
+    const novasMensal = mesNomes.map((mes, idx) => {
+      const item = mensalMap[idx] || { kg: 0, valor: 0, co2: 0 };
+      const val = Math.round(item.kg * 1.15);
+      return {
+        mes,
+        kg: Math.round(item.kg),
+        valor: val,
+        labelValor: `R$ ${val}`,
+        co2Evitado: item.co2
+      };
+    });
+    setGeracaoMensal(novasMensal);
+
+    // Atualizar setores dinâmicos
+    const novasSetor = Object.keys(setorMap).map(s => ({
+      item: s,
+      kg: Math.round(setorMap[s]),
+      color: '#157a43'
+    }));
+    if (novasSetor.length > 0) setGeracaoSetor(novasSetor);
+
+    // Atualizar destinos dinâmicos
+    if (totalKg > 0) {
+      const novasDestino = Object.keys(destinoMap).map(d => ({
+        name: d,
+        percent: Number(((destinoMap[d] / totalKg) * 100).toFixed(1)),
+        color: d.includes('ATERRO') ? '#9ca3af' : d.includes('COMPOST') ? '#157a43' : '#9bbb59'
+      }));
+      setDestinosData(novasDestino);
+    }
   };
 
   const mediaPerCapita = clientInfo.numPessoas > 0 
@@ -582,15 +633,6 @@ export const DashboardResiduos: React.FC = () => {
             <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '1.5rem' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
                 <h3 style={{ fontSize: '0.95rem', fontWeight: 700, color: '#0c4a24' }}>• Geração de Resíduos kg / Ano</h3>
-                <div style={{ display: 'flex', gap: '0.5rem' }}>
-                  <select value={selectedYear} onChange={e => setSelectedYear(e.target.value)} style={{ padding: '0.25rem 0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.75rem' }}>
-                    <option value="2026">Ano 2026</option>
-                  </select>
-                  <select value={selectedMonth} onChange={e => setSelectedMonth(e.target.value)} style={{ padding: '0.25rem 0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.75rem' }}>
-                    <option value="TODOS">Mês TODOS</option>
-                    <option value="MAR">Mês MAR</option>
-                  </select>
-                </div>
               </div>
               <div style={{ height: '220px', width: '100%' }}>
                 <ResponsiveContainer width="100%" height="100%">
@@ -785,19 +827,8 @@ export const DashboardResiduos: React.FC = () => {
             {/* Gráfico de Linha: Valor Estimado / R$ / mês */}
             <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '1.5rem' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
-                <h3 style={{ fontSize: '0.95rem', fontWeight: 700, color: '#157a43' }}>Selecione o Período</h3>
-                <div style={{ display: 'flex', gap: '0.5rem' }}>
-                  <select value={selectedYear} onChange={e => setSelectedYear(e.target.value)} style={{ padding: '0.25rem 0.625rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.75rem', backgroundColor: '#157a43', color: '#fff', fontWeight: 700 }}>
-                    <option value="2026">Ano 2026</option>
-                  </select>
-                  <select value={selectedMonth} onChange={e => setSelectedMonth(e.target.value)} style={{ padding: '0.25rem 0.625rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.75rem', backgroundColor: '#157a43', color: '#fff', fontWeight: 700 }}>
-                    <option value="TODOS">Mês TODOS</option>
-                    <option value="MAR">Mês MAR</option>
-                  </select>
-                </div>
+                <h3 style={{ fontSize: '0.95rem', fontWeight: 700, color: '#157a43' }}>• Valor Estimado / R$ / mês</h3>
               </div>
-
-              <p style={{ fontSize: '0.75rem', fontWeight: 700, color: '#475569', marginBottom: '1rem' }}>• Valor Estimado / R$ / mês</p>
 
               <div style={{ height: '220px', width: '100%' }}>
                 <ResponsiveContainer width="100%" height="100%">
@@ -815,14 +846,6 @@ export const DashboardResiduos: React.FC = () => {
             <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <h3 style={{ fontSize: '0.95rem', fontWeight: 700, color: '#157a43' }}>Consumo</h3>
-                <div style={{ display: 'flex', gap: '0.375rem' }}>
-                  <select value={selectedYear} onChange={e => setSelectedYear(e.target.value)} style={{ padding: '0.2rem 0.5rem', borderRadius: '4px', border: '1px solid #cbd5e1', fontSize: '0.7rem', backgroundColor: '#157a43', color: '#fff', fontWeight: 700 }}>
-                    <option value="2026">Ano 2026</option>
-                  </select>
-                  <select value={selectedMonth} onChange={e => setSelectedMonth(e.target.value)} style={{ padding: '0.2rem 0.5rem', borderRadius: '4px', border: '1px solid #cbd5e1', fontSize: '0.7rem', backgroundColor: '#157a43', color: '#fff', fontWeight: 700 }}>
-                    <option value="MAR">Mês MAR</option>
-                  </select>
-                </div>
               </div>
               
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -869,14 +892,6 @@ export const DashboardResiduos: React.FC = () => {
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
               <h3 style={{ fontSize: '1rem', fontWeight: 800, color: '#157a43' }}>Valor do Material</h3>
-              <div style={{ display: 'flex', gap: '0.375rem' }}>
-                <select value={selectedYear} onChange={e => setSelectedYear(e.target.value)} style={{ padding: '0.2rem 0.5rem', borderRadius: '4px', border: '1px solid #cbd5e1', fontSize: '0.7rem', backgroundColor: '#157a43', color: '#fff', fontWeight: 700 }}>
-                  <option value="2026">Ano 2026</option>
-                </select>
-                <select value={selectedMonth} onChange={e => setSelectedMonth(e.target.value)} style={{ padding: '0.2rem 0.5rem', borderRadius: '4px', border: '1px solid #cbd5e1', fontSize: '0.7rem', backgroundColor: '#157a43', color: '#fff', fontWeight: 700 }}>
-                  <option value="MAR">Mês MAR</option>
-                </select>
-              </div>
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '1rem' }}>
