@@ -530,9 +530,7 @@ export const DashboardResiduos: React.FC = () => {
             
             {/* Total Resíduos */}
             <div style={{ backgroundColor: '#0c4a24', color: '#ffffff', borderRadius: '12px', padding: '1.25rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
-              <div style={{ backgroundColor: 'rgba(255,255,255,0.15)', padding: '0.625rem', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <img src="/icones/a01.png" alt="Total Resíduos" style={{ width: '32px', height: '32px', objectFit: 'contain' }} />
-              </div>
+              <img src="/icones/a01.png" alt="Total Resíduos" style={{ width: '44px', height: '44px', objectFit: 'contain' }} />
               <div>
                 <p style={{ fontSize: '0.75rem', textTransform: 'uppercase', opacity: 0.8, fontWeight: 700 }}>Total Resíduos</p>
                 <p style={{ fontSize: '1.5rem', fontWeight: 800 }}>{pesosCategorias.totalKg.toLocaleString('pt-BR')} <span style={{ fontSize: '0.9rem', fontWeight: 500 }}>kg</span></p>
@@ -746,9 +744,7 @@ export const DashboardResiduos: React.FC = () => {
             
             {/* Saldo Econômico (Verde Destacado) */}
             <div style={{ backgroundColor: '#0c4a24', color: '#ffffff', borderRadius: '12px', padding: '1.25rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
-              <div style={{ backgroundColor: 'rgba(255,255,255,0.15)', padding: '0.625rem', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <img src="/icones/a06.png" alt="Saldo Econômico" style={{ width: '36px', height: '36px', objectFit: 'contain' }} />
-              </div>
+              <img src="/icones/a06.png" alt="Saldo Econômico" style={{ width: '44px', height: '44px', objectFit: 'contain' }} />
               <div>
                 <p style={{ fontSize: '0.75rem', textTransform: 'uppercase', opacity: 0.85, fontWeight: 700 }}>Saldo Econômico</p>
                 <p style={{ fontSize: '1.65rem', fontWeight: 800 }}>R$ {financialMetrics.saldoEconomico.toLocaleString('pt-BR')}</p>
@@ -991,9 +987,7 @@ export const DashboardResiduos: React.FC = () => {
             
             {/* Emissões Evitadas */}
             <div style={{ backgroundColor: '#0c4a24', color: '#ffffff', borderRadius: '12px', padding: '1.25rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
-              <div style={{ backgroundColor: 'rgba(255,255,255,0.15)', padding: '0.625rem', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <img src="/icones/a20.png" alt="Emissões Evitadas" style={{ width: '32px', height: '32px', objectFit: 'contain' }} />
-              </div>
+              <img src="/icones/a20.png" alt="Emissões Evitadas" style={{ width: '44px', height: '44px', objectFit: 'contain' }} />
               <div>
                 <p style={{ fontSize: '0.75rem', textTransform: 'uppercase', opacity: 0.8, fontWeight: 700 }}>Emissões Evitadas</p>
                 <p style={{ fontSize: '1.5rem', fontWeight: 800 }}>{carbonMetrics.emissoesEvitadasKg.toLocaleString('pt-BR')} <span style={{ fontSize: '0.85rem', fontWeight: 500 }}>kg</span></p>
