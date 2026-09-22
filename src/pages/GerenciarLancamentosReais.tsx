@@ -270,7 +270,7 @@ export const GerenciarLancamentosReais: React.FC = () => {
           </Link>
           <div>
             <h1 style={{ fontSize: '1.75rem', margin: 0, fontWeight: 800, color: '#0f172a' }}>Gestão de Lançamentos de Resíduos</h1>
-            <p className="text-muted text-sm">Registre as pesagens físicas e acompanhe os lançamentos reais de resíduos</p>
+            <p className="text-muted text-sm">Registre as pesagens físicas e acompanhe os lançamentos de resíduos</p>
           </div>
         </div>
       </div>

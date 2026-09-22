@@ -79,7 +79,7 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
   if (clientId) {
     menuItems.push(
       { path: '/dashboard', label: 'Dashboard', icon: BarChart2 },
-      { path: '/lancamentos-reais', label: 'Lançamentos Reais', icon: Scale },
+      { path: '/lancamentos-reais', label: 'Lançamento de Resíduos', icon: Scale },
       { path: '/gravimetria', label: 'Gravimetria', icon: Layers },
       // { path: '/reports', label: 'Relatórios', icon: BarChart2 }, // Oculto temporariamente
       { isConfigGroup: true }
