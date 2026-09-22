@@ -6,26 +6,11 @@ import {
   LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, PieChart, Pie
 } from 'recharts';
 import { 
-  Scale, 
-  Leaf, 
-  Recycle, 
-  Trash2, 
-  TrendingUp, 
-  DollarSign, 
-  Zap, 
-  Droplet, 
-  Truck, 
   Users, 
   Maximize2, 
   Pencil, 
   Download, 
-  TreePine, 
-  ShieldCheck,
-  Tag,
-  Package,
-  FileText,
-  Boxes,
-  Wine
+  TrendingUp
 } from 'lucide-react';
 import { calcularPegadaCarbono, type CarbonMetrics } from '../utils/carbonCalculations';
 import { calcularMetricasFinanceiras, type FinancialMetrics } from '../utils/financialCalculations';
@@ -545,8 +530,8 @@ export const DashboardResiduos: React.FC = () => {
             
             {/* Total Resíduos */}
             <div style={{ backgroundColor: '#0c4a24', color: '#ffffff', borderRadius: '12px', padding: '1.25rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
-              <div style={{ backgroundColor: 'rgba(255,255,255,0.15)', padding: '0.75rem', borderRadius: '10px' }}>
-                <Scale size={28} />
+              <div style={{ backgroundColor: 'rgba(255,255,255,0.15)', padding: '0.625rem', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <img src="/icones/a01.png" alt="Total Resíduos" style={{ width: '32px', height: '32px', objectFit: 'contain' }} />
               </div>
               <div>
                 <p style={{ fontSize: '0.75rem', textTransform: 'uppercase', opacity: 0.8, fontWeight: 700 }}>Total Resíduos</p>
@@ -556,8 +541,8 @@ export const DashboardResiduos: React.FC = () => {
 
             {/* Orgânico */}
             <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '1.25rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
-              <div style={{ backgroundColor: '#fef3c7', color: '#b45309', padding: '0.75rem', borderRadius: '10px' }}>
-                <Leaf size={24} />
+              <div style={{ backgroundColor: '#fef3c7', padding: '0.625rem', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <img src="/icones/a02.png" alt="Orgânico" style={{ width: '30px', height: '30px', objectFit: 'contain' }} />
               </div>
               <div>
                 <p style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: '#64748b', fontWeight: 700 }}>Orgânico</p>
@@ -567,8 +552,8 @@ export const DashboardResiduos: React.FC = () => {
 
             {/* Reciclável */}
             <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '1.25rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
-              <div style={{ backgroundColor: '#dbeafe', color: '#1d4ed8', padding: '0.75rem', borderRadius: '10px' }}>
-                <Recycle size={24} />
+              <div style={{ backgroundColor: '#dbeafe', padding: '0.625rem', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <img src="/icones/a03.png" alt="Reciclável" style={{ width: '30px', height: '30px', objectFit: 'contain' }} />
               </div>
               <div>
                 <p style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: '#64748b', fontWeight: 700 }}>Reciclável</p>
@@ -578,8 +563,8 @@ export const DashboardResiduos: React.FC = () => {
 
             {/* Especial */}
             <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '1.25rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
-              <div style={{ backgroundColor: '#dcfce7', color: '#15803d', padding: '0.75rem', borderRadius: '10px' }}>
-                <Recycle size={24} />
+              <div style={{ backgroundColor: '#dcfce7', padding: '0.625rem', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <img src="/icones/a04.png" alt="Especial" style={{ width: '30px', height: '30px', objectFit: 'contain' }} />
               </div>
               <div>
                 <p style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: '#64748b', fontWeight: 700 }}>Especial</p>
@@ -589,8 +574,8 @@ export const DashboardResiduos: React.FC = () => {
 
             {/* Aterro */}
             <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '1.25rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
-              <div style={{ backgroundColor: '#f1f5f9', color: '#475569', padding: '0.75rem', borderRadius: '10px' }}>
-                <Trash2 size={24} />
+              <div style={{ backgroundColor: '#f1f5f9', padding: '0.625rem', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <img src="/icones/a05.png" alt="Aterro" style={{ width: '30px', height: '30px', objectFit: 'contain' }} />
               </div>
               <div>
                 <p style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: '#64748b', fontWeight: 700 }}>Aterro</p>
@@ -659,8 +644,8 @@ export const DashboardResiduos: React.FC = () => {
             <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '1.5rem', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}>
               <h3 style={{ fontSize: '0.85rem', fontWeight: 800, color: '#0c4a24', letterSpacing: '0.05em', marginBottom: '1rem' }}>ÁRVORES POUPADA</h3>
               
-              <div style={{ backgroundColor: '#ecfdf5', borderRadius: '50%', padding: '1.25rem', color: '#10b981', marginBottom: '1rem' }}>
-                <TreePine size={48} />
+              <div style={{ backgroundColor: '#ecfdf5', borderRadius: '50%', padding: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1rem' }}>
+                <img src="/icones/a24.png" alt="Árvores Poupadas" style={{ width: '48px', height: '48px', objectFit: 'contain' }} />
               </div>
 
               <p style={{ fontSize: '1.75rem', fontWeight: 800, color: '#0f172a' }}>{carbonMetrics.arvoresPoupadas.toLocaleString('pt-BR')}</p>
@@ -761,8 +746,8 @@ export const DashboardResiduos: React.FC = () => {
             
             {/* Saldo Econômico (Verde Destacado) */}
             <div style={{ backgroundColor: '#0c4a24', color: '#ffffff', borderRadius: '12px', padding: '1.25rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
-              <div style={{ backgroundColor: 'rgba(255,255,255,0.15)', padding: '0.75rem', borderRadius: '10px' }}>
-                <DollarSign size={32} />
+              <div style={{ backgroundColor: 'rgba(255,255,255,0.15)', padding: '0.625rem', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <img src="/icones/a06.png" alt="Saldo Econômico" style={{ width: '36px', height: '36px', objectFit: 'contain' }} />
               </div>
               <div>
                 <p style={{ fontSize: '0.75rem', textTransform: 'uppercase', opacity: 0.85, fontWeight: 700 }}>Saldo Econômico</p>
@@ -772,8 +757,8 @@ export const DashboardResiduos: React.FC = () => {
 
             {/* Valor do Material */}
             <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '1.25rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
-              <div style={{ backgroundColor: '#157a43', color: '#ffffff', padding: '0.625rem', borderRadius: '8px' }}>
-                <Tag size={22} />
+              <div style={{ backgroundColor: '#157a43', padding: '0.625rem', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <img src="/icones/a07.png" alt="Valor do Material" style={{ width: '28px', height: '28px', objectFit: 'contain' }} />
               </div>
               <div>
                 <p style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 700 }}>Valor do Material</p>
@@ -783,8 +768,8 @@ export const DashboardResiduos: React.FC = () => {
 
             {/* Aterro Evitado */}
             <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '1.25rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
-              <div style={{ backgroundColor: '#157a43', color: '#ffffff', padding: '0.625rem', borderRadius: '8px' }}>
-                <Truck size={22} />
+              <div style={{ backgroundColor: '#157a43', padding: '0.625rem', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <img src="/icones/a08.png" alt="Aterro Evitado" style={{ width: '28px', height: '28px', objectFit: 'contain' }} />
               </div>
               <div>
                 <p style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 700 }}>Aterro Evitado</p>
@@ -794,8 +779,8 @@ export const DashboardResiduos: React.FC = () => {
 
             {/* Consumo */}
             <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '1.25rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
-              <div style={{ backgroundColor: '#157a43', color: '#ffffff', padding: '0.625rem', borderRadius: '8px' }}>
-                <Zap size={22} />
+              <div style={{ backgroundColor: '#157a43', padding: '0.625rem', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <img src="/icones/a09.png" alt="Consumo" style={{ width: '28px', height: '28px', objectFit: 'contain' }} />
               </div>
               <div>
                 <p style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 700 }}>Consumo</p>
@@ -805,8 +790,8 @@ export const DashboardResiduos: React.FC = () => {
 
             {/* Valor Líquido */}
             <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '1.25rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
-              <div style={{ backgroundColor: '#157a43', color: '#ffffff', padding: '0.625rem', borderRadius: '8px' }}>
-                <DollarSign size={22} />
+              <div style={{ backgroundColor: '#157a43', padding: '0.625rem', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <img src="/icones/a10.png" alt="Valor Líquido" style={{ width: '28px', height: '28px', objectFit: 'contain' }} />
               </div>
               <div>
                 <p style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 700 }}>Valor Líquido</p>
@@ -864,8 +849,8 @@ export const DashboardResiduos: React.FC = () => {
               
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                  <div style={{ backgroundColor: '#157a43', color: '#ffffff', padding: '0.5rem', borderRadius: '8px' }}>
-                    <Zap size={18} />
+                  <div style={{ backgroundColor: '#157a43', padding: '0.4rem', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <img src="/icones/a11.png" alt="Energia" style={{ width: '18px', height: '18px', objectFit: 'contain' }} />
                   </div>
                   <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#475569' }}>ENERGIA</span>
                 </div>
@@ -875,8 +860,8 @@ export const DashboardResiduos: React.FC = () => {
 
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                  <div style={{ backgroundColor: '#157a43', color: '#ffffff', padding: '0.5rem', borderRadius: '8px' }}>
-                    <Droplet size={18} />
+                  <div style={{ backgroundColor: '#157a43', padding: '0.4rem', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <img src="/icones/a12.png" alt="Água" style={{ width: '18px', height: '18px', objectFit: 'contain' }} />
                   </div>
                   <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#475569' }}>ÁGUA</span>
                 </div>
@@ -886,8 +871,8 @@ export const DashboardResiduos: React.FC = () => {
 
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                  <div style={{ backgroundColor: '#157a43', color: '#ffffff', padding: '0.5rem', borderRadius: '8px' }}>
-                    <Truck size={18} />
+                  <div style={{ backgroundColor: '#157a43', padding: '0.4rem', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <img src="/icones/a13.png" alt="Km Aterro" style={{ width: '18px', height: '18px', objectFit: 'contain' }} />
                   </div>
                   <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#475569' }}>KM / ATERRO</span>
                 </div>
@@ -897,8 +882,8 @@ export const DashboardResiduos: React.FC = () => {
 
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                  <div style={{ backgroundColor: '#157a43', color: '#ffffff', padding: '0.5rem', borderRadius: '8px' }}>
-                    <Recycle size={18} />
+                  <div style={{ backgroundColor: '#157a43', padding: '0.4rem', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <img src="/icones/a14.png" alt="Km Reciclagem" style={{ width: '18px', height: '18px', objectFit: 'contain' }} />
                   </div>
                   <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#475569' }}>KM / RECICLAGEM</span>
                 </div>
@@ -928,8 +913,8 @@ export const DashboardResiduos: React.FC = () => {
               
               {/* Orgânico */}
               <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '1.25rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                <div style={{ backgroundColor: '#157a43', color: '#ffffff', padding: '0.75rem', borderRadius: '10px' }}>
-                  <Leaf size={26} />
+                <div style={{ backgroundColor: '#157a43', padding: '0.625rem', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <img src="/icones/a15.png" alt="Orgânico" style={{ width: '30px', height: '30px', objectFit: 'contain' }} />
                 </div>
                 <div>
                   <p style={{ fontSize: '0.75rem', fontWeight: 800, color: '#0f172a' }}>ORGÂNICO</p>
@@ -939,8 +924,8 @@ export const DashboardResiduos: React.FC = () => {
 
               {/* Plástico */}
               <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '1.25rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                <div style={{ backgroundColor: '#157a43', color: '#ffffff', padding: '0.75rem', borderRadius: '10px' }}>
-                  <Package size={26} />
+                <div style={{ backgroundColor: '#157a43', padding: '0.625rem', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <img src="/icones/a16.png" alt="Plástico" style={{ width: '30px', height: '30px', objectFit: 'contain' }} />
                 </div>
                 <div>
                   <p style={{ fontSize: '0.75rem', fontWeight: 800, color: '#0f172a' }}>PLÁSTICO</p>
@@ -950,8 +935,8 @@ export const DashboardResiduos: React.FC = () => {
 
               {/* Papel */}
               <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '1.25rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                <div style={{ backgroundColor: '#157a43', color: '#ffffff', padding: '0.75rem', borderRadius: '10px' }}>
-                  <FileText size={26} />
+                <div style={{ backgroundColor: '#157a43', padding: '0.625rem', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <img src="/icones/a17.png" alt="Papel" style={{ width: '30px', height: '30px', objectFit: 'contain' }} />
                 </div>
                 <div>
                   <p style={{ fontSize: '0.75rem', fontWeight: 800, color: '#0f172a' }}>PAPEL</p>
@@ -961,8 +946,8 @@ export const DashboardResiduos: React.FC = () => {
 
               {/* Metal */}
               <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '1.25rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                <div style={{ backgroundColor: '#157a43', color: '#ffffff', padding: '0.75rem', borderRadius: '10px' }}>
-                  <Boxes size={26} />
+                <div style={{ backgroundColor: '#157a43', padding: '0.625rem', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <img src="/icones/a18.png" alt="Metal" style={{ width: '30px', height: '30px', objectFit: 'contain' }} />
                 </div>
                 <div>
                   <p style={{ fontSize: '0.75rem', fontWeight: 800, color: '#0f172a' }}>METAL</p>
@@ -972,8 +957,8 @@ export const DashboardResiduos: React.FC = () => {
 
               {/* Vidro */}
               <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '1.25rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                <div style={{ backgroundColor: '#157a43', color: '#ffffff', padding: '0.75rem', borderRadius: '10px' }}>
-                  <Wine size={26} />
+                <div style={{ backgroundColor: '#157a43', padding: '0.625rem', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <img src="/icones/a19.png" alt="Vidro" style={{ width: '30px', height: '30px', objectFit: 'contain' }} />
                 </div>
                 <div>
                   <p style={{ fontSize: '0.75rem', fontWeight: 800, color: '#0f172a' }}>VIDRO</p>
@@ -995,8 +980,8 @@ export const DashboardResiduos: React.FC = () => {
           
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap' }}>
             <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0c4a24' }}>Nossa Pegada Carbono</h2>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0', padding: '0.375rem 0.875rem', borderRadius: '9999px' }}>
-              <ShieldCheck size={16} style={{ color: '#16a34a' }} />
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', backgroundColor: '#ffffff', border: '1px solid #cbd5e1', padding: '0.375rem 0.875rem', borderRadius: '9999px' }}>
+              <img src="/icones/logo ghg protocol.png" alt="GHG Protocol" style={{ height: '24px', objectFit: 'contain' }} />
               <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#15803d' }}>Metodologia adotada: Programa Brasileiro GHG Protocol</span>
             </div>
           </div>
@@ -1006,8 +991,8 @@ export const DashboardResiduos: React.FC = () => {
             
             {/* Emissões Evitadas */}
             <div style={{ backgroundColor: '#0c4a24', color: '#ffffff', borderRadius: '12px', padding: '1.25rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
-              <div style={{ backgroundColor: 'rgba(255,255,255,0.15)', padding: '0.75rem', borderRadius: '10px' }}>
-                <DollarSign size={28} />
+              <div style={{ backgroundColor: 'rgba(255,255,255,0.15)', padding: '0.625rem', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <img src="/icones/a20.png" alt="Emissões Evitadas" style={{ width: '32px', height: '32px', objectFit: 'contain' }} />
               </div>
               <div>
                 <p style={{ fontSize: '0.75rem', textTransform: 'uppercase', opacity: 0.8, fontWeight: 700 }}>Emissões Evitadas</p>
@@ -1017,8 +1002,8 @@ export const DashboardResiduos: React.FC = () => {
 
             {/* Emissões Aterro */}
             <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '1.25rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
-              <div style={{ backgroundColor: '#f1f5f9', color: '#475569', padding: '0.75rem', borderRadius: '10px' }}>
-                <Truck size={24} />
+              <div style={{ backgroundColor: '#157a43', padding: '0.625rem', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <img src="/icones/a21.png" alt="Emissões Aterro" style={{ width: '28px', height: '28px', objectFit: 'contain' }} />
               </div>
               <div>
                 <p style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: '#64748b', fontWeight: 700 }}>Emissões Aterro</p>
@@ -1028,8 +1013,8 @@ export const DashboardResiduos: React.FC = () => {
 
             {/* Emissões Reciclagem */}
             <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '1.25rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
-              <div style={{ backgroundColor: '#dcfce7', color: '#15803d', padding: '0.75rem', borderRadius: '10px' }}>
-                <Recycle size={24} />
+              <div style={{ backgroundColor: '#157a43', padding: '0.625rem', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <img src="/icones/a22.png" alt="Emissões Reciclagem" style={{ width: '28px', height: '28px', objectFit: 'contain' }} />
               </div>
               <div>
                 <p style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: '#64748b', fontWeight: 700 }}>Emissões Reciclagem</p>
@@ -1039,8 +1024,8 @@ export const DashboardResiduos: React.FC = () => {
 
             {/* Estima Crédito Carbono */}
             <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '1.25rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
-              <div style={{ backgroundColor: '#0c4a24', color: '#ffffff', padding: '0.75rem', borderRadius: '10px' }}>
-                <Leaf size={24} />
+              <div style={{ backgroundColor: '#157a43', padding: '0.625rem', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <img src="/icones/a23.png" alt="Estima Crédito Carbono" style={{ width: '28px', height: '28px', objectFit: 'contain' }} />
               </div>
               <div>
                 <p style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: '#64748b', fontWeight: 700 }}>Estima Crédito Carbono</p>
@@ -1071,8 +1056,8 @@ export const DashboardResiduos: React.FC = () => {
             {/* Cenário 01 Aterro */}
             <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '1.5rem', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}>
               <h3 style={{ fontSize: '0.8rem', fontWeight: 800, color: '#0c4a24', marginBottom: '1rem' }}>Cenário 01 Aterro</h3>
-              <div style={{ color: '#ea580c', marginBottom: '0.75rem' }}>
-                <Truck size={42} />
+              <div style={{ marginBottom: '0.75rem' }}>
+                <img src="/icones/a21.png" alt="Cenário Aterro" style={{ width: '42px', height: '42px', objectFit: 'contain' }} />
               </div>
               <p style={{ fontSize: '1.35rem', fontWeight: 800, color: '#0f172a' }}>{carbonMetrics.emissoesAterroKg.toLocaleString('pt-BR')}</p>
               <span style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 600 }}>CO²eq/kg</span>
@@ -1081,8 +1066,8 @@ export const DashboardResiduos: React.FC = () => {
             {/* Cenário 02 Reciclagem */}
             <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '1.5rem', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}>
               <h3 style={{ fontSize: '0.8rem', fontWeight: 800, color: '#0c4a24', marginBottom: '1rem' }}>Cenário 02 Reciclagem</h3>
-              <div style={{ color: '#10b981', marginBottom: '0.75rem' }}>
-                <Recycle size={42} />
+              <div style={{ marginBottom: '0.75rem' }}>
+                <img src="/icones/a22.png" alt="Cenário Reciclagem" style={{ width: '42px', height: '42px', objectFit: 'contain' }} />
               </div>
               <p style={{ fontSize: '1.35rem', fontWeight: 800, color: '#0f172a' }}>{carbonMetrics.emissoesReciclagemKg.toLocaleString('pt-BR')}</p>
               <span style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 600 }}>CO²eq/kg</span>
@@ -1091,8 +1076,8 @@ export const DashboardResiduos: React.FC = () => {
             {/* Árvores Poupada */}
             <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '1.5rem', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}>
               <h3 style={{ fontSize: '0.8rem', fontWeight: 800, color: '#0c4a24', marginBottom: '1rem' }}>Resultado Comparativo</h3>
-              <div style={{ color: '#157a43', marginBottom: '0.5rem' }}>
-                <TreePine size={42} />
+              <div style={{ marginBottom: '0.5rem' }}>
+                <img src="/icones/a24.png" alt="Árvores Poupadas" style={{ width: '42px', height: '42px', objectFit: 'contain' }} />
               </div>
               <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#157a43' }}>ÁRVORES POUPADA</span>
               <p style={{ fontSize: '1.5rem', fontWeight: 800, color: '#0f172a', marginTop: '0.25rem' }}>{carbonMetrics.arvoresPoupadas.toLocaleString('pt-BR')}</p>
@@ -1110,7 +1095,10 @@ export const DashboardResiduos: React.FC = () => {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.875rem' }}>
                 
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#475569', width: '100px' }}>Orgânico</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', width: '120px' }}>
+                    <img src="/icones/a15.png" alt="Orgânico" style={{ width: '20px', height: '20px', objectFit: 'contain' }} />
+                    <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#475569' }}>Orgânico</span>
+                  </div>
                   <div style={{ flex: 1, backgroundColor: '#f1f5f9', height: '10px', borderRadius: '5px', margin: '0 1rem', overflow: 'hidden' }}>
                     <div style={{ width: '75%', backgroundColor: '#b45309', height: '100%', borderRadius: '5px' }} />
                   </div>
@@ -1118,7 +1106,10 @@ export const DashboardResiduos: React.FC = () => {
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#475569', width: '100px' }}>Plástico</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', width: '120px' }}>
+                    <img src="/icones/a16.png" alt="Plástico" style={{ width: '20px', height: '20px', objectFit: 'contain' }} />
+                    <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#475569' }}>Plástico</span>
+                  </div>
                   <div style={{ flex: 1, backgroundColor: '#f1f5f9', height: '10px', borderRadius: '5px', margin: '0 1rem', overflow: 'hidden' }}>
                     <div style={{ width: '45%', backgroundColor: '#ef4444', height: '100%', borderRadius: '5px' }} />
                   </div>
@@ -1126,7 +1117,10 @@ export const DashboardResiduos: React.FC = () => {
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#475569', width: '100px' }}>Papel</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', width: '120px' }}>
+                    <img src="/icones/a17.png" alt="Papel" style={{ width: '20px', height: '20px', objectFit: 'contain' }} />
+                    <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#475569' }}>Papel</span>
+                  </div>
                   <div style={{ flex: 1, backgroundColor: '#f1f5f9', height: '10px', borderRadius: '5px', margin: '0 1rem', overflow: 'hidden' }}>
                     <div style={{ width: '35%', backgroundColor: '#2563eb', height: '100%', borderRadius: '5px' }} />
                   </div>
@@ -1134,7 +1128,10 @@ export const DashboardResiduos: React.FC = () => {
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#475569', width: '100px' }}>Vidro</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', width: '120px' }}>
+                    <img src="/icones/a19.png" alt="Vidro" style={{ width: '20px', height: '20px', objectFit: 'contain' }} />
+                    <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#475569' }}>Vidro</span>
+                  </div>
                   <div style={{ flex: 1, backgroundColor: '#f1f5f9', height: '10px', borderRadius: '5px', margin: '0 1rem', overflow: 'hidden' }}>
                     <div style={{ width: '15%', backgroundColor: '#10b981', height: '100%', borderRadius: '5px' }} />
                   </div>
@@ -1142,7 +1139,10 @@ export const DashboardResiduos: React.FC = () => {
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#475569', width: '100px' }}>Metal</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', width: '120px' }}>
+                    <img src="/icones/a18.png" alt="Metal" style={{ width: '20px', height: '20px', objectFit: 'contain' }} />
+                    <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#475569' }}>Metal</span>
+                  </div>
                   <div style={{ flex: 1, backgroundColor: '#f1f5f9', height: '10px', borderRadius: '5px', margin: '0 1rem', overflow: 'hidden' }}>
                     <div style={{ width: '85%', backgroundColor: '#eab308', height: '100%', borderRadius: '5px' }} />
                   </div>
@@ -1150,7 +1150,10 @@ export const DashboardResiduos: React.FC = () => {
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#475569', width: '100px' }}>Perigoso</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', width: '120px' }}>
+                    <img src="/icones/a04.png" alt="Perigoso" style={{ width: '20px', height: '20px', objectFit: 'contain' }} />
+                    <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#475569' }}>Perigoso</span>
+                  </div>
                   <div style={{ flex: 1, backgroundColor: '#f1f5f9', height: '10px', borderRadius: '5px', margin: '0 1rem', overflow: 'hidden' }}>
                     <div style={{ width: '12%', backgroundColor: '#0f172a', height: '100%', borderRadius: '5px' }} />
                   </div>
@@ -1166,7 +1169,7 @@ export const DashboardResiduos: React.FC = () => {
 
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: '0.5rem', borderBottom: '1px solid #f1f5f9' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                  <Zap size={20} style={{ color: '#157a43' }} />
+                  <img src="/icones/a11.png" alt="Energia" style={{ width: '20px', height: '20px', objectFit: 'contain' }} />
                   <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#475569' }}>ENERGIA</span>
                 </div>
                 <span style={{ fontSize: '0.95rem', fontWeight: 800, color: '#0f172a' }}>{carbonMetrics.emissaoEnergiaKg.toLocaleString('pt-BR')} <span style={{ fontSize: '0.75rem', fontWeight: 500, color: '#64748b' }}>Co²eq / kWh</span></span>
@@ -1174,7 +1177,7 @@ export const DashboardResiduos: React.FC = () => {
 
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: '0.5rem', borderBottom: '1px solid #f1f5f9' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                  <Droplet size={20} style={{ color: '#157a43' }} />
+                  <img src="/icones/a12.png" alt="Água" style={{ width: '20px', height: '20px', objectFit: 'contain' }} />
                   <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#475569' }}>ÁGUA</span>
                 </div>
                 <span style={{ fontSize: '0.95rem', fontWeight: 800, color: '#0f172a' }}>{carbonMetrics.emissaoAguaKg.toLocaleString('pt-BR')} <span style={{ fontSize: '0.75rem', fontWeight: 500, color: '#64748b' }}>Co²eq / m³</span></span>
@@ -1182,7 +1185,7 @@ export const DashboardResiduos: React.FC = () => {
 
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: '0.5rem', borderBottom: '1px solid #f1f5f9' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                  <Truck size={20} style={{ color: '#157a43' }} />
+                  <img src="/icones/a13.png" alt="Aterro" style={{ width: '20px', height: '20px', objectFit: 'contain' }} />
                   <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#475569' }}>ATERRO</span>
                 </div>
                 <span style={{ fontSize: '0.95rem', fontWeight: 800, color: '#0f172a' }}>{carbonMetrics.emissaoTransporteAterroKg.toLocaleString('pt-BR')} <span style={{ fontSize: '0.75rem', fontWeight: 500, color: '#64748b' }}>Co²eq / Km</span></span>
@@ -1190,7 +1193,7 @@ export const DashboardResiduos: React.FC = () => {
 
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                  <Recycle size={20} style={{ color: '#157a43' }} />
+                  <img src="/icones/a14.png" alt="Reciclagem" style={{ width: '20px', height: '20px', objectFit: 'contain' }} />
                   <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#475569' }}>RECICLAGEM</span>
                 </div>
                 <span style={{ fontSize: '0.95rem', fontWeight: 800, color: '#0f172a' }}>{carbonMetrics.emissaoTransporteReciclagemKg.toLocaleString('pt-BR')} <span style={{ fontSize: '0.75rem', fontWeight: 500, color: '#64748b' }}>Co²eq / Km</span></span>

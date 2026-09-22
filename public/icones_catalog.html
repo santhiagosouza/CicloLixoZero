@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Catálogo de Ícones do Sistema</title>
+  <style>
+    body { font-family: sans-serif; background: #f8fafc; padding: 2rem; color: #0f172a; }
+    h1 { margin-bottom: 1.5rem; color: #0c4a24; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 1rem; }
+    .card { background: #fff; border: 1px solid #cbd5e1; border-radius: 8px; padding: 1rem; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+    .card img { max-width: 64px; max-height: 64px; margin-bottom: 0.5rem; object-fit: contain; }
+    .card p { margin: 0; font-size: 0.85rem; font-weight: 600; color: #334155; }
+  </style>
+</head>
+<body>
+  <h1>Catálogo de Ícones do Sistema (arq/icones)</h1>
+  <div class="grid" id="container"></div>
+
+  <script>
+    const icons = [
+      'a01.png', 'a02.png', 'a03.png', 'a04.png', 'a05.png', 'a06.png',
+      'a07.png', 'a08.png', 'a09.png', 'a10.png', 'a11.png', 'a12.png',
+      'a13.png', 'a14.png', 'a15.png', 'a16.png', 'a17.png', 'a18.png',
+      'a19.png', 'a20.png', 'a21.png', 'a22.png', 'a23.png', 'a24.png',
+      'logo ghg protocol.png'
+    ];
+
+    const container = document.getElementById('container');
+    icons.forEach(name => {
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.innerHTML = `<img src="/icones/${encodeURIComponent(name)}" alt="${name}"><p>${name}</p>`;
+      container.appendChild(card);
+    });
+  </script>
+</body>
+</html>
