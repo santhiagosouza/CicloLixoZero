@@ -514,10 +514,23 @@ export const CadastroEmpresa: React.FC = () => {
               <input type="number" className="form-input" placeholder="Ex: 45" value={teamCount} onChange={e => setTeamCount(e.target.value)} />
             </div>
 
+            {/* LEGENDA DE SELEÇÃO */}
+            <div className="md:col-span-3 flex items-center gap-4 text-xs font-semibold" style={{ backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '6px', padding: '0.5rem 0.85rem', marginBottom: '0.25rem', color: '#475569' }}>
+              <span className="font-bold text-slate-700">Legenda de Seleção:</span>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                <span style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#157a43', display: 'inline-block' }} />
+                <strong style={{ color: '#157a43' }}>Verde:</strong> Ativo / Selecionado
+              </span>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                <span style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#dc2626', display: 'inline-block' }} />
+                <strong style={{ color: '#dc2626' }}>Vermelho:</strong> Inativo / Não Selecionado
+              </span>
+            </div>
+
             {/* FUNCIONAMENTO */}
             <div className="form-group md:col-span-2">
               <label className="form-label font-bold text-xs uppercase block mb-2" style={{ color: '#475569' }}>
-                FUNCIONAMENTO
+                FUNCIONAMENTO (DIAS)
               </label>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
                 {['SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB', 'DOM'].map(day => {
@@ -552,7 +565,7 @@ export const CadastroEmpresa: React.FC = () => {
             {/* PERÍODOS */}
             <div className="form-group">
               <label className="form-label font-bold text-xs uppercase block mb-2" style={{ color: '#475569' }}>
-                PERÍODOS
+                PERÍODOS (TURNOS)
               </label>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
                 {['MANHÃ', 'TARDE', 'NOITE'].map(shift => {
