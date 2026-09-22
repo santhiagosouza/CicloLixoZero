@@ -519,7 +519,7 @@ export const CadastroEmpresa: React.FC = () => {
               <label className="form-label font-bold text-xs uppercase block mb-2" style={{ color: '#475569' }}>
                 FUNCIONAMENTO
               </label>
-              <div className="grid grid-cols-7 gap-2">
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
                 {['SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB', 'DOM'].map(day => {
                   const isChecked = operatingDays.includes(day);
                   return (
@@ -531,32 +531,18 @@ export const CadastroEmpresa: React.FC = () => {
                       }} 
                       style={{ 
                         border: isChecked ? '1px solid #157a43' : '1px solid #cbd5e1', 
-                        borderRadius: '8px', 
-                        padding: '0.5rem 0.2rem', 
+                        borderRadius: '6px', 
+                        padding: '0.45rem 0.85rem', 
                         backgroundColor: isChecked ? '#157a43' : '#ffffff', 
-                        color: isChecked ? '#ffffff' : '#475569', 
+                        color: isChecked ? '#ffffff' : '#334155', 
                         fontWeight: 700, 
                         fontSize: '0.8rem', 
                         cursor: 'pointer', 
                         userSelect: 'none',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        gap: '3px',
                         transition: 'all 0.15s ease'
                       }}
                     >
-                      <span>{day}</span>
-                      <span style={{ 
-                        fontSize: '0.65rem', 
-                        padding: '1px 6px', 
-                        borderRadius: '4px', 
-                        backgroundColor: isChecked ? 'rgba(255, 255, 255, 0.25)' : '#f1f5f9', 
-                        color: isChecked ? '#ffffff' : '#94a3b8', 
-                        fontWeight: 800 
-                      }}>
-                        {isChecked ? 'ON' : 'OFF'}
-                      </span>
+                      {day}
                     </button>
                   );
                 })}
@@ -568,7 +554,7 @@ export const CadastroEmpresa: React.FC = () => {
               <label className="form-label font-bold text-xs uppercase block mb-2" style={{ color: '#475569' }}>
                 PERÍODOS
               </label>
-              <div className="grid grid-cols-3 gap-2">
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
                 {['MANHÃ', 'TARDE', 'NOITE'].map(shift => {
                   const isChecked = operatingShifts.includes(shift);
                   return (
@@ -580,32 +566,18 @@ export const CadastroEmpresa: React.FC = () => {
                       }} 
                       style={{ 
                         border: isChecked ? '1px solid #157a43' : '1px solid #cbd5e1', 
-                        borderRadius: '8px', 
-                        padding: '0.5rem 0.2rem', 
+                        borderRadius: '6px', 
+                        padding: '0.45rem 0.85rem', 
                         backgroundColor: isChecked ? '#157a43' : '#ffffff', 
-                        color: isChecked ? '#ffffff' : '#475569', 
+                        color: isChecked ? '#ffffff' : '#334155', 
                         fontWeight: 700, 
                         fontSize: '0.8rem', 
                         cursor: 'pointer', 
                         userSelect: 'none',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        gap: '3px',
                         transition: 'all 0.15s ease'
                       }}
                     >
-                      <span>{shift}</span>
-                      <span style={{ 
-                        fontSize: '0.65rem', 
-                        padding: '1px 6px', 
-                        borderRadius: '4px', 
-                        backgroundColor: isChecked ? 'rgba(255, 255, 255, 0.25)' : '#f1f5f9', 
-                        color: isChecked ? '#ffffff' : '#94a3b8', 
-                        fontWeight: 800 
-                      }}>
-                        {isChecked ? 'ON' : 'OFF'}
-                      </span>
+                      {shift}
                     </button>
                   );
                 })}
