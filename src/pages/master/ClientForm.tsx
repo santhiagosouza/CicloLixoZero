@@ -301,8 +301,10 @@ const ClientForm: React.FC = () => {
           )}
 
           {/* SECTION 1: IDENTIFICAÇÃO DA ESCOLA */}
-          <div style={{ backgroundColor: '#2b78b8', color: '#ffffff', padding: '0.625rem 1.25rem', borderRadius: '4px', fontWeight: 800, fontSize: '0.95rem', letterSpacing: '0.04em' }}>
-            IDENTIFICAÇÃO DA ESCOLA
+          <div style={{ borderBottom: '1px solid #e2e8f0', paddingBottom: '0.5rem', marginBottom: '1.25rem' }}>
+            <h3 style={{ fontSize: '0.9rem', fontWeight: 700, color: '#0f172a', textTransform: 'uppercase', letterSpacing: '0.04em', margin: 0 }}>
+              Identificação da Escola
+            </h3>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -393,8 +395,10 @@ const ClientForm: React.FC = () => {
           </div>
 
           {/* SECTION 2: ENDEREÇO E CONTATO */}
-          <div style={{ backgroundColor: '#2b78b8', color: '#ffffff', padding: '0.625rem 1.25rem', borderRadius: '4px', fontWeight: 800, fontSize: '0.95rem', letterSpacing: '0.04em', marginTop: '1rem' }}>
-            ENDEREÇO E CONTATO
+          <div style={{ borderBottom: '1px solid #e2e8f0', paddingBottom: '0.5rem', marginBottom: '1.25rem', marginTop: '1rem' }}>
+            <h3 style={{ fontSize: '0.9rem', fontWeight: 700, color: '#0f172a', textTransform: 'uppercase', letterSpacing: '0.04em', margin: 0 }}>
+              Endereço e Contato
+            </h3>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -480,8 +484,10 @@ const ClientForm: React.FC = () => {
           </div>
 
           {/* SECTION 3: DADOS DO LOCAL */}
-          <div style={{ backgroundColor: '#2b78b8', color: '#ffffff', padding: '0.625rem 1.25rem', borderRadius: '4px', fontWeight: 800, fontSize: '0.95rem', letterSpacing: '0.04em', marginTop: '1rem' }}>
-            DADOS DO LOCAL
+          <div style={{ borderBottom: '1px solid #e2e8f0', paddingBottom: '0.5rem', marginBottom: '1.25rem', marginTop: '1rem' }}>
+            <h3 style={{ fontSize: '0.9rem', fontWeight: 700, color: '#0f172a', textTransform: 'uppercase', letterSpacing: '0.04em', margin: 0 }}>
+              Dados do Local
+            </h3>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -522,34 +528,49 @@ const ClientForm: React.FC = () => {
 
             {/* FUNCIONAMENTO */}
             <div className="form-group md:col-span-2">
-              <label className="form-label font-bold text-xs uppercase" style={{ color: '#475569' }}>
-                FUNCIONAMENTO <span style={{ color: '#dc2626', fontStyle: 'italic', fontWeight: 400 }}>(Marque com "X" as opções abaixo)</span>
+              <label className="form-label font-bold text-xs uppercase block mb-2" style={{ color: '#475569' }}>
+                FUNCIONAMENTO
               </label>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '0.5rem', textAlign: 'center' }}>
+              <div className="grid grid-cols-7 gap-2">
                 {['SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB', 'DOM'].map(day => {
                   const isChecked = operatingDays.includes(day);
                   return (
-                    <div 
+                    <button 
                       key={day} 
+                      type="button"
                       onClick={() => {
                         if (submitting) return;
                         setOperatingDays(prev => isChecked ? prev.filter(d => d !== day) : [...prev, day]);
                       }} 
                       style={{ 
-                        border: '1px solid #cbd5e1', 
-                        borderRadius: '6px', 
-                        padding: '0.5rem 0.25rem', 
+                        border: isChecked ? '1px solid #157a43' : '1px solid #cbd5e1', 
+                        borderRadius: '8px', 
+                        padding: '0.5rem 0.2rem', 
                         backgroundColor: isChecked ? '#157a43' : '#ffffff', 
                         color: isChecked ? '#ffffff' : '#475569', 
                         fontWeight: 700, 
                         fontSize: '0.8rem', 
                         cursor: 'pointer', 
-                        userSelect: 'none' 
+                        userSelect: 'none',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        gap: '3px',
+                        transition: 'all 0.15s ease'
                       }}
                     >
-                      <div>{day}</div>
-                      <div style={{ fontSize: '0.9rem', marginTop: '0.2rem' }}>{isChecked ? 'X' : ' '}</div>
-                    </div>
+                      <span>{day}</span>
+                      <span style={{ 
+                        fontSize: '0.65rem', 
+                        padding: '1px 6px', 
+                        borderRadius: '4px', 
+                        backgroundColor: isChecked ? 'rgba(255, 255, 255, 0.25)' : '#f1f5f9', 
+                        color: isChecked ? '#ffffff' : '#94a3b8', 
+                        fontWeight: 800 
+                      }}>
+                        {isChecked ? 'ON' : 'OFF'}
+                      </span>
+                    </button>
                   );
                 })}
               </div>
@@ -557,34 +578,49 @@ const ClientForm: React.FC = () => {
 
             {/* PERÍODOS */}
             <div className="form-group">
-              <label className="form-label font-bold text-xs uppercase" style={{ color: '#475569' }}>
-                PERÍODOS <span style={{ color: '#dc2626', fontStyle: 'italic', fontWeight: 400 }}>(Marque com "X")</span>
+              <label className="form-label font-bold text-xs uppercase block mb-2" style={{ color: '#475569' }}>
+                PERÍODOS
               </label>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem', textAlign: 'center' }}>
+              <div className="grid grid-cols-3 gap-2">
                 {['MANHÃ', 'TARDE', 'NOITE'].map(shift => {
                   const isChecked = operatingShifts.includes(shift);
                   return (
-                    <div 
+                    <button 
                       key={shift} 
+                      type="button"
                       onClick={() => {
                         if (submitting) return;
                         setOperatingShifts(prev => isChecked ? prev.filter(s => s !== shift) : [...prev, shift]);
                       }} 
                       style={{ 
-                        border: '1px solid #cbd5e1', 
-                        borderRadius: '6px', 
-                        padding: '0.5rem 0.25rem', 
+                        border: isChecked ? '1px solid #157a43' : '1px solid #cbd5e1', 
+                        borderRadius: '8px', 
+                        padding: '0.5rem 0.2rem', 
                         backgroundColor: isChecked ? '#157a43' : '#ffffff', 
                         color: isChecked ? '#ffffff' : '#475569', 
                         fontWeight: 700, 
                         fontSize: '0.8rem', 
                         cursor: 'pointer', 
-                        userSelect: 'none' 
+                        userSelect: 'none',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        gap: '3px',
+                        transition: 'all 0.15s ease'
                       }}
                     >
-                      <div>{shift}</div>
-                      <div style={{ fontSize: '0.9rem', marginTop: '0.2rem' }}>{isChecked ? 'X' : ' '}</div>
-                    </div>
+                      <span>{shift}</span>
+                      <span style={{ 
+                        fontSize: '0.65rem', 
+                        padding: '1px 6px', 
+                        borderRadius: '4px', 
+                        backgroundColor: isChecked ? 'rgba(255, 255, 255, 0.25)' : '#f1f5f9', 
+                        color: isChecked ? '#ffffff' : '#94a3b8', 
+                        fontWeight: 800 
+                      }}>
+                        {isChecked ? 'ON' : 'OFF'}
+                      </span>
+                    </button>
                   );
                 })}
               </div>
@@ -594,8 +630,10 @@ const ClientForm: React.FC = () => {
           {/* SECTION 4: FIRST ADMIN USER */}
           {!isEdit && (
             <div className="flex flex-col gap-4" style={{ borderTop: '1px solid #f1f5f9', paddingTop: '1.5rem', marginTop: '1rem' }}>
-              <div style={{ backgroundColor: '#0c4a24', color: '#ffffff', padding: '0.625rem 1.25rem', borderRadius: '4px', fontWeight: 800, fontSize: '0.95rem', letterSpacing: '0.04em' }}>
-                PRIMEIRO ADMINISTRADOR DA ESCOLA
+              <div style={{ borderBottom: '1px solid #e2e8f0', paddingBottom: '0.5rem', marginBottom: '0.5rem' }}>
+                <h3 style={{ fontSize: '0.9rem', fontWeight: 700, color: '#0f172a', textTransform: 'uppercase', letterSpacing: '0.04em', margin: 0 }}>
+                  Primeiro Administrador da Escola
+                </h3>
               </div>
               
               <div className="form-group">
