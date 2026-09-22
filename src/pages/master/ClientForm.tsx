@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { supabase } from '../../integrations/supabase/client';
-import { ArrowLeft, Building, Save } from 'lucide-react';
+import { ArrowLeft, GraduationCap, Save } from 'lucide-react';
 
 interface CompanyType {
   id: string;
@@ -22,21 +22,25 @@ const ClientForm: React.FC = () => {
   // Fields
   const [name, setName] = useState('');
   const [cnpj, setCnpj] = useState('');
-  const [uf, setUf] = useState('SP');
+  const [cpf, setCpf] = useState('');
   const [licenseNumber, setLicenseNumber] = useState('');
+  const [seguimento, setSeguimento] = useState('');
   const [companyTypeId, setCompanyTypeId] = useState('');
   const [responsibleName, setResponsibleName] = useState('');
+
+  const [address, setAddress] = useState('');
+  const [bairro, setBairro] = useState('');
+  const [city, setCity] = useState('');
+  const [uf, setUf] = useState('SP');
+  const [zipCode, setZipCode] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
-  const [city, setCity] = useState('');
-  const [address, setAddress] = useState('');
-  const [zipCode, setZipCode] = useState('');
+
   const [peopleCount, setPeopleCount] = useState('');
   const [teamCount, setTeamCount] = useState('');
   const [totalAreaM2, setTotalAreaM2] = useState('');
-  const [gasConsumptionM3, setGasConsumptionM3] = useState('');
-  const [energyConsumptionKwh, setEnergyConsumptionKwh] = useState('');
-  const [operatingDays, setOperatingDays] = useState<string[]>([]);
+  const [operatingDays, setOperatingDays] = useState<string[]>(['SEG', 'TER', 'QUA', 'QUI', 'SEX']);
+  const [operatingShifts, setOperatingShifts] = useState<string[]>(['MANHÃ', 'TARDE']);
 
   // Admin User (creation only)
   const [adminName, setAdminName] = useState('');
@@ -67,7 +71,7 @@ const ClientForm: React.FC = () => {
             .maybeSingle();
 
           if (clientError) {
-            console.warn('Erro ao buscar todos os campos do cliente para edição, tentando fallback básico...', clientError);
+            console.warn('Erro ao buscar campos da escola, tentando fallback básico...', clientError);
             const fallbackRes = await supabase
               .from('clients')
               .select('id, name, cnpj, active, uf, company_type_id')
@@ -81,23 +85,27 @@ const ClientForm: React.FC = () => {
           if (client) {
             setName(client.name || '');
             setCnpj(client.cnpj || '');
-            setUf(client.uf || 'SP');
+            setCpf(client.cpf || '');
             setLicenseNumber(client.license_number || '');
+            setSeguimento(client.seguimento || '');
             setCompanyTypeId(client.company_type_id || '');
             setResponsibleName(client.responsible_name || '');
+
+            setAddress(client.address || '');
+            setBairro(client.bairro || '');
+            setCity(client.city || '');
+            setUf(client.uf || 'SP');
+            setZipCode(client.zip_code || '');
             setPhone(client.phone || '');
             setEmail(client.email || '');
-            setCity(client.city || '');
-            setAddress(client.address || '');
-            setZipCode(client.zip_code || '');
+
             setPeopleCount(client.people_count?.toString() || '');
             setTeamCount(client.team_count?.toString() || '');
             setTotalAreaM2(client.total_area_m2?.toString() || '');
-            setGasConsumptionM3(client.gas_consumption_m3?.toString() || '');
-            setEnergyConsumptionKwh(client.energy_consumption_kwh?.toString() || '');
-            setOperatingDays(client.operating_days || []);
+            if (client.operating_days && Array.isArray(client.operating_days)) setOperatingDays(client.operating_days);
+            if (client.operating_shifts && Array.isArray(client.operating_shifts)) setOperatingShifts(client.operating_shifts);
           } else {
-            throw new Error('Empresa não encontrada.');
+            throw new Error('Escola não encontrada.');
           }
         }
       } catch (err: any) {
@@ -121,21 +129,25 @@ const ClientForm: React.FC = () => {
     const payload = {
       name: name.trim(),
       cnpj: cnpj.trim() || null,
-      uf: uf,
+      cpf: cpf.trim() || null,
       license_number: licenseNumber.trim() || null,
+      seguimento: seguimento || null,
       company_type_id: companyTypeId || null,
       responsible_name: responsibleName.trim() || null,
+
+      address: address.trim() || null,
+      bairro: bairro.trim() || null,
+      city: city.trim() || null,
+      uf: uf,
+      zip_code: zipCode.trim() || null,
       phone: phone.trim() || null,
       email: email.trim() || null,
-      city: city.trim() || null,
-      address: address.trim() || null,
-      zip_code: zipCode.trim() || null,
+
       people_count: peopleCount ? Number(peopleCount) : null,
       team_count: teamCount ? Number(teamCount) : null,
       total_area_m2: totalAreaM2 ? Number(totalAreaM2) : null,
-      gas_consumption_m3: gasConsumptionM3 ? Number(gasConsumptionM3) : null,
-      energy_consumption_kwh: energyConsumptionKwh ? Number(energyConsumptionKwh) : null,
       operating_days: operatingDays,
+      operating_shifts: operatingShifts
     };
 
     try {
@@ -153,7 +165,14 @@ const ClientForm: React.FC = () => {
             name: payload.name,
             cnpj: payload.cnpj,
             uf: payload.uf,
-            company_type_id: payload.company_type_id
+            company_type_id: payload.company_type_id,
+            city: payload.city,
+            address: payload.address,
+            phone: payload.phone,
+            email: payload.email,
+            people_count: payload.people_count,
+            team_count: payload.team_count,
+            total_area_m2: payload.total_area_m2
           };
           const retry = await supabase
             .from('clients')
@@ -164,7 +183,7 @@ const ClientForm: React.FC = () => {
         }
 
         if (error) throw error;
-        setSuccessMsg('Empresa atualizada com sucesso!');
+        setSuccessMsg('Escola atualizada com sucesso!');
         setTimeout(() => {
           navigate('/master/clients');
         }, 1500);
@@ -207,7 +226,7 @@ const ClientForm: React.FC = () => {
               body: {
                 email: adminEmail.trim(),
                 password: adminPassword,
-                full_name: adminName.trim() || 'Administrador',
+                full_name: adminName.trim() || 'Administrador Escola',
                 client_id: insertedClient.id,
                 role: "client_admin",
               },
@@ -215,16 +234,16 @@ const ClientForm: React.FC = () => {
 
             if (fnErr || (fnData as any)?.error) {
               console.warn('Edge Function create-client-admin falhou ou não existe:', fnErr || (fnData as any)?.error);
-              setSuccessMsg('Empresa criada com sucesso! (Aviso: O usuário administrador deve ser configurado manualmente no Supabase).');
+              setSuccessMsg('Escola criada com sucesso! (Aviso: O usuário administrador deve ser configurado no Supabase).');
             } else {
-              setSuccessMsg('Empresa e usuário Administrador criados com sucesso!');
+              setSuccessMsg('Escola e usuário Administrador criados com sucesso!');
             }
           } catch (fnEx) {
             console.error('Exceção ao chamar Edge Function:', fnEx);
-            setSuccessMsg('Empresa criada com sucesso! (Administrador não pôde ser gerado automaticamente).');
+            setSuccessMsg('Escola criada com sucesso! (Administrador não pôde ser gerado automaticamente).');
           }
         } else {
-          setSuccessMsg('Empresa cadastrada com sucesso!');
+          setSuccessMsg('Escola cadastrada com sucesso!');
         }
 
         setTimeout(() => {
@@ -232,7 +251,7 @@ const ClientForm: React.FC = () => {
         }, 2000);
       }
     } catch (err: any) {
-      setErrorMsg(err.message || 'Erro ao salvar cliente.');
+      setErrorMsg(err.message || 'Erro ao salvar escola.');
     } finally {
       setSubmitting(false);
     }
@@ -247,7 +266,7 @@ const ClientForm: React.FC = () => {
   }
 
   return (
-    <div className="flex flex-col gap-6" style={{ maxWidth: '900px', margin: '0 auto' }}>
+    <div className="flex flex-col gap-6" style={{ maxWidth: '900px', margin: '0 auto', paddingBottom: '3rem' }}>
       
       {/* Header & Back Button */}
       <div className="flex items-center justify-between flex-wrap gap-2">
@@ -257,299 +276,330 @@ const ClientForm: React.FC = () => {
           </Link>
           <div>
             <h1 style={{ fontSize: '2rem', margin: 0 }} className="flex items-center gap-2 font-semibold">
-              <Building size={28} />
-              {isEdit ? 'Editar Empresa' : 'Cadastrar Empresa'}
+              <GraduationCap size={28} />
+              {isEdit ? 'Editar Escola' : 'Cadastrar Escola'}
             </h1>
             <p className="text-muted text-sm font-medium">
-              {isEdit ? 'Atualize as informações cadastrais e do local da empresa' : 'Cadastre os dados da empresa, métricas do local e administrador'}
+              {isEdit ? 'Atualize as informações cadastrais e do local da escola' : 'Cadastre os dados da escola, estrutura operacional e administrador'}
             </p>
           </div>
         </div>
       </div>
 
       {/* Main Form Card */}
-      <div className="card" style={{ padding: '2rem' }}>
+      <div className="card" style={{ padding: '2rem', backgroundColor: '#ffffff', borderColor: '#cbd5e1' }}>
         <form onSubmit={handleSubmit} className="flex flex-col gap-6">
           {errorMsg && (
-            <div style={{ backgroundColor: 'rgba(239, 68, 68, 0.08)', color: 'hsl(var(--destructive))', border: '1px solid rgba(239, 68, 68, 0.15)', borderRadius: 'var(--radius-md)', padding: '1rem', fontSize: '0.875rem', fontWeight: 500 }}>
+            <div style={{ backgroundColor: '#fee2e2', color: '#991b1b', border: '1px solid #fca5a5', borderRadius: '8px', padding: '1rem', fontSize: '0.875rem', fontWeight: 600 }}>
               {errorMsg}
             </div>
           )}
           {successMsg && (
-            <div style={{ backgroundColor: 'rgba(16, 185, 129, 0.08)', color: 'hsl(var(--primary))', border: '1px solid rgba(16, 185, 129, 0.15)', borderRadius: 'var(--radius-md)', padding: '1rem', fontSize: '0.875rem', fontWeight: 500 }}>
+            <div style={{ backgroundColor: '#dcfce7', color: '#166534', border: '1px solid #86efac', borderRadius: '8px', padding: '1rem', fontSize: '0.875rem', fontWeight: 600 }}>
               {successMsg}
             </div>
           )}
 
-          {/* SECTION 1: IDENTIFICATION */}
-          <div className="flex flex-col gap-4">
-            <h3 style={{ margin: 0, fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'hsl(var(--primary))', borderBottom: '1px solid hsl(var(--card-border))', paddingBottom: '0.4rem', fontWeight: 600 }} className="flex items-center gap-2">
-              <span>01.</span> Identificação da Empresa
-            </h3>
-            
-            <div className="form-group">
-              <label className="form-label">Razão Social / Nome Fantasia *</label>
+          {/* SECTION 1: IDENTIFICAÇÃO DA ESCOLA */}
+          <div style={{ backgroundColor: '#2b78b8', color: '#ffffff', padding: '0.625rem 1.25rem', borderRadius: '4px', fontWeight: 800, fontSize: '0.95rem', letterSpacing: '0.04em' }}>
+            IDENTIFICAÇÃO DA ESCOLA
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="form-group md:col-span-2">
+              <label className="form-label font-bold text-xs uppercase" style={{ color: '#475569' }}>RAZÃO SOCIAL *</label>
               <input 
                 type="text" 
                 className="form-input" 
-                placeholder="Ex: Consultoria Ambiental S.A." 
+                placeholder="Ex: Colégio Ciclo Lixo Zero S.A." 
                 value={name} 
                 onChange={e => setName(e.target.value)} 
                 required 
                 disabled={submitting}
               />
             </div>
-            
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.25rem' }}>
-              <div className="form-group">
-                <label className="form-label">CNPJ</label>
-                <input 
-                  type="text" 
-                  className="form-input" 
-                  placeholder="Ex: 00.000.000/0001-00" 
-                  value={cnpj} 
-                  onChange={e => setCnpj(e.target.value)} 
-                  disabled={submitting}
-                />
-              </div>
-              <div className="form-group">
-                <label className="form-label">Número da Licença</label>
-                <input 
-                  type="text" 
-                  className="form-input" 
-                  placeholder="Número do alvará ou licença" 
-                  value={licenseNumber} 
-                  onChange={e => setLicenseNumber(e.target.value)} 
-                  disabled={submitting}
-                />
-              </div>
-            </div>
-            
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.25rem' }}>
-              <div className="form-group">
-                <label className="form-label">Tipo de Empresa</label>
-                <select 
-                  className="form-select" 
-                  value={companyTypeId} 
-                  onChange={e => setCompanyTypeId(e.target.value)} 
-                  disabled={submitting}
-                >
-                  <option value="">Selecione</option>
-                  {companyTypes.map(t => (
-                    <option key={t.id} value={t.id}>{t.name}</option>
-                  ))}
-                </select>
-              </div>
-              <div className="form-group">
-                <label className="form-label">Nome do Responsável</label>
-                <input 
-                  type="text" 
-                  className="form-input" 
-                  placeholder="Ex: Gestor de Sustentabilidade" 
-                  value={responsibleName} 
-                  onChange={e => setResponsibleName(e.target.value)} 
-                  disabled={submitting}
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* SECTION 2: ADDRESS & CONTACT */}
-          <div className="flex flex-col gap-4" style={{ marginTop: '1rem' }}>
-            <h3 style={{ margin: 0, fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'hsl(var(--primary))', borderBottom: '1px solid hsl(var(--card-border))', paddingBottom: '0.4rem', fontWeight: 600 }} className="flex items-center gap-2">
-              <span>02.</span> Endereço e Contato
-            </h3>
-            
             <div className="form-group">
-              <label className="form-label">Endereço Completo</label>
+              <label className="form-label font-bold text-xs uppercase" style={{ color: '#475569' }}>CNPJ</label>
               <input 
                 type="text" 
                 className="form-input" 
-                placeholder="Ex: Av. Paulista, 1000 - Bela Vista" 
+                placeholder="00.000.000/0000-00" 
+                value={cnpj} 
+                onChange={e => setCnpj(e.target.value)} 
+                disabled={submitting}
+              />
+            </div>
+            <div className="form-group">
+              <label className="form-label font-bold text-xs uppercase" style={{ color: '#475569' }}>Nº DA LICENÇA</label>
+              <input 
+                type="text" 
+                className="form-input" 
+                placeholder="Número do alvará ou licença" 
+                value={licenseNumber} 
+                onChange={e => setLicenseNumber(e.target.value)} 
+                disabled={submitting}
+              />
+            </div>
+            <div className="form-group">
+              <label className="form-label font-bold text-xs uppercase" style={{ color: '#475569' }}>SEGUIMENTO</label>
+              <select className="form-select" value={seguimento} onChange={e => setSeguimento(e.target.value)} disabled={submitting}>
+                <option value="">Selecione o seguimento...</option>
+                <option value="Ensino Infantil">Ensino Infantil</option>
+                <option value="Ensino Fundamental I">Ensino Fundamental I</option>
+                <option value="Ensino Fundamental II">Ensino Fundamental II</option>
+                <option value="Ensino Médio">Ensino Médio</option>
+                <option value="Ensino Fundamental + Médio">Ensino Fundamental + Médio</option>
+                <option value="Ensino Superior">Ensino Superior</option>
+                <option value="Técnico / Profissionalizante">Técnico / Profissionalizante</option>
+                <option value="Outros">Outros</option>
+              </select>
+            </div>
+            <div className="form-group">
+              <label className="form-label font-bold text-xs uppercase" style={{ color: '#475569' }}>TIPO</label>
+              <select 
+                className="form-select" 
+                value={companyTypeId} 
+                onChange={e => setCompanyTypeId(e.target.value)} 
+                disabled={submitting}
+              >
+                <option value="">Selecione o tipo...</option>
+                {companyTypes.map(t => (
+                  <option key={t.id} value={t.id}>{t.name}</option>
+                ))}
+              </select>
+            </div>
+            <div className="form-group md:col-span-2">
+              <label className="form-label font-bold text-xs uppercase" style={{ color: '#475569' }}>NOME DA DIREÇÃO / RESPONSÁVEL</label>
+              <input 
+                type="text" 
+                className="form-input" 
+                placeholder="Nome do diretor ou responsável" 
+                value={responsibleName} 
+                onChange={e => setResponsibleName(e.target.value)} 
+                disabled={submitting}
+              />
+            </div>
+            <div className="form-group">
+              <label className="form-label font-bold text-xs uppercase" style={{ color: '#475569' }}>CPF DA DIREÇÃO</label>
+              <input 
+                type="text" 
+                className="form-input" 
+                placeholder="000.000.000-00" 
+                value={cpf} 
+                onChange={e => setCpf(e.target.value)} 
+                disabled={submitting}
+              />
+            </div>
+          </div>
+
+          {/* SECTION 2: ENDEREÇO E CONTATO */}
+          <div style={{ backgroundColor: '#2b78b8', color: '#ffffff', padding: '0.625rem 1.25rem', borderRadius: '4px', fontWeight: 800, fontSize: '0.95rem', letterSpacing: '0.04em', marginTop: '1rem' }}>
+            ENDEREÇO E CONTATO
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="form-group md:col-span-2">
+              <label className="form-label font-bold text-xs uppercase" style={{ color: '#475569' }}>ENDEREÇO COMPLETO C/ Nº</label>
+              <input 
+                type="text" 
+                className="form-input" 
+                placeholder="Ex: Av. Paulista, 1000" 
                 value={address} 
                 onChange={e => setAddress(e.target.value)} 
                 disabled={submitting}
               />
             </div>
-            
-            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: '1.25rem' }}>
-              <div className="form-group">
-                <label className="form-label">Cidade</label>
-                <input 
-                  type="text" 
-                  className="form-input" 
-                  placeholder="Ex: São Paulo" 
-                  value={city} 
-                  onChange={e => setCity(e.target.value)} 
-                  disabled={submitting}
-                />
-              </div>
-              <div className="form-group">
-                <label className="form-label">UF (Estado)</label>
-                <select 
-                  className="form-select" 
-                  value={uf} 
-                  onChange={e => setUf(e.target.value)} 
-                  disabled={submitting}
-                >
-                  {['AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG','PA','PB','PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO'].map(state => (
-                    <option key={state} value={state}>{state}</option>
-                  ))}
-                </select>
-              </div>
-              <div className="form-group">
-                <label className="form-label">CEP</label>
-                <input 
-                  type="text" 
-                  className="form-input" 
-                  placeholder="Ex: 01310-100" 
-                  value={zipCode} 
-                  onChange={e => setZipCode(e.target.value)} 
-                  disabled={submitting}
-                />
-              </div>
+            <div className="form-group">
+              <label className="form-label font-bold text-xs uppercase" style={{ color: '#475569' }}>BAIRRO</label>
+              <input 
+                type="text" 
+                className="form-input" 
+                placeholder="Bairro" 
+                value={bairro} 
+                onChange={e => setBairro(e.target.value)} 
+                disabled={submitting}
+              />
             </div>
-            
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.25rem' }}>
-              <div className="form-group">
-                <label className="form-label">Telefone</label>
-                <input 
-                  type="text" 
-                  className="form-input" 
-                  placeholder="Ex: (11) 99999-9999" 
-                  value={phone} 
-                  onChange={e => setPhone(e.target.value)} 
-                  disabled={submitting}
-                />
-              </div>
-              <div className="form-group">
-                <label className="form-label">E-mail Corporativo</label>
-                <input 
-                  type="email" 
-                  className="form-input" 
-                  placeholder="Ex: contato@empresa.com" 
-                  value={email} 
-                  onChange={e => setEmail(e.target.value)} 
-                  disabled={submitting}
-                />
-              </div>
+            <div className="form-group">
+              <label className="form-label font-bold text-xs uppercase" style={{ color: '#475569' }}>CIDADE</label>
+              <input 
+                type="text" 
+                className="form-input" 
+                placeholder="Cidade" 
+                value={city} 
+                onChange={e => setCity(e.target.value)} 
+                disabled={submitting}
+              />
+            </div>
+            <div className="form-group">
+              <label className="form-label font-bold text-xs uppercase" style={{ color: '#475569' }}>UF</label>
+              <select 
+                className="form-select" 
+                value={uf} 
+                onChange={e => setUf(e.target.value)} 
+                disabled={submitting}
+              >
+                {['AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG','PA','PB','PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO'].map(state => (
+                  <option key={state} value={state}>{state}</option>
+                ))}
+              </select>
+            </div>
+            <div className="form-group">
+              <label className="form-label font-bold text-xs uppercase" style={{ color: '#475569' }}>CEP</label>
+              <input 
+                type="text" 
+                className="form-input" 
+                placeholder="00000-000" 
+                value={zipCode} 
+                onChange={e => setZipCode(e.target.value)} 
+                disabled={submitting}
+              />
+            </div>
+            <div className="form-group">
+              <label className="form-label font-bold text-xs uppercase" style={{ color: '#475569' }}>TELEFONE CEL.</label>
+              <input 
+                type="text" 
+                className="form-input" 
+                placeholder="(00) 00000-0000" 
+                value={phone} 
+                onChange={e => setPhone(e.target.value)} 
+                disabled={submitting}
+              />
+            </div>
+            <div className="form-group md:col-span-2">
+              <label className="form-label font-bold text-xs uppercase" style={{ color: '#475569' }}>E-MAIL</label>
+              <input 
+                type="email" 
+                className="form-input" 
+                placeholder="contato@escola.com.br" 
+                value={email} 
+                onChange={e => setEmail(e.target.value)} 
+                disabled={submitting}
+              />
             </div>
           </div>
 
-          {/* SECTION 3: AREA METRICS */}
-          <div className="flex flex-col gap-4" style={{ marginTop: '1rem' }}>
-            <h3 style={{ margin: 0, fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'hsl(var(--primary))', borderBottom: '1px solid hsl(var(--card-border))', paddingBottom: '0.4rem', fontWeight: 600 }} className="flex items-center gap-2">
-              <span>03.</span> Dados de Operação do Local
-            </h3>
-            
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.25rem' }}>
-              <div className="form-group">
-                <label className="form-label">Nº de Pessoas (Frequência)</label>
-                <input 
-                  type="number" 
-                  min="0"
-                  className="form-input" 
-                  placeholder="Ex: 250" 
-                  value={peopleCount} 
-                  onChange={e => setPeopleCount(e.target.value)} 
-                  disabled={submitting}
-                />
-              </div>
-              <div className="form-group">
-                <label className="form-label">Nº da Equipe (Staff)</label>
-                <input 
-                  type="number" 
-                  min="0"
-                  className="form-input" 
-                  placeholder="Ex: 20" 
-                  value={teamCount} 
-                  onChange={e => setTeamCount(e.target.value)} 
-                  disabled={submitting}
-                />
-              </div>
-              <div className="form-group">
-                <label className="form-label">Área Total (m²)</label>
-                <input 
-                  type="number" 
-                  min="0"
-                  step="0.01"
-                  className="form-input" 
-                  placeholder="Ex: 1200" 
-                  value={totalAreaM2} 
-                  onChange={e => setTotalAreaM2(e.target.value)} 
-                  disabled={submitting}
-                />
-              </div>
-            </div>
-            
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.25rem' }}>
-              <div className="form-group">
-                <label className="form-label">Consumo de Gás (m³/mês)</label>
-                <input 
-                  type="number" 
-                  min="0"
-                  step="0.01"
-                  className="form-input" 
-                  placeholder="Média de consumo mensal" 
-                  value={gasConsumptionM3} 
-                  onChange={e => setGasConsumptionM3(e.target.value)} 
-                  disabled={submitting}
-                />
-              </div>
-              <div className="form-group">
-                <label className="form-label">Consumo de Energia (kWh/mês)</label>
-                <input 
-                  type="number" 
-                  min="0"
-                  step="0.01"
-                  className="form-input" 
-                  placeholder="Média de consumo mensal" 
-                  value={energyConsumptionKwh} 
-                  onChange={e => setEnergyConsumptionKwh(e.target.value)} 
-                  disabled={submitting}
-                />
-              </div>
-            </div>
-            
+          {/* SECTION 3: DADOS DO LOCAL */}
+          <div style={{ backgroundColor: '#2b78b8', color: '#ffffff', padding: '0.625rem 1.25rem', borderRadius: '4px', fontWeight: 800, fontSize: '0.95rem', letterSpacing: '0.04em', marginTop: '1rem' }}>
+            DADOS DO LOCAL
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="form-group">
-              <label className="form-label" style={{ marginBottom: '0.6rem' }}>Dias de Funcionamento</label>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', padding: '0.75rem 1rem', backgroundColor: 'rgba(255,255,255,0.02)', borderRadius: 'var(--radius-md)', border: '1px solid rgba(255,255,255,0.05)' }}>
-                {[
-                  { key: 'mon', label: 'Segunda' },
-                  { key: 'tue', label: 'Terça' },
-                  { key: 'wed', label: 'Quarta' },
-                  { key: 'thu', label: 'Quinta' },
-                  { key: 'fri', label: 'Sexta' },
-                  { key: 'sat', label: 'Sábado' },
-                  { key: 'sun', label: 'Domingo' }
-                ].map(d => (
-                  <label key={d.key} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem', cursor: 'pointer', userSelect: 'none' }}>
-                    <input 
-                      type="checkbox" 
-                      checked={operatingDays.includes(d.key)} 
-                      onChange={() => {
-                        setOperatingDays(prev => 
-                          prev.includes(d.key) ? prev.filter(x => x !== d.key) : [...prev, d.key]
-                        );
+              <label className="form-label font-bold text-xs uppercase" style={{ color: '#475569' }}>ÁREA (M²)</label>
+              <input 
+                type="number" 
+                step="0.1"
+                className="form-input" 
+                placeholder="Ex: 4000" 
+                value={totalAreaM2} 
+                onChange={e => setTotalAreaM2(e.target.value)} 
+                disabled={submitting}
+              />
+            </div>
+            <div className="form-group">
+              <label className="form-label font-bold text-xs uppercase" style={{ color: '#475569' }}>Nº ALUNOS</label>
+              <input 
+                type="number" 
+                className="form-input" 
+                placeholder="Ex: 600" 
+                value={peopleCount} 
+                onChange={e => setPeopleCount(e.target.value)} 
+                disabled={submitting}
+              />
+            </div>
+            <div className="form-group">
+              <label className="form-label font-bold text-xs uppercase" style={{ color: '#475569' }}>Nº EQUIPE</label>
+              <input 
+                type="number" 
+                className="form-input" 
+                placeholder="Ex: 45" 
+                value={teamCount} 
+                onChange={e => setTeamCount(e.target.value)} 
+                disabled={submitting}
+              />
+            </div>
+
+            {/* FUNCIONAMENTO */}
+            <div className="form-group md:col-span-2">
+              <label className="form-label font-bold text-xs uppercase" style={{ color: '#475569' }}>
+                FUNCIONAMENTO <span style={{ color: '#dc2626', fontStyle: 'italic', fontWeight: 400 }}>(Marque com "X" as opções abaixo)</span>
+              </label>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '0.5rem', textAlign: 'center' }}>
+                {['SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB', 'DOM'].map(day => {
+                  const isChecked = operatingDays.includes(day);
+                  return (
+                    <div 
+                      key={day} 
+                      onClick={() => {
+                        if (submitting) return;
+                        setOperatingDays(prev => isChecked ? prev.filter(d => d !== day) : [...prev, day]);
                       }} 
-                      disabled={submitting}
-                    />
-                    <span>{d.label}</span>
-                  </label>
-                ))}
+                      style={{ 
+                        border: '1px solid #cbd5e1', 
+                        borderRadius: '6px', 
+                        padding: '0.5rem 0.25rem', 
+                        backgroundColor: isChecked ? '#157a43' : '#ffffff', 
+                        color: isChecked ? '#ffffff' : '#475569', 
+                        fontWeight: 700, 
+                        fontSize: '0.8rem', 
+                        cursor: 'pointer', 
+                        userSelect: 'none' 
+                      }}
+                    >
+                      <div>{day}</div>
+                      <div style={{ fontSize: '0.9rem', marginTop: '0.2rem' }}>{isChecked ? 'X' : ' '}</div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* PERÍODOS */}
+            <div className="form-group">
+              <label className="form-label font-bold text-xs uppercase" style={{ color: '#475569' }}>
+                PERÍODOS <span style={{ color: '#dc2626', fontStyle: 'italic', fontWeight: 400 }}>(Marque com "X")</span>
+              </label>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem', textAlign: 'center' }}>
+                {['MANHÃ', 'TARDE', 'NOITE'].map(shift => {
+                  const isChecked = operatingShifts.includes(shift);
+                  return (
+                    <div 
+                      key={shift} 
+                      onClick={() => {
+                        if (submitting) return;
+                        setOperatingShifts(prev => isChecked ? prev.filter(s => s !== shift) : [...prev, shift]);
+                      }} 
+                      style={{ 
+                        border: '1px solid #cbd5e1', 
+                        borderRadius: '6px', 
+                        padding: '0.5rem 0.25rem', 
+                        backgroundColor: isChecked ? '#157a43' : '#ffffff', 
+                        color: isChecked ? '#ffffff' : '#475569', 
+                        fontWeight: 700, 
+                        fontSize: '0.8rem', 
+                        cursor: 'pointer', 
+                        userSelect: 'none' 
+                      }}
+                    >
+                      <div>{shift}</div>
+                      <div style={{ fontSize: '0.9rem', marginTop: '0.2rem' }}>{isChecked ? 'X' : ' '}</div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </div>
 
           {/* SECTION 4: FIRST ADMIN USER */}
           {!isEdit && (
-            <div className="flex flex-col gap-4" style={{ borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '1.5rem', marginTop: '1rem' }}>
-              <h3 style={{ margin: 0, fontSize: '0.9rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'hsl(var(--primary))', borderBottom: '1px solid hsl(var(--card-border))', paddingBottom: '0.4rem', fontWeight: 600 }} className="flex items-center gap-2">
-                <span>04.</span> Primeiro Administrador do Cliente
-              </h3>
+            <div className="flex flex-col gap-4" style={{ borderTop: '1px solid #f1f5f9', paddingTop: '1.5rem', marginTop: '1rem' }}>
+              <div style={{ backgroundColor: '#0c4a24', color: '#ffffff', padding: '0.625rem 1.25rem', borderRadius: '4px', fontWeight: 800, fontSize: '0.95rem', letterSpacing: '0.04em' }}>
+                PRIMEIRO ADMINISTRADOR DA ESCOLA
+              </div>
               
               <div className="form-group">
-                <label className="form-label">Nome Completo</label>
+                <label className="form-label font-bold text-xs uppercase" style={{ color: '#475569' }}>NOME COMPLETO</label>
                 <input 
                   type="text" 
                   className="form-input" 
@@ -560,20 +610,20 @@ const ClientForm: React.FC = () => {
                 />
               </div>
               
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.25rem' }}>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="form-group">
-                  <label className="form-label">E-mail de Acesso *</label>
+                  <label className="form-label font-bold text-xs uppercase" style={{ color: '#475569' }}>E-MAIL DE ACESSO *</label>
                   <input 
                     type="email" 
                     className="form-input" 
-                    placeholder="Ex: joao.silva@empresa.com" 
+                    placeholder="Ex: admin@escola.com.br" 
                     value={adminEmail} 
                     onChange={e => setAdminEmail(e.target.value)} 
                     disabled={submitting}
                   />
                 </div>
                 <div className="form-group">
-                  <label className="form-label">Senha de Acesso *</label>
+                  <label className="form-label font-bold text-xs uppercase" style={{ color: '#475569' }}>SENHA DE ACESSO *</label>
                   <input 
                     type="text" 
                     className="form-input" 
@@ -588,13 +638,13 @@ const ClientForm: React.FC = () => {
           )}
 
           {/* Footer Actions */}
-          <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '1.5rem', marginTop: '1.5rem' }}>
+          <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end', borderTop: '1px solid #f1f5f9', paddingTop: '1.5rem', marginTop: '1.5rem' }}>
             <Link to="/master/clients" className="btn btn-secondary" style={{ pointerEvents: submitting ? 'none' : 'auto', opacity: submitting ? 0.6 : 1 }}>
               Cancelar
             </Link>
-            <button type="submit" className="btn btn-primary flex items-center gap-2" disabled={submitting}>
+            <button type="submit" className="btn btn-primary flex items-center gap-2" disabled={submitting} style={{ backgroundColor: '#157a43', borderColor: '#157a43', fontWeight: 700 }}>
               <Save size={16} />
-              <span>{submitting ? 'Salvando...' : 'Salvar Empresa'}</span>
+              <span>{submitting ? 'Salvando...' : 'Salvar Escola'}</span>
             </button>
           </div>
 

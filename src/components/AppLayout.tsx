@@ -9,7 +9,6 @@ import {
   Users, 
   BarChart2, 
   ShieldAlert, 
-  Briefcase, 
   Tag, 
   Building2, 
   Settings,
@@ -19,7 +18,8 @@ import {
   User as UserIcon,
   Menu,
   X,
-  EyeOff
+  EyeOff,
+  GraduationCap
 } from 'lucide-react';
 
 export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -46,7 +46,7 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
   }, [location.pathname]);
 
   const configSubItems = [
-    { path: '/empresa', label: 'Empresa', icon: Building2 },
+    { path: '/empresa', label: 'Escola', icon: GraduationCap },
     { path: '/sectors', label: 'Setores', icon: Grid },
     { path: '/types', label: 'Tipos', icon: Layers },
     { path: '/users', label: 'Usuários', icon: Users },
@@ -92,7 +92,7 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
     menuItems.push({ isHeader: true, label: 'Painel Master' });
     menuItems.push(
       { path: '/master', label: 'Dashboard Master', icon: ShieldAlert },
-      { path: '/master/clients', label: 'Clientes', icon: Briefcase },
+      { path: '/master/clients', label: 'Escolas', icon: GraduationCap },
       { path: '/master/categories', label: 'Categorias Globais', icon: Tag },
       { path: '/master/company-types', label: 'Tipos de Empresa', icon: Building2 }
     );
@@ -197,7 +197,7 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
                 backgroundColor: 'rgba(255, 255, 255, 0.05)',
               }}
             >
-              <p className="text-xs font-medium uppercase" style={{ letterSpacing: '0.05em', color: 'rgba(255, 255, 255, 0.6)' }}>Cliente Ativo</p>
+              <p className="text-xs font-medium uppercase" style={{ letterSpacing: '0.05em', color: 'rgba(255, 255, 255, 0.6)' }}>Escola Ativa</p>
               <p className="font-semibold text-sm truncate" style={{ marginTop: '0.125rem', color: '#fff' }}>{clientName}</p>
             </div>
           )}

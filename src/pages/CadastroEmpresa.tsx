@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../integrations/supabase/client';
 import { 
-  Building2, 
+  GraduationCap, 
   Save, 
   Zap, 
   Droplet, 
@@ -12,7 +12,6 @@ import {
   AlertCircle,
   Pencil,
   Trash2,
-  Users,
   FileText
 } from 'lucide-react';
 
@@ -41,23 +40,33 @@ export const CadastroEmpresa: React.FC = () => {
   const [msg, setMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   // -------------------------------------------------------------------------
-  // ESTADOS DOS DADOS CADASTRAIS
+  // ESTADOS DOS DADOS CADASTRAIS DA ESCOLA
   // -------------------------------------------------------------------------
   const [companyTypes, setCompanyTypes] = useState<CompanyType[]>([]);
   const [name, setName] = useState('');
   const [cnpj, setCnpj] = useState('');
-  const [uf, setUf] = useState('SP');
-  const [city, setCity] = useState('');
-  const [address, setAddress] = useState('');
-  const [zipCode, setZipCode] = useState('');
+  const [cpf, setCpf] = useState('');
   const [licenseNumber, setLicenseNumber] = useState('');
+  const [seguimento, setSeguimento] = useState('');
   const [companyTypeId, setCompanyTypeId] = useState('');
   const [responsibleName, setResponsibleName] = useState('');
+  const [createdAt, setCreatedAt] = useState('');
+
+  // Endereço e Contato
+  const [address, setAddress] = useState('');
+  const [bairro, setBairro] = useState('');
+  const [city, setCity] = useState('');
+  const [uf, setUf] = useState('SP');
+  const [zipCode, setZipCode] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
+
+  // Dados do Local
+  const [totalAreaM2, setTotalAreaM2] = useState('');
   const [peopleCount, setPeopleCount] = useState('');
   const [teamCount, setTeamCount] = useState('');
-  const [totalAreaM2, setTotalAreaM2] = useState('');
+  const [operatingDays, setOperatingDays] = useState<string[]>(['SEG', 'TER', 'QUA', 'QUI', 'SEX']);
+  const [operatingShifts, setOperatingShifts] = useState<string[]>(['MANHÃ', 'TARDE']);
 
   // -------------------------------------------------------------------------
   // ESTADOS DE CONSUMO & LOGÍSTICA
@@ -89,7 +98,7 @@ export const CadastroEmpresa: React.FC = () => {
       const { data: typesData } = await supabase.from('company_types').select('*').order('name');
       setCompanyTypes((typesData || []) as CompanyType[]);
 
-      // 2. Dados do Cliente
+      // 2. Dados do Cliente / Escola
       let { data: client, error: clientErr } = await supabase
         .from('clients')
         .select('*')
@@ -97,7 +106,7 @@ export const CadastroEmpresa: React.FC = () => {
         .maybeSingle();
 
       if (clientErr) {
-        console.warn('Fallback basico para cliente...', clientErr);
+        console.warn('Fallback basico para escola...', clientErr);
         const fb = await supabase.from('clients').select('id, name, cnpj, uf').eq('id', clientId).single();
         client = fb.data;
       }
@@ -105,18 +114,26 @@ export const CadastroEmpresa: React.FC = () => {
       if (client) {
         setName(client.name || '');
         setCnpj(client.cnpj || '');
-        setUf(client.uf || 'SP');
-        setCity(client.city || '');
-        setAddress(client.address || '');
-        setZipCode(client.zip_code || '');
+        setCpf(client.cpf || '');
         setLicenseNumber(client.license_number || '');
+        setSeguimento(client.seguimento || '');
         setCompanyTypeId(client.company_type_id || '');
         setResponsibleName(client.responsible_name || '');
+        setCreatedAt(client.created_at ? new Date(client.created_at).toLocaleDateString('pt-BR') : '22/09/2026');
+
+        setAddress(client.address || '');
+        setBairro(client.bairro || '');
+        setCity(client.city || '');
+        setUf(client.uf || 'SP');
+        setZipCode(client.zip_code || '');
         setPhone(client.phone || '');
         setEmail(client.email || '');
+
+        setTotalAreaM2(client.total_area_m2 ? String(client.total_area_m2) : '');
         setPeopleCount(client.people_count ? String(client.people_count) : '');
         setTeamCount(client.team_count ? String(client.team_count) : '');
-        setTotalAreaM2(client.total_area_m2 ? String(client.total_area_m2) : '');
+        if (client.operating_days && Array.isArray(client.operating_days)) setOperatingDays(client.operating_days);
+        if (client.operating_shifts && Array.isArray(client.operating_shifts)) setOperatingShifts(client.operating_shifts);
       }
 
       // 3. Registros de Consumo & Logística
@@ -129,14 +146,14 @@ export const CadastroEmpresa: React.FC = () => {
       setUtilityLogs((logsData || []) as UtilityLog[]);
 
     } catch (err: any) {
-      setMsg({ type: 'error', text: 'Erro ao carregar dados da empresa: ' + err.message });
+      setMsg({ type: 'error', text: 'Erro ao carregar dados da escola: ' + err.message });
     } finally {
       setLoading(false);
     }
   };
 
   // -------------------------------------------------------------------------
-  // SALVAR DADOS CADASTRAIS
+  // SALVAR DADOS CADASTRAIS DA ESCOLA
   // -------------------------------------------------------------------------
   const handleSaveCadastrais = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -148,35 +165,54 @@ export const CadastroEmpresa: React.FC = () => {
     const payload = {
       name: name.trim(),
       cnpj: cnpj.trim() || null,
-      uf,
-      city: city.trim() || null,
-      address: address.trim() || null,
-      zip_code: zipCode.trim() || null,
+      cpf: cpf.trim() || null,
       license_number: licenseNumber.trim() || null,
+      seguimento: seguimento || null,
       company_type_id: companyTypeId || null,
       responsible_name: responsibleName.trim() || null,
+
+      address: address.trim() || null,
+      bairro: bairro.trim() || null,
+      city: city.trim() || null,
+      uf,
+      zip_code: zipCode.trim() || null,
       phone: phone.trim() || null,
       email: email.trim() || null,
+
+      total_area_m2: totalAreaM2 ? Number(totalAreaM2) : null,
       people_count: peopleCount ? Number(peopleCount) : null,
       team_count: teamCount ? Number(teamCount) : null,
-      total_area_m2: totalAreaM2 ? Number(totalAreaM2) : null,
+      operating_days: operatingDays,
+      operating_shifts: operatingShifts
     };
 
     try {
       let { error } = await supabase.from('clients').update(payload).eq('id', clientId);
 
       if (error && (error.message?.includes('column') || error.code === '42703')) {
-        // Fallback para colunas básicas
-        const basic = { name: payload.name, cnpj: payload.cnpj, uf: payload.uf, company_type_id: payload.company_type_id };
+        // Fallback para colunas básicas se alguma coluna nova não existir no schema
+        const basic = { 
+          name: payload.name, 
+          cnpj: payload.cnpj, 
+          uf: payload.uf, 
+          company_type_id: payload.company_type_id,
+          city: payload.city,
+          address: payload.address,
+          phone: payload.phone,
+          email: payload.email,
+          people_count: payload.people_count,
+          team_count: payload.team_count,
+          total_area_m2: payload.total_area_m2
+        };
         const ret = await supabase.from('clients').update(basic).eq('id', clientId);
         error = ret.error;
       }
 
       if (error) throw error;
 
-      setMsg({ type: 'success', text: 'Dados cadastrais da empresa atualizados com sucesso!' });
+      setMsg({ type: 'success', text: 'Dados cadastrais da escola atualizados com sucesso!' });
     } catch (err: any) {
-      setMsg({ type: 'error', text: 'Erro ao atualizar dados: ' + err.message });
+      setMsg({ type: 'error', text: 'Erro ao atualizar dados da escola: ' + err.message });
     } finally {
       setSubmitting(false);
     }
@@ -209,7 +245,6 @@ export const CadastroEmpresa: React.FC = () => {
 
       setMsg({ type: 'success', text: 'Registro de Consumo & Logística salvo com sucesso!' });
       
-      // Limpar formulário e recarregar histórico
       setEditingLogId(null);
       setUtilityForm({
         id: '',
@@ -255,7 +290,7 @@ export const CadastroEmpresa: React.FC = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center" style={{ minHeight: '60vh' }}>
-        <p className="text-muted font-medium pulse-active">Carregando dados da empresa...</p>
+        <p className="text-muted font-medium pulse-active">Carregando dados da escola...</p>
       </div>
     );
   }
@@ -263,8 +298,8 @@ export const CadastroEmpresa: React.FC = () => {
   if (!clientId) {
     return (
       <div className="card text-center" style={{ margin: '3rem auto', maxWidth: '500px' }}>
-        <h2 style={{ color: 'hsl(var(--destructive))' }}>Empresa não identificada</h2>
-        <p className="text-muted mt-2">Nenhum cliente ativo selecionado na sessão.</p>
+        <h2 style={{ color: 'hsl(var(--destructive))' }}>Escola não identificada</h2>
+        <p className="text-muted mt-2">Nenhuma escola ativa selecionada na sessão.</p>
       </div>
     );
   }
@@ -276,11 +311,11 @@ export const CadastroEmpresa: React.FC = () => {
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div className="flex items-center gap-3">
           <div style={{ backgroundColor: '#157a43', color: '#ffffff', width: '48px', height: '48px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 6px rgba(21, 122, 67, 0.25)' }}>
-            <Building2 size={26} />
+            <GraduationCap size={26} />
           </div>
           <div>
-            <h1 style={{ fontSize: '1.75rem', margin: 0, fontWeight: 800, color: '#0f172a' }}>Cadastro da Empresa</h1>
-            <p className="text-muted text-sm">Gerencie os dados cadastrais, estrutura operacional e os índices mensais de Consumo & Logística</p>
+            <h1 style={{ fontSize: '1.75rem', margin: 0, fontWeight: 800, color: '#0f172a' }}>Perfil da Escola</h1>
+            <p className="text-muted text-sm">Gerencie os dados cadastrais da instituição e os índices de Consumo & Logística</p>
           </div>
         </div>
 
@@ -321,110 +356,106 @@ export const CadastroEmpresa: React.FC = () => {
       )}
 
       {/* ========================================================================= */}
-      {/* ABA 1: DADOS CADASTRAIS DA EMPRESA */}
+      {/* ABA 1: DADOS CADASTRAIS DA ESCOLA */}
       {/* ========================================================================= */}
       {activeTab === 'cadastrais' && (
-        <form onSubmit={handleSaveCadastrais} className="card" style={{ backgroundColor: '#ffffff', borderColor: '#cbd5e1' }}>
-          <div className="card-header" style={{ borderBottom: '1px solid #f1f5f9', paddingBottom: '1rem', marginBottom: '1.5rem' }}>
-            <h2 className="m-0 text-lg font-bold" style={{ color: '#0c4a24', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <Building2 size={20} style={{ color: '#157a43' }} />
-              Informações Gerais da Empresa
-            </h2>
-            <p className="text-muted text-xs mt-1">Preencha os dados institucionais, de contato e capacidade operacional da empresa</p>
+        <form onSubmit={handleSaveCadastrais} className="card" style={{ backgroundColor: '#ffffff', borderColor: '#cbd5e1', padding: '1.5rem' }}>
+          
+          {/* SEÇÃO 1: IDENTIFICAÇÃO DA ESCOLA */}
+          <div style={{ backgroundColor: '#2b78b8', color: '#ffffff', padding: '0.625rem 1.25rem', borderRadius: '4px', fontWeight: 800, fontSize: '0.95rem', letterSpacing: '0.04em', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
+            <span>IDENTIFICAÇÃO DA ESCOLA</span>
+            <span style={{ fontSize: '0.75rem', fontWeight: 600 }}>DATA CADASTRO: {createdAt || '22/09/2026'}</span>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
             
-            {/* Nome da Empresa / Razão Social */}
-            <div className="form-group">
-              <label className="form-label" style={{ fontWeight: 600, fontSize: '0.85rem', color: '#334155' }}>Razão Social / Nome Fantasia *</label>
-              <input 
-                type="text" 
-                className="form-input" 
-                value={name} 
-                onChange={e => setName(e.target.value)} 
-                required 
-              />
+            {/* RAZÃO SOCIAL */}
+            <div className="form-group md:col-span-2">
+              <label className="form-label font-bold text-xs uppercase" style={{ color: '#475569' }}>RAZÃO SOCIAL *</label>
+              <input type="text" className="form-input" value={name} onChange={e => setName(e.target.value)} required />
             </div>
 
             {/* CNPJ */}
             <div className="form-group">
-              <label className="form-label" style={{ fontWeight: 600, fontSize: '0.85rem', color: '#334155' }}>CNPJ</label>
-              <input 
-                type="text" 
-                className="form-input" 
-                placeholder="00.000.000/0000-00" 
-                value={cnpj} 
-                onChange={e => setCnpj(e.target.value)} 
-              />
+              <label className="form-label font-bold text-xs uppercase" style={{ color: '#475569' }}>CNPJ</label>
+              <input type="text" className="form-input" placeholder="00.000.000/0000-00" value={cnpj} onChange={e => setCnpj(e.target.value)} />
             </div>
 
-            {/* Licença Ambiental */}
+            {/* Nº DA LICENÇA */}
             <div className="form-group">
-              <label className="form-label" style={{ fontWeight: 600, fontSize: '0.85rem', color: '#334155' }}>Inscrição / Licença Ambiental</label>
-              <input 
-                type="text" 
-                className="form-input" 
-                placeholder="Ex: LAO nº 123456" 
-                value={licenseNumber} 
-                onChange={e => setLicenseNumber(e.target.value)} 
-              />
+              <label className="form-label font-bold text-xs uppercase" style={{ color: '#475569' }}>Nº DA LICENÇA</label>
+              <input type="text" className="form-input" placeholder="Ex: LAO nº 123456" value={licenseNumber} onChange={e => setLicenseNumber(e.target.value)} />
             </div>
 
-            {/* Tipo de Empresa */}
+            {/* SEGUIMENTO */}
             <div className="form-group">
-              <label className="form-label" style={{ fontWeight: 600, fontSize: '0.85rem', color: '#334155' }}>Tipo de Empresa / Ramo</label>
-              <select 
-                className="form-select" 
-                value={companyTypeId} 
-                onChange={e => setCompanyTypeId(e.target.value)}
-              >
-                <option value="">Selecione o tipo de empresa...</option>
+              <label className="form-label font-bold text-xs uppercase" style={{ color: '#475569' }}>SEGUIMENTO</label>
+              <select className="form-select" value={seguimento} onChange={e => setSeguimento(e.target.value)}>
+                <option value="">Selecione o seguimento...</option>
+                <option value="Ensino Infantil">Ensino Infantil</option>
+                <option value="Ensino Fundamental I">Ensino Fundamental I</option>
+                <option value="Ensino Fundamental II">Ensino Fundamental II</option>
+                <option value="Ensino Médio">Ensino Médio</option>
+                <option value="Ensino Fundamental + Médio">Ensino Fundamental + Médio</option>
+                <option value="Ensino Superior">Ensino Superior</option>
+                <option value="Técnico / Profissionalizante">Técnico / Profissionalizante</option>
+                <option value="Outros">Outros</option>
+              </select>
+            </div>
+
+            {/* TIPO */}
+            <div className="form-group">
+              <label className="form-label font-bold text-xs uppercase" style={{ color: '#475569' }}>TIPO</label>
+              <select className="form-select" value={companyTypeId} onChange={e => setCompanyTypeId(e.target.value)}>
+                <option value="">Selecione o tipo...</option>
                 {companyTypes.map(t => (
                   <option key={t.id} value={t.id}>{t.name}</option>
                 ))}
               </select>
             </div>
 
-            {/* Responsável Operacional */}
-            <div className="form-group">
-              <label className="form-label" style={{ fontWeight: 600, fontSize: '0.85rem', color: '#334155' }}>Responsável Técnico / Operacional</label>
-              <input 
-                type="text" 
-                className="form-input" 
-                placeholder="Nome do gestor ambiental ou operacional" 
-                value={responsibleName} 
-                onChange={e => setResponsibleName(e.target.value)} 
-              />
+            {/* NOME DA DIREÇÃO */}
+            <div className="form-group md:col-span-2">
+              <label className="form-label font-bold text-xs uppercase" style={{ color: '#475569' }}>NOME DA DIREÇÃO / RESPONSÁVEL</label>
+              <input type="text" className="form-input" placeholder="Nome do diretor ou responsável" value={responsibleName} onChange={e => setResponsibleName(e.target.value)} />
             </div>
 
-            {/* E-mail */}
+            {/* CPF */}
             <div className="form-group">
-              <label className="form-label" style={{ fontWeight: 600, fontSize: '0.85rem', color: '#334155' }}>E-mail de Contato</label>
-              <input 
-                type="email" 
-                className="form-input" 
-                placeholder="contato@empresa.com.br" 
-                value={email} 
-                onChange={e => setEmail(e.target.value)} 
-              />
+              <label className="form-label font-bold text-xs uppercase" style={{ color: '#475569' }}>CPF DA DIREÇÃO</label>
+              <input type="text" className="form-input" placeholder="000.000.000-00" value={cpf} onChange={e => setCpf(e.target.value)} />
             </div>
 
-            {/* Telefone */}
+          </div>
+
+          {/* SEÇÃO 2: ENDEREÇO E CONTATO */}
+          <div style={{ backgroundColor: '#2b78b8', color: '#ffffff', padding: '0.625rem 1.25rem', borderRadius: '4px', fontWeight: 800, fontSize: '0.95rem', letterSpacing: '0.04em', marginBottom: '1.25rem' }}>
+            ENDEREÇO E CONTATO
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            
+            {/* ENDEREÇO COMPLETO C/ Nº */}
+            <div className="form-group md:col-span-2">
+              <label className="form-label font-bold text-xs uppercase" style={{ color: '#475569' }}>ENDEREÇO COMPLETO C/ Nº</label>
+              <input type="text" className="form-input" placeholder="Rua, Número, Complemento" value={address} onChange={e => setAddress(e.target.value)} />
+            </div>
+
+            {/* BAIRRO */}
             <div className="form-group">
-              <label className="form-label" style={{ fontWeight: 600, fontSize: '0.85rem', color: '#334155' }}>Telefone / WhatsApp</label>
-              <input 
-                type="text" 
-                className="form-input" 
-                placeholder="(00) 00000-0000" 
-                value={phone} 
-                onChange={e => setPhone(e.target.value)} 
-              />
+              <label className="form-label font-bold text-xs uppercase" style={{ color: '#475569' }}>BAIRRO</label>
+              <input type="text" className="form-input" placeholder="Bairro" value={bairro} onChange={e => setBairro(e.target.value)} />
+            </div>
+
+            {/* CIDADE */}
+            <div className="form-group">
+              <label className="form-label font-bold text-xs uppercase" style={{ color: '#475569' }}>CIDADE</label>
+              <input type="text" className="form-input" placeholder="Cidade" value={city} onChange={e => setCity(e.target.value)} />
             </div>
 
             {/* UF */}
             <div className="form-group">
-              <label className="form-label" style={{ fontWeight: 600, fontSize: '0.85rem', color: '#334155' }}>Estado (UF)</label>
+              <label className="form-label font-bold text-xs uppercase" style={{ color: '#475569' }}>UF</label>
               <select className="form-select" value={uf} onChange={e => setUf(e.target.value)}>
                 {['AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG','PA','PB','PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO'].map(u => (
                   <option key={u} value={u}>{u}</option>
@@ -432,86 +463,119 @@ export const CadastroEmpresa: React.FC = () => {
               </select>
             </div>
 
-            {/* Cidade */}
-            <div className="form-group">
-              <label className="form-label" style={{ fontWeight: 600, fontSize: '0.85rem', color: '#334155' }}>Cidade</label>
-              <input 
-                type="text" 
-                className="form-input" 
-                placeholder="Cidade" 
-                value={city} 
-                onChange={e => setCity(e.target.value)} 
-              />
-            </div>
-
             {/* CEP */}
             <div className="form-group">
-              <label className="form-label" style={{ fontWeight: 600, fontSize: '0.85rem', color: '#334155' }}>CEP</label>
-              <input 
-                type="text" 
-                className="form-input" 
-                placeholder="00000-000" 
-                value={zipCode} 
-                onChange={e => setZipCode(e.target.value)} 
-              />
+              <label className="form-label font-bold text-xs uppercase" style={{ color: '#475569' }}>CEP</label>
+              <input type="text" className="form-input" placeholder="00000-000" value={zipCode} onChange={e => setZipCode(e.target.value)} />
             </div>
 
-            {/* Endereço Completo */}
-            <div className="form-group md:col-span-2">
-              <label className="form-label" style={{ fontWeight: 600, fontSize: '0.85rem', color: '#334155' }}>Endereço Completo</label>
-              <input 
-                type="text" 
-                className="form-input" 
-                placeholder="Rua, Número, Bairro, Complemento" 
-                value={address} 
-                onChange={e => setAddress(e.target.value)} 
-              />
+            {/* TELEFONE CEL. */}
+            <div className="form-group">
+              <label className="form-label font-bold text-xs uppercase" style={{ color: '#475569' }}>TELEFONE CEL.</label>
+              <input type="text" className="form-input" placeholder="(00) 00000-0000" value={phone} onChange={e => setPhone(e.target.value)} />
             </div>
+
+            {/* E-MAIL */}
+            <div className="form-group md:col-span-2">
+              <label className="form-label font-bold text-xs uppercase" style={{ color: '#475569' }}>E-MAIL</label>
+              <input type="email" className="form-input" placeholder="contato@escola.com.br" value={email} onChange={e => setEmail(e.target.value)} />
+            </div>
+
           </div>
 
-          {/* ESTRUTURA OPERACIONAL E CAPACIDADE */}
-          <div style={{ marginTop: '2rem', borderTop: '1px solid #f1f5f9', paddingTop: '1.5rem' }}>
-            <h3 className="text-md font-bold mb-3" style={{ color: '#0c4a24', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <Users size={18} style={{ color: '#157a43' }} />
-              Estrutura Operacional & Capacidade
-            </h3>
+          {/* SEÇÃO 3: DADOS DO LOCAL */}
+          <div style={{ backgroundColor: '#2b78b8', color: '#ffffff', padding: '0.625rem 1.25rem', borderRadius: '4px', fontWeight: 800, fontSize: '0.95rem', letterSpacing: '0.04em', marginBottom: '1.25rem' }}>
+            DADOS DO LOCAL
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
             
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              
-              <div className="form-group">
-                <label className="form-label" style={{ fontWeight: 600, fontSize: '0.85rem', color: '#334155' }}>Nº de Alunos / Pessoas Atendidas</label>
-                <input 
-                  type="number" 
-                  className="form-input" 
-                  placeholder="Ex: 1200" 
-                  value={peopleCount} 
-                  onChange={e => setPeopleCount(e.target.value)} 
-                />
-              </div>
+            {/* ÁREA (M²) */}
+            <div className="form-group">
+              <label className="form-label font-bold text-xs uppercase" style={{ color: '#475569' }}>ÁREA (M²)</label>
+              <input type="number" step="0.1" className="form-input" placeholder="Ex: 4000" value={totalAreaM2} onChange={e => setTotalAreaM2(e.target.value)} />
+            </div>
 
-              <div className="form-group">
-                <label className="form-label" style={{ fontWeight: 600, fontSize: '0.85rem', color: '#334155' }}>Equipe Operacional (Colaboradores)</label>
-                <input 
-                  type="number" 
-                  className="form-input" 
-                  placeholder="Ex: 45" 
-                  value={teamCount} 
-                  onChange={e => setTeamCount(e.target.value)} 
-                />
-              </div>
+            {/* Nº ALUNOS */}
+            <div className="form-group">
+              <label className="form-label font-bold text-xs uppercase" style={{ color: '#475569' }}>Nº ALUNOS</label>
+              <input type="number" className="form-input" placeholder="Ex: 600" value={peopleCount} onChange={e => setPeopleCount(e.target.value)} />
+            </div>
 
-              <div className="form-group">
-                <label className="form-label" style={{ fontWeight: 600, fontSize: '0.85rem', color: '#334155' }}>Área Total Construída (m²)</label>
-                <input 
-                  type="number" 
-                  step="0.1" 
-                  className="form-input" 
-                  placeholder="Ex: 2500" 
-                  value={totalAreaM2} 
-                  onChange={e => setTotalAreaM2(e.target.value)} 
-                />
+            {/* Nº EQUIPE */}
+            <div className="form-group">
+              <label className="form-label font-bold text-xs uppercase" style={{ color: '#475569' }}>Nº EQUIPE</label>
+              <input type="number" className="form-input" placeholder="Ex: 45" value={teamCount} onChange={e => setTeamCount(e.target.value)} />
+            </div>
+
+            {/* FUNCIONAMENTO */}
+            <div className="form-group md:col-span-2">
+              <label className="form-label font-bold text-xs uppercase" style={{ color: '#475569' }}>
+                FUNCIONAMENTO <span style={{ color: '#dc2626', fontStyle: 'italic', fontWeight: 400 }}>(Marque com "X" as opções abaixo)</span>
+              </label>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '0.5rem', textAlign: 'center' }}>
+                {['SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB', 'DOM'].map(day => {
+                  const isChecked = operatingDays.includes(day);
+                  return (
+                    <div 
+                      key={day} 
+                      onClick={() => {
+                        setOperatingDays(prev => isChecked ? prev.filter(d => d !== day) : [...prev, day]);
+                      }} 
+                      style={{ 
+                        border: '1px solid #cbd5e1', 
+                        borderRadius: '6px', 
+                        padding: '0.5rem 0.25rem', 
+                        backgroundColor: isChecked ? '#157a43' : '#ffffff', 
+                        color: isChecked ? '#ffffff' : '#475569', 
+                        fontWeight: 700, 
+                        fontSize: '0.8rem', 
+                        cursor: 'pointer', 
+                        userSelect: 'none' 
+                      }}
+                    >
+                      <div>{day}</div>
+                      <div style={{ fontSize: '0.9rem', marginTop: '0.2rem' }}>{isChecked ? 'X' : ' '}</div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
+
+            {/* PERÍODOS */}
+            <div className="form-group">
+              <label className="form-label font-bold text-xs uppercase" style={{ color: '#475569' }}>
+                PERÍODOS <span style={{ color: '#dc2626', fontStyle: 'italic', fontWeight: 400 }}>(Marque com "X")</span>
+              </label>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem', textAlign: 'center' }}>
+                {['MANHÃ', 'TARDE', 'NOITE'].map(shift => {
+                  const isChecked = operatingShifts.includes(shift);
+                  return (
+                    <div 
+                      key={shift} 
+                      onClick={() => {
+                        setOperatingShifts(prev => isChecked ? prev.filter(s => s !== shift) : [...prev, shift]);
+                      }} 
+                      style={{ 
+                        border: '1px solid #cbd5e1', 
+                        borderRadius: '6px', 
+                        padding: '0.5rem 0.25rem', 
+                        backgroundColor: isChecked ? '#157a43' : '#ffffff', 
+                        color: isChecked ? '#ffffff' : '#475569', 
+                        fontWeight: 700, 
+                        fontSize: '0.8rem', 
+                        cursor: 'pointer', 
+                        userSelect: 'none' 
+                      }}
+                    >
+                      <div>{shift}</div>
+                      <div style={{ fontSize: '0.9rem', marginTop: '0.2rem' }}>{isChecked ? 'X' : ' '}</div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
           </div>
 
           {/* BOTÃO SUBMIT */}
@@ -523,7 +587,7 @@ export const CadastroEmpresa: React.FC = () => {
               style={{ backgroundColor: '#157a43', borderColor: '#157a43', color: '#ffffff', fontWeight: 700, padding: '0.75rem 2rem' }}
             >
               <Save size={18} className="mr-2" />
-              {submitting ? 'Salvando...' : 'Salvar Dados Cadastrais'}
+              {submitting ? 'Salvando...' : 'Salvar Dados da Escola'}
             </button>
           </div>
 
@@ -669,7 +733,7 @@ export const CadastroEmpresa: React.FC = () => {
               <h3 className="m-0 text-base font-bold" style={{ color: '#0f172a' }}>
                 Histórico Mensal de Consumo & Logística
               </h3>
-              <p className="text-muted text-xs mt-1">Lista de todos os lançamentos mensais de utilidades cadastrados para esta empresa</p>
+              <p className="text-muted text-xs mt-1">Lista de todos os lançamentos mensais de utilidades cadastrados para esta escola</p>
             </div>
 
             <div className="table-container" style={{ marginTop: '1rem' }}>

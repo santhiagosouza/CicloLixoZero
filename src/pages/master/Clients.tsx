@@ -143,7 +143,7 @@ const Clients: React.FC = () => {
   if (loading && clients.length === 0) {
     return (
       <div className="flex items-center justify-center" style={{ minHeight: '60vh' }}>
-        <p className="text-muted font-medium pulse-active">Carregando empresas...</p>
+        <p className="text-muted font-medium pulse-active">Carregando escolas...</p>
       </div>
     );
   }
@@ -153,13 +153,13 @@ const Clients: React.FC = () => {
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-2">
         <div>
-          <h1 style={{ fontSize: '2rem', margin: 0 }}>Gerenciamento de Clientes</h1>
-          <p className="text-muted text-sm font-medium">Controle as empresas parceiras que utilizam o sistema</p>
+          <h1 style={{ fontSize: '2rem', margin: 0 }}>Gerenciamento de Escolas</h1>
+          <p className="text-muted text-sm font-medium">Controle as escolas parceiras que utilizam o sistema</p>
         </div>
         
         <button onClick={() => navigate('/master/clients/new')} className="btn btn-primary">
           <Plus size={16} />
-          <span>Nova Empresa</span>
+          <span>Nova Escola</span>
         </button>
       </div>
 
@@ -169,7 +169,7 @@ const Clients: React.FC = () => {
           <table className="table">
             <thead>
               <tr>
-                <th>Nome da Empresa</th>
+                <th>Nome da Escola</th>
                 <th>Tipo</th>
                 <th>Responsável</th>
                 <th>Cidade/UF</th>
@@ -182,7 +182,7 @@ const Clients: React.FC = () => {
               {clients.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="text-center text-muted" style={{ padding: '3rem 0' }}>
-                    Nenhuma empresa cadastrada.
+                    Nenhuma escola cadastrada.
                   </td>
                 </tr>
               ) : (
@@ -204,7 +204,7 @@ const Clients: React.FC = () => {
                       <button 
                         onClick={() => handleToggleActive(c)} 
                         className="btn btn-ghost btn-icon"
-                        title={c.active ? 'Desativar Empresa' : 'Ativar Empresa'}
+                        title={c.active ? 'Desativar Escola' : 'Ativar Escola'}
                       >
                         {c.active ? <ToggleRight size={20} style={{ color: 'hsl(var(--primary))' }} /> : <ToggleLeft size={20} />}
                       </button>
@@ -251,11 +251,11 @@ const Clients: React.FC = () => {
             <div className="modal-header">
               <h3 className="modal-title flex items-center gap-2" style={{ color: 'hsl(var(--destructive))' }}>
                 <ShieldAlert size={20} />
-                Excluir Empresa
+                Excluir Escola
               </h3>
             </div>
             <p className="text-sm text-muted" style={{ margin: '0.75rem 0' }}>
-              Tem certeza que deseja excluir esta empresa parceira permanentemente? Todos os setores, subcategorias e pesagens de gravimetria vinculados serão excluídos na nuvem.
+              Tem certeza que deseja excluir esta escola parceira permanentemente? Todos os setores, subcategorias e pesagens de gravimetria vinculados serão excluídos na nuvem.
             </p>
             <div className="modal-footer">
               <button onClick={() => setDeleteConfirmId(null)} className="btn btn-secondary">Cancelar</button>
