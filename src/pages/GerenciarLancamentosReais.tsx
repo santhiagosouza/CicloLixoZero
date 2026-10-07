@@ -3,10 +3,11 @@ import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../integrations/supabase/client';
 import { Link } from 'react-router-dom';
 import { 
-  ArrowLeft, Scale, Pencil, Trash2, Truck, CheckCircle, AlertCircle, X 
+  ArrowLeft, Scale, Pencil, Trash2, Truck, CheckCircle, AlertCircle, X, Sparkles
 } from 'lucide-react';
 import type { DestinationPartner } from './GerenciarParceiros';
 import { getStoredPartners, GerenciarParceiros } from './GerenciarParceiros';
+import { seedFictionalData, getStoredLaunches, saveStoredLaunches } from '../utils/seedTestData';
 
 interface Sector { id: string; name: string; }
 interface Category { id: string; name: string; color: string | null; }
@@ -129,11 +130,51 @@ export const GerenciarLancamentosReais: React.FC = () => {
         .order('created_at', { ascending: false })
         .limit(100);
 
-      if (!error && lData) {
+      if (!error && lData && lData.length > 0) {
         setLaunches((lData as WasteLaunch[]) || []);
+        saveStoredLaunches(clientId, lData as WasteLaunch[]);
+      } else {
+        const stored = getStoredLaunches(clientId);
+        setLaunches(stored as WasteLaunch[]);
       }
     } catch (e) {
       console.error(e);
+      const stored = getStoredLaunches(clientId);
+      setLaunches(stored as WasteLaunch[]);
+    }
+  };
+
+  const handleSeedFictionalData = async () => {
+    if (!clientId) return;
+    if (!confirm('Deseja excluir os dados de teste antigos e gerar novos dados fictícios completos (lançamentos e parceiros) para teste?')) return;
+    setSubmitting(true);
+    setMsg(null);
+    try {
+      await seedFictionalData(clientId, user?.id);
+      setMsg({ type: 'success', text: 'Dados fictícios de parceiros e lançamentos gerados com sucesso!' });
+      setReloadKey(k => k + 1);
+    } catch (e: any) {
+      setMsg({ type: 'error', text: 'Erro ao gerar dados fictícios: ' + e.message });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleClearAllLaunches = async () => {
+    if (!clientId) return;
+    if (!confirm('Deseja realmente EXCLUIR TODOS OS LANÇAMENTOS do sistema? Esta ação não pode ser desfeita.')) return;
+    setSubmitting(true);
+    setMsg(null);
+    try {
+      await supabase.from('waste_launches').delete().eq('client_id', clientId);
+      saveStoredLaunches(clientId, []);
+      setLaunches([]);
+      setMsg({ type: 'success', text: 'Todos os lançamentos de resíduos foram excluídos com sucesso!' });
+      setReloadKey(k => k + 1);
+    } catch (e: any) {
+      setMsg({ type: 'error', text: 'Erro ao excluir lançamentos: ' + e.message });
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -316,14 +357,40 @@ export const GerenciarLancamentosReais: React.FC = () => {
           </div>
         </div>
 
-        <Link 
-          to="/parceiros" 
-          className="btn btn-outline flex items-center gap-2"
-          style={{ backgroundColor: '#ffffff', borderColor: '#157a43', color: '#157a43', fontWeight: 700 }}
-        >
-          <Truck size={18} />
-          <span>Gerenciar Parceiros de Destinação</span>
-        </Link>
+        <div className="flex items-center gap-2 flex-wrap">
+          <button 
+            type="button" 
+            onClick={handleSeedFictionalData}
+            disabled={submitting}
+            className="btn flex items-center gap-2"
+            style={{ backgroundColor: '#ecfdf5', borderColor: '#a7f3d0', color: '#047857', fontWeight: 700, fontSize: '0.85rem' }}
+            title="Exclui dados antigos e gera parceiros e lançamentos fictícios para testes"
+          >
+            <Sparkles size={16} />
+            <span>Gerar Dados Fictícios de Teste</span>
+          </button>
+
+          <button 
+            type="button" 
+            onClick={handleClearAllLaunches}
+            disabled={submitting}
+            className="btn flex items-center gap-2"
+            style={{ backgroundColor: '#fef2f2', borderColor: '#fecaca', color: '#b91c1c', fontWeight: 700, fontSize: '0.85rem' }}
+            title="Exclui todos os lançamentos de resíduos"
+          >
+            <Trash2 size={16} />
+            <span>Excluir Lançamentos</span>
+          </button>
+
+          <Link 
+            to="/parceiros" 
+            className="btn btn-outline flex items-center gap-2"
+            style={{ backgroundColor: '#ffffff', borderColor: '#157a43', color: '#157a43', fontWeight: 700 }}
+          >
+            <Truck size={18} />
+            <span>Gerenciar Parceiros</span>
+          </Link>
+        </div>
       </div>
 
       {msg && (
