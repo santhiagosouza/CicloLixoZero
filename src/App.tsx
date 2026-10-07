@@ -17,6 +17,7 @@ import EditarLancamentos from './pages/EditarLancamentos';
 import DashboardResiduos from './pages/DashboardResiduos';
 import GerenciarLancamentosReais from './pages/GerenciarLancamentosReais';
 import CadastroEmpresa from './pages/CadastroEmpresa';
+import GerenciarParceiros from './pages/GerenciarParceiros';
 
 import MasterDashboard from './pages/master/MasterDashboard';
 import Clients from './pages/master/Clients';
@@ -57,6 +58,7 @@ const App: React.FC = () => {
           <Route path="/" element={<ProtectedRoute><HomeRedirect /></ProtectedRoute>} />
           <Route path="/dashboard" element={<ProtectedRoute><AppLayout><DashboardResiduos /></AppLayout></ProtectedRoute>} />
           <Route path="/empresa" element={<ProtectedRoute><AppLayout><CadastroEmpresa /></AppLayout></ProtectedRoute>} />
+          <Route path="/parceiros" element={<ProtectedRoute><AppLayout><GerenciarParceiros /></AppLayout></ProtectedRoute>} />
           <Route path="/lancamentos-reais" element={<ProtectedRoute><AppLayout><GerenciarLancamentosReais /></AppLayout></ProtectedRoute>} />
 
           <Route path="/gravimetria" element={<ProtectedRoute><AppLayout><Gravimetria /></AppLayout></ProtectedRoute>} />

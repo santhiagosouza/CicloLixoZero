@@ -19,7 +19,8 @@ import {
   Menu,
   X,
   EyeOff,
-  GraduationCap
+  GraduationCap,
+  Truck
 } from 'lucide-react';
 
 export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -38,7 +39,7 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [clientName, setClientName] = useState<string>('');
 
-  const isConfigActive = ['/empresa', '/sectors', '/types', '/users'].some(p => location.pathname === p);
+  const isConfigActive = ['/empresa', '/parceiros', '/sectors', '/types', '/users'].some(p => location.pathname === p);
   const [configOpen, setConfigOpen] = useState(isConfigActive);
 
   useEffect(() => {
@@ -47,6 +48,7 @@ export const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children })
 
   const configSubItems = [
     { path: '/empresa', label: 'Escola', icon: GraduationCap },
+    { path: '/parceiros', label: 'Parceiros de Destinação', icon: Truck },
     { path: '/sectors', label: 'Setores', icon: Grid },
     { path: '/types', label: 'Tipos', icon: Layers },
     { path: '/users', label: 'Usuários', icon: Users },
