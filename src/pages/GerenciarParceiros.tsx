@@ -52,16 +52,223 @@ export interface DestinationPartner {
   active?: boolean;
 }
 
+export const getDefaultPartners = (clientId: string): DestinationPartner[] => [
+  {
+    id: 'part_eco_01',
+    client_id: clientId,
+    name: 'EcoRecicla Soluções Ambientais Ltda',
+    cnpj: '12.345.678/0001-90',
+    license_number: 'LO-2026/0412-SP',
+    company_type: 'Empresa Privada',
+    responsible_name: 'Carlos Eduardo Silva',
+    address: 'Av. Industrial, 1500',
+    bairro: 'Jardim',
+    city: 'Santo André',
+    uf: 'SP',
+    zip_code: '09080-000',
+    phone: '(11) 4004-9876',
+    email: 'contato@ecorecicla.com.br',
+    transporter_name: 'TransLixo Logística Eireli',
+    transporter_cpf: '22.333.444/0001-11',
+    transporter_cnh: '99887766554',
+    transporter_cnh_validity: '2028-10-15',
+    transporter_cnh_category: 'C',
+    vehicles: [
+      {
+        id: 'veh_eco_1',
+        vehicle_type: 'Caminhão Baú',
+        fuel_type: 'Diesel',
+        plate: 'ABC-8E90',
+        distance_km: 18.5,
+        description: 'Baú Principal 01'
+      },
+      {
+        id: 'veh_eco_2',
+        vehicle_type: 'VUC (Veículo Urbano de Carga)',
+        fuel_type: 'Diesel S10',
+        plate: 'ECO-1020',
+        distance_km: 18.5,
+        description: 'VUC Coleta Urbana'
+      },
+      {
+        id: 'veh_eco_3',
+        vehicle_type: 'Carreta',
+        fuel_type: 'Diesel',
+        plate: 'REC-9000',
+        distance_km: 25.0,
+        description: 'Carreta Carga Pesada'
+      }
+    ],
+    vehicle_type: 'Caminhão Baú',
+    fuel_type: 'Diesel',
+    distance_km: 18.5,
+    plate: 'ABC-8E90',
+    collection_days: ['SEG', 'TER', 'QUA', 'QUI', 'SEX'],
+    accepted_materials: ['PAPEL', 'PLÁSTICO', 'METAL', 'VIDRO'],
+    active: true,
+    created_at: new Date().toISOString()
+  },
+  {
+    id: 'part_bio_02',
+    client_id: clientId,
+    name: 'BioVerde Tratamento de Orgânicos & Compostagem',
+    cnpj: '98.765.432/0001-21',
+    license_number: 'CETESB-44021/2025',
+    company_type: 'Usina de Compostagem',
+    responsible_name: 'Mariana Santos',
+    address: 'Rodovia dos Bandeirantes, Km 42',
+    bairro: 'Zona Rural',
+    city: 'Cajamar',
+    uf: 'SP',
+    zip_code: '07750-000',
+    phone: '(11) 3221-5544',
+    email: 'operacao@bioverde.com.br',
+    transporter_name: 'BioLog Transporte Ecológico',
+    transporter_cpf: '44.555.666/0001-33',
+    transporter_cnh: '88776655443',
+    transporter_cnh_validity: '2027-05-20',
+    transporter_cnh_category: 'D',
+    vehicles: [
+      {
+        id: 'veh_bio_1',
+        vehicle_type: 'Caminhão Caçamba',
+        fuel_type: 'Diesel',
+        plate: 'EKF-4210',
+        distance_km: 42.0,
+        description: 'Caçamba Orgânicos 01'
+      },
+      {
+        id: 'veh_bio_2',
+        vehicle_type: 'Caminhão Truck',
+        fuel_type: 'Diesel S10',
+        plate: 'BIO-7788',
+        distance_km: 42.0,
+        description: 'Truck Compostagem 02'
+      }
+    ],
+    vehicle_type: 'Caminhão Caçamba',
+    fuel_type: 'Diesel',
+    distance_km: 42.0,
+    plate: 'EKF-4210',
+    collection_days: ['SEG', 'QUA', 'SEX'],
+    accepted_materials: ['ORGÂNICO'],
+    active: true,
+    created_at: new Date().toISOString()
+  },
+  {
+    id: 'part_coop_03',
+    client_id: clientId,
+    name: 'Cooperativa Central de Catadores - Ciclo Limpo',
+    cnpj: '33.444.555/0001-66',
+    license_number: 'ISENTO-COOP',
+    company_type: 'Cooperativa',
+    responsible_name: 'Ana Lúcia Pereira',
+    address: 'Rua do Galpão, 88',
+    bairro: 'Vila Guilherme',
+    city: 'São Paulo',
+    uf: 'SP',
+    zip_code: '02050-000',
+    phone: '(11) 2345-6789',
+    email: 'cooperativa@ciclolimpo.org.br',
+    transporter_name: 'Transportes Coletivos Ciclo',
+    transporter_cpf: '33.444.555/0001-66',
+    transporter_cnh: '77665544332',
+    transporter_cnh_validity: '2029-01-10',
+    transporter_cnh_category: 'C',
+    vehicles: [
+      {
+        id: 'veh_coop_1',
+        vehicle_type: 'Caminhão Sider',
+        fuel_type: 'GNV',
+        plate: 'JKL-3344',
+        distance_km: 8.7,
+        description: 'Sider Coleta Seletiva'
+      },
+      {
+        id: 'veh_coop_2',
+        vehicle_type: 'Furgão / Utilitário',
+        fuel_type: 'Flex',
+        plate: 'CAT-5511',
+        distance_km: 8.7,
+        description: 'Furgão Apoio Rápido'
+      }
+    ],
+    vehicle_type: 'Caminhão Sider',
+    fuel_type: 'GNV',
+    distance_km: 8.7,
+    plate: 'JKL-3344',
+    collection_days: ['SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB'],
+    accepted_materials: ['PAPEL', 'PLÁSTICO', 'METAL', 'VIDRO'],
+    active: true,
+    created_at: new Date().toISOString()
+  },
+  {
+    id: 'part_tech_04',
+    client_id: clientId,
+    name: 'ReciclaTech Gestão de Resíduos Eletrônicos & Perigosos',
+    cnpj: '45.678.912/0001-34',
+    license_number: 'IBAMA-882190-2026',
+    company_type: 'Aterro / Especializada',
+    responsible_name: 'Fernando Oliveira',
+    address: 'Rua das Indústrias, 450',
+    bairro: 'Distrito Industrial',
+    city: 'Diadema',
+    uf: 'SP',
+    zip_code: '09900-000',
+    phone: '(11) 98765-4321',
+    email: 'atendimento@reciclatech.com.br',
+    transporter_name: 'Express E-Waste Trans',
+    transporter_cpf: '55.666.777/0001-44',
+    transporter_cnh: '66554433221',
+    transporter_cnh_validity: '2028-12-01',
+    transporter_cnh_category: 'E',
+    vehicles: [
+      {
+        id: 'veh_tech_1',
+        vehicle_type: 'VUC (Veículo Urbano de Carga)',
+        fuel_type: 'Elétrico',
+        plate: 'GHI-9F12',
+        distance_km: 12.3,
+        description: 'VUC Zero Emissão'
+      },
+      {
+        id: 'veh_tech_2',
+        vehicle_type: 'Furgão / Utilitário',
+        fuel_type: 'Elétrico',
+        plate: 'ELT-2026',
+        distance_km: 12.3,
+        description: 'Furgão Transporte E-Waste'
+      }
+    ],
+    vehicle_type: 'VUC (Veículo Urbano de Carga)',
+    fuel_type: 'Elétrico',
+    distance_km: 12.3,
+    plate: 'GHI-9F12',
+    collection_days: ['TER', 'QUI'],
+    accepted_materials: ['REJEITO', 'OUTROS', 'METAL', 'PLÁSTICO'],
+    active: true,
+    created_at: new Date().toISOString()
+  }
+];
+
 const LOCAL_STORAGE_KEY_PREFIX = 'ciclo_destination_partners_';
 
 export const getStoredPartners = (clientId?: string | null): DestinationPartner[] => {
   if (!clientId) return [];
   try {
     const raw = localStorage.getItem(`${LOCAL_STORAGE_KEY_PREFIX}${clientId}`);
-    return raw ? JSON.parse(raw) : [];
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed;
+      }
+    }
+    const def = getDefaultPartners(clientId);
+    saveStoredPartners(clientId, def);
+    return def;
   } catch (e) {
     console.error('Error reading partners from localStorage:', e);
-    return [];
+    return getDefaultPartners(clientId);
   }
 };
 
@@ -150,7 +357,7 @@ export const GerenciarParceiros: React.FC<{ isEmbeddedModal?: boolean; onCloseMo
         .eq('client_id', clientId)
         .order('name');
 
-      if (!error && data) {
+      if (!error && data && data.length > 0) {
         fetchedPartners = data as DestinationPartner[];
       } else {
         // Fallback to localStorage

@@ -7,20 +7,176 @@ export interface WasteLaunchItem {
   client_id?: string;
   data: string;
   peso_kg: number;
-  partner_id?: string;
-  partner_name?: string;
-  vehicle_id?: string;
-  vehicle_plate?: string;
-  vehicle_type?: string;
-  fuel_type?: string;
-  distance_km?: number;
-  sector_id?: string;
+  partner_id?: string | null;
+  partner_name?: string | null;
+  vehicle_id?: string | null;
+  vehicle_plate?: string | null;
+  vehicle_type?: string | null;
+  fuel_type?: string | null;
+  distance_km?: number | null;
+  sector_id?: string | null;
   category_id: string;
-  subcategory_id?: string;
+  subcategory_id?: string | null;
   type_id: string;
-  destino?: string;
-  created_at?: string;
+  destino?: string | null;
+  observacao?: string | null;
+  created_at?: string | null;
 }
+
+export const getDefaultLaunches = (clientId: string): WasteLaunchItem[] => [
+  {
+    id: 'launch_seed_01',
+    client_id: clientId,
+    data: '2026-10-06',
+    partner_id: 'part_eco_01',
+    partner_name: 'EcoRecicla Soluções Ambientais Ltda',
+    vehicle_id: 'veh_eco_1',
+    vehicle_plate: 'ABC-8E90',
+    vehicle_type: 'Caminhão Baú',
+    fuel_type: 'Diesel',
+    distance_km: 18.5,
+    sector_id: 'c87c765f-af05-4dde-90bc-79f69fa5dac4',
+    category_id: 'c91fefc8-ba33-4f16-a29e-c91cf5f43e63',
+    subcategory_id: 'd5c889c2-932e-40e8-9757-1ee1883a1302',
+    type_id: 'af75a048-71b4-48d2-add8-648b6f42a0aa',
+    destino: 'EcoRecicla Soluções Ambientais Ltda',
+    peso_kg: 485.50,
+    created_at: '2026-10-06T14:30:00Z'
+  },
+  {
+    id: 'launch_seed_02',
+    client_id: clientId,
+    data: '2026-10-05',
+    partner_id: 'part_bio_02',
+    partner_name: 'BioVerde Tratamento de Orgânicos & Compostagem',
+    vehicle_id: 'veh_bio_1',
+    vehicle_plate: 'EKF-4210',
+    vehicle_type: 'Caminhão Caçamba',
+    fuel_type: 'Diesel',
+    distance_km: 42.0,
+    sector_id: 'ecd2d9a8-3bd3-4408-bd73-a4f5772e96f6',
+    category_id: 'fbd47eee-35f7-4be0-a5e3-e1e09c284058',
+    subcategory_id: 'b69b7a36-46bd-4c9f-b7ea-8e9501d78028',
+    type_id: 'ad12fed1-6650-4f29-aefc-8e873dbd5a93',
+    destino: 'BioVerde Tratamento de Orgânicos & Compostagem',
+    peso_kg: 920.00,
+    created_at: '2026-10-05T11:15:00Z'
+  },
+  {
+    id: 'launch_seed_03',
+    client_id: clientId,
+    data: '2026-10-04',
+    partner_id: 'part_coop_03',
+    partner_name: 'Cooperativa Central de Catadores - Ciclo Limpo',
+    vehicle_id: 'veh_coop_1',
+    vehicle_plate: 'JKL-3344',
+    vehicle_type: 'Caminhão Sider',
+    fuel_type: 'GNV',
+    distance_km: 8.7,
+    sector_id: 'c87c765f-af05-4dde-90bc-79f69fa5dac4',
+    category_id: 'c91fefc8-ba33-4f16-a29e-c91cf5f43e63',
+    subcategory_id: '79eae04a-ea22-4549-a073-f096fe5605e8',
+    type_id: '79e06db1-db45-42a1-a88d-fb7646151e60',
+    destino: 'Cooperativa Central de Catadores - Ciclo Limpo',
+    peso_kg: 340.20,
+    created_at: '2026-10-04T16:45:00Z'
+  },
+  {
+    id: 'launch_seed_04',
+    client_id: clientId,
+    data: '2026-10-03',
+    partner_id: 'part_tech_04',
+    partner_name: 'ReciclaTech Gestão de Resíduos Eletrônicos & Perigosos',
+    vehicle_id: 'veh_tech_1',
+    vehicle_plate: 'GHI-9F12',
+    vehicle_type: 'VUC (Veículo Urbano de Carga)',
+    fuel_type: 'Elétrico',
+    distance_km: 12.3,
+    sector_id: 'c87c765f-af05-4dde-90bc-79f69fa5dac4',
+    category_id: 'c91fefc8-ba33-4f16-a29e-c91cf5f43e63',
+    subcategory_id: 'a1b7ec6e-4847-420b-b8e4-f8b91e45afad',
+    type_id: 'ad8da15d-d4e8-430f-8e6d-a1bacb5702f2',
+    destino: 'ReciclaTech Gestão de Resíduos Eletrônicos & Perigosos',
+    peso_kg: 165.80,
+    created_at: '2026-10-03T10:00:00Z'
+  },
+  {
+    id: 'launch_seed_05',
+    client_id: clientId,
+    data: '2026-10-02',
+    partner_id: 'part_eco_01',
+    partner_name: 'EcoRecicla Soluções Ambientais Ltda',
+    vehicle_id: 'veh_eco_2',
+    vehicle_plate: 'ECO-1020',
+    vehicle_type: 'VUC (Veículo Urbano de Carga)',
+    fuel_type: 'Diesel S10',
+    distance_km: 18.5,
+    sector_id: '3219ca12-823d-4d3f-9c9d-b0b4f7373d7e',
+    category_id: 'c91fefc8-ba33-4f16-a29e-c91cf5f43e63',
+    subcategory_id: 'aacab461-3505-4898-a00e-2ffd2cdd80ae',
+    type_id: '4f926bf6-3bff-464f-9e1c-da3dc7acb6fc',
+    destino: 'EcoRecicla Soluções Ambientais Ltda',
+    peso_kg: 280.00,
+    created_at: '2026-10-02T15:20:00Z'
+  },
+  {
+    id: 'launch_seed_06',
+    client_id: clientId,
+    data: '2026-10-01',
+    partner_id: 'part_bio_02',
+    partner_name: 'BioVerde Tratamento de Orgânicos & Compostagem',
+    vehicle_id: 'veh_bio_2',
+    vehicle_plate: 'BIO-7788',
+    vehicle_type: 'Caminhão Truck',
+    fuel_type: 'Diesel S10',
+    distance_km: 42.0,
+    sector_id: 'f807fe1f-5581-44d9-be37-4d0d3504fa59',
+    category_id: 'fbd47eee-35f7-4be0-a5e3-e1e09c284058',
+    subcategory_id: 'b69b7a36-46bd-4c9f-b7ea-8e9501d78028',
+    type_id: 'ad12fed1-6650-4f29-aefc-8e873dbd5a93',
+    destino: 'BioVerde Tratamento de Orgânicos & Compostagem',
+    peso_kg: 550.00,
+    created_at: '2026-10-01T09:30:00Z'
+  },
+  {
+    id: 'launch_seed_07',
+    client_id: clientId,
+    data: '2026-09-29',
+    partner_id: 'part_coop_03',
+    partner_name: 'Cooperativa Central de Catadores - Ciclo Limpo',
+    vehicle_id: 'veh_coop_2',
+    vehicle_plate: 'CAT-5511',
+    vehicle_type: 'Furgão / Utilitário',
+    fuel_type: 'Flex',
+    distance_km: 8.7,
+    sector_id: 'c87c765f-af05-4dde-90bc-79f69fa5dac4',
+    category_id: 'c91fefc8-ba33-4f16-a29e-c91cf5f43e63',
+    subcategory_id: 'd5c889c2-932e-40e8-9757-1ee1883a1302',
+    type_id: '4d6177b5-0688-4c99-861c-15b00999d68c',
+    destino: 'Cooperativa Central de Catadores - Ciclo Limpo',
+    peso_kg: 215.40,
+    created_at: '2026-09-29T14:10:00Z'
+  },
+  {
+    id: 'launch_seed_08',
+    client_id: clientId,
+    data: '2026-09-28',
+    partner_id: 'part_tech_04',
+    partner_name: 'ReciclaTech Gestão de Resíduos Eletrônicos & Perigosos',
+    vehicle_id: 'veh_tech_2',
+    vehicle_plate: 'ELT-2026',
+    vehicle_type: 'Furgão / Utilitário',
+    fuel_type: 'Elétrico',
+    distance_km: 12.3,
+    sector_id: 'c87c765f-af05-4dde-90bc-79f69fa5dac4',
+    category_id: '17b77019-a796-48a0-82af-15356dc347bc',
+    subcategory_id: '5572a3c1-899b-4ef2-a5a4-cd36b9956fe0',
+    type_id: 'd0802464-f80d-421b-adc0-14a01f6fd939',
+    destino: 'ReciclaTech Gestão de Resíduos Eletrônicos & Perigosos',
+    peso_kg: 94.00,
+    created_at: '2026-09-28T11:50:00Z'
+  }
+];
 
 const LOCAL_STORAGE_LAUNCHES_PREFIX = 'ciclo_waste_launches_';
 
@@ -28,10 +184,18 @@ export const getStoredLaunches = (clientId?: string | null): WasteLaunchItem[] =
   if (!clientId) return [];
   try {
     const raw = localStorage.getItem(`${LOCAL_STORAGE_LAUNCHES_PREFIX}${clientId}`);
-    return raw ? JSON.parse(raw) : [];
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed;
+      }
+    }
+    const def = getDefaultLaunches(clientId);
+    saveStoredLaunches(clientId, def);
+    return def;
   } catch (e) {
     console.error('Error reading launches from localStorage:', e);
-    return [];
+    return getDefaultLaunches(clientId);
   }
 };
 

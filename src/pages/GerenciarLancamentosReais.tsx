@@ -14,23 +14,25 @@ interface Category { id: string; name: string; color: string | null; }
 interface Subcategory { id: string; category_id: string; name: string; }
 interface Type { id: string; subcategory_id: string; name: string; color: string | null; }
 
-interface WasteLaunch {
+export interface WasteLaunch {
   id: string;
+  client_id?: string;
   data: string; // Data de Envio
   peso_kg: number;
-  partner_id?: string;
-  partner_name?: string;
-  vehicle_id?: string;
-  vehicle_plate?: string;
-  vehicle_type?: string;
-  fuel_type?: string;
-  distance_km?: number;
-  sector_id?: string;
+  partner_id?: string | null;
+  partner_name?: string | null;
+  vehicle_id?: string | null;
+  vehicle_plate?: string | null;
+  vehicle_type?: string | null;
+  fuel_type?: string | null;
+  distance_km?: number | null;
+  sector_id?: string | null;
   category_id: string;
-  subcategory_id?: string;
+  subcategory_id?: string | null;
   type_id: string;
-  destino?: string;
-  created_at?: string;
+  destino?: string | null;
+  observacao?: string | null;
+  created_at?: string | null;
 }
 
 export const GerenciarLancamentosReais: React.FC = () => {
@@ -136,8 +138,24 @@ export const GerenciarLancamentosReais: React.FC = () => {
         .limit(100);
 
       if (!error && lData && lData.length > 0) {
-        setLaunches((lData as WasteLaunch[]) || []);
-        saveStoredLaunches(clientId, lData as WasteLaunch[]);
+        const parsed = (lData as any[]).map(item => {
+          let meta: any = {};
+          if (item.observacao && (item.observacao.startsWith('{') || item.observacao.includes('vehicle_type'))) {
+            try { meta = JSON.parse(item.observacao); } catch {}
+          }
+          return {
+            ...item,
+            partner_id: item.partner_id || meta.partner_id,
+            partner_name: item.partner_name || meta.partner_name || item.destino,
+            vehicle_id: item.vehicle_id || meta.vehicle_id,
+            vehicle_plate: item.vehicle_plate || meta.vehicle_plate,
+            vehicle_type: item.vehicle_type || meta.vehicle_type,
+            fuel_type: item.fuel_type || meta.fuel_type,
+            distance_km: item.distance_km != null ? item.distance_km : meta.distance_km
+          };
+        });
+        setLaunches(parsed as WasteLaunch[]);
+        saveStoredLaunches(clientId, parsed as WasteLaunch[]);
       } else {
         const stored = getStoredLaunches(clientId);
         setLaunches(stored as WasteLaunch[]);
@@ -247,6 +265,16 @@ export const GerenciarLancamentosReais: React.FC = () => {
     const selectedVeh = availableVehicles.find(v => v.id === selectedVehicleId);
     const resolvedPlate = vehiclePlate || selectedVeh?.plate || null;
 
+    const metaObj = {
+      partner_id: partnerId,
+      partner_name: partnerName,
+      vehicle_id: selectedVehicleId || null,
+      vehicle_plate: resolvedPlate,
+      vehicle_type: vehicleType,
+      fuel_type: fuelType,
+      distance_km: distanceKm
+    };
+
     const payload = {
       client_id: clientId,
       data: dataEnvio,
@@ -263,6 +291,7 @@ export const GerenciarLancamentosReais: React.FC = () => {
       type_id: typeId,
       destino: partnerName,
       peso_kg: parseFloat(peso),
+      observacao: JSON.stringify(metaObj),
       created_by: user?.id || null
     };
 
@@ -280,6 +309,7 @@ export const GerenciarLancamentosReais: React.FC = () => {
           type_id: typeId,
           destino: partnerName,
           peso_kg: parseFloat(peso),
+          observacao: JSON.stringify(metaObj),
           created_by: user?.id || null
         };
         const ret = await supabase.from('waste_launches').insert(basicPayload);
@@ -287,6 +317,13 @@ export const GerenciarLancamentosReais: React.FC = () => {
       }
 
       if (error) throw error;
+
+      // Update local storage as well
+      const newLaunch: WasteLaunch = {
+        id: crypto.randomUUID(),
+        ...payload
+      };
+      saveStoredLaunches(clientId, [newLaunch, ...launches]);
 
       setMsg({ type: 'success', text: 'Envio de resíduos registrado com sucesso!' });
       setPeso('');
@@ -302,7 +339,12 @@ export const GerenciarLancamentosReais: React.FC = () => {
     if (!confirm('Deseja realmente remover este lançamento de resíduo?')) return;
     try {
       const { error } = await supabase.from('waste_launches').delete().eq('id', id);
-      if (error) throw error;
+      if (error) {
+        console.warn('Supabase delete error, proceeding with local update:', error);
+      }
+      const updated = launches.filter(l => l.id !== id);
+      setLaunches(updated);
+      saveStoredLaunches(clientId!, updated);
       setReloadKey(k => k + 1);
     } catch (err: any) {
       alert('Erro ao excluir lançamento: ' + err.message);
@@ -330,8 +372,15 @@ export const GerenciarLancamentosReais: React.FC = () => {
     const partnerObj = partners.find(p => p.id === editPartnerId);
     const partnerName = partnerObj?.name || 'Parceiro Destinação';
 
+    const metaObj = {
+      partner_id: editPartnerId || null,
+      partner_name: partnerName,
+      vehicle_type: editVehicleType,
+      fuel_type: editFuelType
+    };
+
     try {
-      const { error } = await supabase
+      let { error } = await supabase
         .from('waste_launches')
         .update({
           data: editData,
@@ -343,11 +392,44 @@ export const GerenciarLancamentosReais: React.FC = () => {
           subcategory_id: editSub,
           type_id: editType,
           destino: partnerName,
-          peso_kg: parseFloat(editPeso)
+          peso_kg: parseFloat(editPeso),
+          observacao: JSON.stringify(metaObj)
         })
         .eq('id', wid);
 
+      if (error && (error.message?.includes('column') || error.code === '42703')) {
+        const ret = await supabase
+          .from('waste_launches')
+          .update({
+            data: editData,
+            category_id: editCategory,
+            subcategory_id: editSub,
+            type_id: editType,
+            destino: partnerName,
+            peso_kg: parseFloat(editPeso),
+            observacao: JSON.stringify(metaObj)
+          })
+          .eq('id', wid);
+        error = ret.error;
+      }
+
       if (error) throw error;
+
+      const updated = launches.map(l => l.id === wid ? {
+        ...l,
+        data: editData,
+        partner_id: editPartnerId || null,
+        partner_name: partnerName,
+        vehicle_type: editVehicleType,
+        fuel_type: editFuelType,
+        category_id: editCategory,
+        subcategory_id: editSub,
+        type_id: editType,
+        destino: partnerName,
+        peso_kg: parseFloat(editPeso)
+      } : l);
+      setLaunches(updated);
+      saveStoredLaunches(clientId!, updated);
 
       setEditId(null);
       setReloadKey(k => k + 1);
