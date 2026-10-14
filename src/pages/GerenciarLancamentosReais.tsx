@@ -496,17 +496,7 @@ export const GerenciarLancamentosReais: React.FC = () => {
             </div>
 
             <div className="form-group">
-              <label className="form-label flex items-center justify-between">
-                <span>Escolha o Parceiro *</span>
-                <button 
-                  type="button" 
-                  onClick={() => setShowPartnerModal(true)} 
-                  className="text-xs hover:underline text-primary font-bold"
-                  style={{ textTransform: 'none' }}
-                >
-                  + Cadastrar
-                </button>
-              </label>
+              <label className="form-label">Escolha o Parceiro *</label>
               <select className="form-select" value={partnerId} onChange={e => handlePartnerChange(e.target.value)} required>
                 <option value="">Selecione o parceiro...</option>
                 {partners.map(p => (
