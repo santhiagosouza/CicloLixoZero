@@ -3,9 +3,8 @@ import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../integrations/supabase/client';
 import { Link } from 'react-router-dom';
 import { 
-  ArrowLeft, Truck, Plus, Save, Pencil, Trash2, ToggleLeft, ToggleRight, CheckCircle, AlertCircle, ShieldAlert, Sparkles 
+  ArrowLeft, Truck, Plus, Save, Pencil, Trash2, ToggleLeft, ToggleRight, CheckCircle, AlertCircle, ShieldAlert 
 } from 'lucide-react';
-import { seedFictionalData } from '../utils/seedTestData';
 
 export interface PartnerVehicle {
   id: string;
@@ -386,22 +385,6 @@ export const GerenciarParceiros: React.FC<{ isEmbeddedModal?: boolean; onCloseMo
     }
   };
 
-  const handleSeedFictionalData = async () => {
-    if (!clientId) return;
-    if (!confirm('Deseja excluir os dados antigos e gerar novos dados fictícios completos (lançamentos e parceiros) para teste?')) return;
-    setSubmitting(true);
-    setMsg(null);
-    try {
-      await seedFictionalData(clientId);
-      setMsg({ type: 'success', text: 'Dados fictícios de parceiros e lançamentos gerados com sucesso!' });
-      loadPartners();
-    } catch (e: any) {
-      setMsg({ type: 'error', text: 'Erro ao gerar dados fictícios: ' + e.message });
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
   return (
     <div className="flex flex-col gap-5" style={{ paddingBottom: '3rem' }}>
       
@@ -421,19 +404,7 @@ export const GerenciarParceiros: React.FC<{ isEmbeddedModal?: boolean; onCloseMo
             </div>
           </div>
 
-          <div className="flex items-center gap-2 flex-wrap">
-            <button 
-              type="button" 
-              onClick={handleSeedFictionalData}
-              disabled={submitting}
-              className="btn flex items-center gap-2"
-              style={{ backgroundColor: '#ecfdf5', borderColor: '#a7f3d0', color: '#047857', fontWeight: 700, fontSize: '0.85rem' }}
-              title="Exclui dados antigos e gera parceiros e lançamentos fictícios para testes"
-            >
-              <Sparkles size={16} />
-              <span>Gerar Dados Fictícios de Teste</span>
-            </button>
-
+          <div>
             <button 
               type="button" 
               onClick={() => {
