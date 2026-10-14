@@ -481,8 +481,8 @@ export const GerenciarLancamentosReais: React.FC = () => {
         {/* Form Grid Estilo Gravimetria */}
         <form onSubmit={handleRegisterWaste} style={{ marginTop: '1.5rem' }} className="flex flex-col gap-4">
           
-          {/* LINHA 1: Data de Envio | Parceiro | Veículo | Combustível */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          {/* LINHA 1: Data de Envio | Parceiro | Veículo */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             
             <div className="form-group">
               <label className="form-label">Data de Envio *</label>
@@ -540,19 +540,6 @@ export const GerenciarLancamentosReais: React.FC = () => {
                     ))}
                   </>
                 )}
-              </select>
-            </div>
-
-            <div className="form-group">
-              <label className="form-label">Combustível</label>
-              <select className="form-select" value={fuelType} onChange={e => setFuelType(e.target.value)} disabled={!partnerId}>
-                <option value="Diesel">Diesel</option>
-                <option value="Diesel S10">Diesel S10</option>
-                <option value="Gasolina">Gasolina</option>
-                <option value="Flex">Flex</option>
-                <option value="Elétrico">Elétrico</option>
-                <option value="GNV">GNV</option>
-                <option value="Outro">Outro</option>
               </select>
             </div>
 
