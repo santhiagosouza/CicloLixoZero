@@ -7,6 +7,15 @@ import {
 } from 'lucide-react';
 import { seedFictionalData } from '../utils/seedTestData';
 
+export interface PartnerVehicle {
+  id: string;
+  vehicle_type: string;
+  fuel_type: string;
+  plate?: string;
+  distance_km?: number | null;
+  description?: string;
+}
+
 export interface DestinationPartner {
   id: string;
   client_id?: string;
@@ -30,6 +39,9 @@ export interface DestinationPartner {
   transporter_cnh?: string | null;
   transporter_cnh_validity?: string | null;
   transporter_cnh_category?: string | null;
+
+  // Lista de Veículos cadastrados deste Parceiro
+  vehicles?: PartnerVehicle[];
 
   vehicle_type?: string | null;
   fuel_type?: string | null;
@@ -100,11 +112,19 @@ export const GerenciarParceiros: React.FC<{ isEmbeddedModal?: boolean; onCloseMo
   const [transporterCnhValidity, setTransporterCnhValidity] = useState('');
   const [transporterCnhCategory, setTransporterCnhCategory] = useState('C');
 
-  // Section 4: Dados do Veículo
+  // Section 4: Frota de Veículos do Parceiro
+  const [partnerVehicles, setPartnerVehicles] = useState<PartnerVehicle[]>([]);
   const [vehicleType, setVehicleType] = useState('Caminhão Baú');
   const [fuelType, setFuelType] = useState('Diesel');
   const [distanceKm, setDistanceKm] = useState('');
   const [plate, setPlate] = useState('');
+
+  // Formulário auxiliar para adicionar veículo à frota do parceiro
+  const [vehTypeInput, setVehTypeInput] = useState('Caminhão Baú');
+  const [vehFuelInput, setVehFuelInput] = useState('Diesel');
+  const [vehPlateInput, setVehPlateInput] = useState('');
+  const [vehDistanceInput, setVehDistanceInput] = useState('');
+  const [vehDescInput, setVehDescInput] = useState('');
 
   // Section 5: Dia de Coleta & Tipo de Material Aceito
   const [collectionDays, setCollectionDays] = useState<string[]>(['SEG', 'TER', 'QUA', 'QUI', 'SEX']);
@@ -145,6 +165,26 @@ export const GerenciarParceiros: React.FC<{ isEmbeddedModal?: boolean; onCloseMo
     setLoading(false);
   };
 
+  const handleAddVehicle = () => {
+    if (!vehTypeInput) return;
+    const newVeh: PartnerVehicle = {
+      id: `veh_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+      vehicle_type: vehTypeInput,
+      fuel_type: vehFuelInput,
+      plate: vehPlateInput.trim().toUpperCase() || undefined,
+      distance_km: vehDistanceInput ? parseFloat(vehDistanceInput) : null,
+      description: vehDescInput.trim() || undefined
+    };
+
+    setPartnerVehicles(prev => [...prev, newVeh]);
+    setVehPlateInput('');
+    setVehDescInput('');
+  };
+
+  const handleRemoveVehicle = (id: string) => {
+    setPartnerVehicles(prev => prev.filter(v => v.id !== id));
+  };
+
   const resetForm = () => {
     setEditingPartnerId(null);
     setCreatedAtDate(new Date().toLocaleDateString('pt-BR'));
@@ -168,10 +208,17 @@ export const GerenciarParceiros: React.FC<{ isEmbeddedModal?: boolean; onCloseMo
     setTransporterCnhValidity('');
     setTransporterCnhCategory('C');
 
+    setPartnerVehicles([]);
     setVehicleType('Caminhão Baú');
     setFuelType('Diesel');
     setDistanceKm('');
     setPlate('');
+
+    setVehTypeInput('Caminhão Baú');
+    setVehFuelInput('Diesel');
+    setVehPlateInput('');
+    setVehDistanceInput('');
+    setVehDescInput('');
 
     setCollectionDays(['SEG', 'TER', 'QUA', 'QUI', 'SEX']);
     setAcceptedMaterials(['PAPEL', 'PLÁSTICO', 'METAL', 'VIDRO', 'ORGÂNICO']);
@@ -199,10 +246,32 @@ export const GerenciarParceiros: React.FC<{ isEmbeddedModal?: boolean; onCloseMo
     setTransporterCnhValidity(p.transporter_cnh_validity || '');
     setTransporterCnhCategory(p.transporter_cnh_category || 'C');
 
+    // Carrega a frota de veículos ou converte legado
+    let initialVehicles: PartnerVehicle[] = [];
+    if (p.vehicles && Array.isArray(p.vehicles) && p.vehicles.length > 0) {
+      initialVehicles = p.vehicles;
+    } else if (p.vehicle_type) {
+      initialVehicles = [{
+        id: `veh_leg_${p.id}`,
+        vehicle_type: p.vehicle_type,
+        fuel_type: p.fuel_type || 'Diesel',
+        plate: p.plate || undefined,
+        distance_km: p.distance_km != null ? p.distance_km : null,
+        description: 'Veículo Principal'
+      }];
+    }
+    setPartnerVehicles(initialVehicles);
+
     setVehicleType(p.vehicle_type || 'Caminhão Baú');
     setFuelType(p.fuel_type || 'Diesel');
     setDistanceKm(p.distance_km ? String(p.distance_km) : '');
     setPlate(p.plate || '');
+
+    setVehTypeInput('Caminhão Baú');
+    setVehFuelInput('Diesel');
+    setVehPlateInput('');
+    setVehDistanceInput('');
+    setVehDescInput('');
 
     setCollectionDays(p.collection_days && Array.isArray(p.collection_days) ? p.collection_days : ['SEG', 'TER', 'QUA', 'QUI', 'SEX']);
     setAcceptedMaterials(p.accepted_materials && Array.isArray(p.accepted_materials) ? p.accepted_materials : ['PAPEL', 'PLÁSTICO', 'METAL', 'VIDRO', 'ORGÂNICO']);
@@ -219,6 +288,8 @@ export const GerenciarParceiros: React.FC<{ isEmbeddedModal?: boolean; onCloseMo
     setMsg(null);
 
     const partnerId = editingPartnerId || `part_${Date.now()}`;
+    const primaryVehicle = partnerVehicles[0];
+
     const payload: DestinationPartner = {
       id: partnerId,
       client_id: clientId,
@@ -242,10 +313,14 @@ export const GerenciarParceiros: React.FC<{ isEmbeddedModal?: boolean; onCloseMo
       transporter_cnh_validity: transporterCnhValidity || null,
       transporter_cnh_category: transporterCnhCategory || null,
 
-      vehicle_type: vehicleType,
-      fuel_type: fuelType,
-      distance_km: distanceKm ? parseFloat(distanceKm) : null,
-      plate: plate.trim() || null,
+      // Lista de Veículos do Parceiro
+      vehicles: partnerVehicles,
+
+      // Compatibilidade legada
+      vehicle_type: primaryVehicle ? primaryVehicle.vehicle_type : (vehicleType || 'Caminhão Baú'),
+      fuel_type: primaryVehicle ? primaryVehicle.fuel_type : (fuelType || 'Diesel'),
+      distance_km: primaryVehicle && primaryVehicle.distance_km != null ? primaryVehicle.distance_km : (distanceKm ? parseFloat(distanceKm) : null),
+      plate: primaryVehicle ? (primaryVehicle.plate || null) : (plate.trim() || null),
 
       collection_days: collectionDays,
       accepted_materials: acceptedMaterials,
@@ -541,52 +616,174 @@ export const GerenciarParceiros: React.FC<{ isEmbeddedModal?: boolean; onCloseMo
 
           </div>
 
-          {/* SEÇÃO 4: DADOS DO VEÍCULO */}
+          {/* SEÇÃO 4: CADASTRO DE VEÍCULOS DO PARCEIRO */}
           <div style={{ borderBottom: '1px solid #e2e8f0', paddingBottom: '0.5rem', marginBottom: '1.25rem', marginTop: '1rem' }}>
-            <h3 style={{ fontSize: '0.9rem', fontWeight: 700, color: '#0f172a', textTransform: 'uppercase', letterSpacing: '0.04em', margin: 0 }}>
-              Dados do Veículo
-            </h3>
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              <div>
+                <h3 style={{ fontSize: '0.9rem', fontWeight: 700, color: '#0f172a', textTransform: 'uppercase', letterSpacing: '0.04em', margin: 0 }}>
+                  Veículos do Parceiro (Frota de Destinação)
+                </h3>
+                <p className="text-muted text-xs mt-0.5">
+                  Cadastre os veículos deste parceiro. No momento do lançamento de resíduos, apenas os veículos vinculados a ele serão exibidos.
+                </p>
+              </div>
+              <span className="badge badge-success text-xs font-semibold">
+                {partnerVehicles.length} {partnerVehicles.length === 1 ? 'veículo cadastrado' : 'veículos cadastrados'}
+              </span>
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-            
-            <div className="form-group">
-              <label className="form-label font-bold text-xs uppercase" style={{ color: '#475569' }}>TIPO DE TRANSPORTE (VEÍCULO)</label>
-              <select className="form-select" value={vehicleType} onChange={e => setVehicleType(e.target.value)}>
-                <option value="Caminhão Baú">Caminhão Baú</option>
-                <option value="VUC (Veículo Urbano de Carga)">VUC (Veículo Urbano de Carga)</option>
-                <option value="Caminhão Toco">Caminhão Toco</option>
-                <option value="Caminhão Truck">Caminhão Truck</option>
-                <option value="Carreta">Carreta</option>
-                <option value="Caçamba">Caçamba</option>
-                <option value="Furgão / Utilitário">Furgão / Utilitário</option>
-                <option value="Outro">Outro</option>
-              </select>
-            </div>
+          {/* Box para Adicionar Novo Veículo ao Parceiro */}
+          <div style={{
+            backgroundColor: '#f8fafc',
+            border: '1px solid #e2e8f0',
+            borderRadius: '10px',
+            padding: '1.25rem',
+            marginBottom: '1.5rem'
+          }}>
+            <h4 style={{ fontSize: '0.85rem', fontWeight: 700, color: '#334155', margin: '0 0 0.85rem 0', textTransform: 'uppercase' }} className="flex items-center gap-1.5">
+              <Plus size={15} style={{ color: '#157a43' }} />
+              Adicionar Veículo ao Parceiro
+            </h4>
 
-            <div className="form-group">
-              <label className="form-label font-bold text-xs uppercase" style={{ color: '#475569' }}>TIPO DE COMBUSTÍVEL</label>
-              <select className="form-select" value={fuelType} onChange={e => setFuelType(e.target.value)}>
-                <option value="Diesel">Diesel</option>
-                <option value="Diesel S10">Diesel S10</option>
-                <option value="Gasolina">Gasolina</option>
-                <option value="Flex">Flex</option>
-                <option value="Elétrico">Elétrico</option>
-                <option value="GNV">GNV</option>
-                <option value="Outro">Outro</option>
-              </select>
-            </div>
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-3 items-end">
+              <div className="form-group">
+                <label className="form-label font-bold text-xs uppercase" style={{ color: '#475569' }}>Tipo de Transporte *</label>
+                <select className="form-select text-sm" value={vehTypeInput} onChange={e => setVehTypeInput(e.target.value)}>
+                  <option value="Caminhão Baú">Caminhão Baú</option>
+                  <option value="VUC (Veículo Urbano de Carga)">VUC (Veículo Urbano de Carga)</option>
+                  <option value="Caminhão Toco">Caminhão Toco</option>
+                  <option value="Caminhão Truck">Caminhão Truck</option>
+                  <option value="Carreta">Carreta</option>
+                  <option value="Caçamba">Caçamba</option>
+                  <option value="Furgão / Utilitário">Furgão / Utilitário</option>
+                  <option value="Outro">Outro</option>
+                </select>
+              </div>
 
-            <div className="form-group">
-              <label className="form-label font-bold text-xs uppercase" style={{ color: '#475569' }}>DISTÂNCIA / KM</label>
-              <input type="number" step="0.1" className="form-input" placeholder="Ex: 45" value={distanceKm} onChange={e => setDistanceKm(e.target.value)} />
-            </div>
+              <div className="form-group">
+                <label className="form-label font-bold text-xs uppercase" style={{ color: '#475569' }}>Combustível *</label>
+                <select className="form-select text-sm" value={vehFuelInput} onChange={e => setVehFuelInput(e.target.value)}>
+                  <option value="Diesel">Diesel</option>
+                  <option value="Diesel S10">Diesel S10</option>
+                  <option value="Gasolina">Gasolina</option>
+                  <option value="Flex">Flex</option>
+                  <option value="Elétrico">Elétrico</option>
+                  <option value="GNV">GNV</option>
+                  <option value="Outro">Outro</option>
+                </select>
+              </div>
 
-            <div className="form-group">
-              <label className="form-label font-bold text-xs uppercase" style={{ color: '#475569' }}>PLACA DO VEÍCULO</label>
-              <input type="text" className="form-input" placeholder="ABC-1234 / ABC1D23" value={plate} onChange={e => setPlate(e.target.value)} />
-            </div>
+              <div className="form-group">
+                <label className="form-label font-bold text-xs uppercase" style={{ color: '#475569' }}>Placa do Veículo</label>
+                <input 
+                  type="text" 
+                  className="form-input text-sm" 
+                  placeholder="Ex: ABC-1234" 
+                  value={vehPlateInput} 
+                  onChange={e => setVehPlateInput(e.target.value)} 
+                />
+              </div>
 
+              <div className="form-group">
+                <label className="form-label font-bold text-xs uppercase" style={{ color: '#475569' }}>Distância (km)</label>
+                <input 
+                  type="number" 
+                  step="0.1" 
+                  className="form-input text-sm" 
+                  placeholder="Ex: 25.5" 
+                  value={vehDistanceInput} 
+                  onChange={e => setVehDistanceInput(e.target.value)} 
+                />
+              </div>
+
+              <div className="form-group">
+                <button 
+                  type="button" 
+                  onClick={handleAddVehicle} 
+                  className="btn btn-primary w-full flex items-center justify-center gap-1.5"
+                  style={{ backgroundColor: '#157a43', borderColor: '#157a43', height: '42px', fontWeight: 700, fontSize: '0.85rem' }}
+                >
+                  <Plus size={16} />
+                  <span>Adicionar Veículo</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Tabela dos Veículos Cadastrados no Parceiro */}
+          <div style={{ marginBottom: '1.75rem' }}>
+            {partnerVehicles.length === 0 ? (
+              <div style={{ 
+                border: '1px dashed #cbd5e1', 
+                borderRadius: '8px', 
+                padding: '1.5rem', 
+                textAlign: 'center', 
+                backgroundColor: '#ffffff' 
+              }}>
+                <Truck size={28} className="mx-auto mb-2 text-slate-400" />
+                <p className="text-sm font-semibold text-slate-600 m-0">Nenhum veículo adicionado a este parceiro ainda.</p>
+                <p className="text-xs text-muted mt-1 mb-0">Utilize os campos acima para cadastrar pelo menos um veículo deste parceiro.</p>
+              </div>
+            ) : (
+              <div className="table-container" style={{ border: '1px solid #e2e8f0', borderRadius: '8px' }}>
+                <table className="table" style={{ margin: 0 }}>
+                  <thead style={{ backgroundColor: '#f1f5f9' }}>
+                    <tr>
+                      <th style={{ fontSize: '0.75rem' }}>Tipo de Veículo</th>
+                      <th style={{ fontSize: '0.75rem' }}>Placa</th>
+                      <th style={{ fontSize: '0.75rem' }}>Combustível</th>
+                      <th style={{ fontSize: '0.75rem' }}>Distância (km)</th>
+                      <th style={{ fontSize: '0.75rem', width: '80px', textAlign: 'right' }}>Ação</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {partnerVehicles.map((v, idx) => (
+                      <tr key={v.id}>
+                        <td>
+                          <span className="font-semibold text-slate-800">{v.vehicle_type}</span>
+                          {idx === 0 && (
+                            <span className="badge badge-info ml-2" style={{ fontSize: '0.65rem', marginLeft: '0.5rem' }}>
+                              Principal
+                            </span>
+                          )}
+                        </td>
+                        <td>
+                          {v.plate ? (
+                            <span className="font-mono font-bold text-xs bg-slate-100 px-2 py-0.5 rounded border border-slate-300">
+                              {v.plate}
+                            </span>
+                          ) : (
+                            <span className="text-muted text-xs">Não informada</span>
+                          )}
+                        </td>
+                        <td>
+                          <span className="text-xs font-medium text-slate-700">{v.fuel_type}</span>
+                        </td>
+                        <td>
+                          {v.distance_km != null ? (
+                            <span className="text-xs font-semibold text-slate-700">{v.distance_km} km</span>
+                          ) : (
+                            <span className="text-muted text-xs">—</span>
+                          )}
+                        </td>
+                        <td className="text-right">
+                          <button 
+                            type="button" 
+                            onClick={() => handleRemoveVehicle(v.id)} 
+                            className="btn btn-ghost btn-icon"
+                            style={{ color: 'hsl(var(--destructive))' }}
+                            title="Remover veículo deste parceiro"
+                          >
+                            <Trash2 size={15} />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
 
           {/* SEÇÃO 5: DIA DE COLETA & TIPO DE MATERIAL ACEITO (Pílulas Verde/Vermelho) */}
@@ -756,12 +953,39 @@ export const GerenciarParceiros: React.FC<{ isEmbeddedModal?: boolean; onCloseMo
                           {p.transporter_cpf && <div className="text-muted text-xs">CPF: {p.transporter_cpf}</div>}
                         </td>
                         <td>
-                          <span className="font-medium">{p.vehicle_type || '—'}</span>
-                          {p.fuel_type && <div className="text-muted text-xs">{p.fuel_type}</div>}
+                          {p.vehicles && p.vehicles.length > 0 ? (
+                            <div className="flex flex-col gap-1">
+                              <span className="badge badge-success text-xs font-semibold" style={{ width: 'fit-content' }}>
+                                {p.vehicles.length} {p.vehicles.length === 1 ? 'veículo' : 'veículos'}
+                              </span>
+                              <span className="font-medium text-xs text-slate-800">
+                                {p.vehicles.map(v => v.vehicle_type).slice(0, 2).join(', ')}
+                                {p.vehicles.length > 2 ? ` (+${p.vehicles.length - 2})` : ''}
+                              </span>
+                            </div>
+                          ) : (
+                            <div>
+                              <span className="font-medium">{p.vehicle_type || '—'}</span>
+                              {p.fuel_type && <div className="text-muted text-xs">{p.fuel_type}</div>}
+                            </div>
+                          )}
                         </td>
                         <td>
-                          <span className="font-medium">{p.plate || '—'}</span>
-                          {p.distance_km != null && <div className="text-muted text-xs">{p.distance_km} km</div>}
+                          {p.vehicles && p.vehicles.length > 0 ? (
+                            <div className="flex flex-col gap-0.5">
+                              {p.vehicles.filter(v => v.plate).slice(0, 2).map((v, i) => (
+                                <span key={i} className="font-mono text-xs font-bold text-slate-700 bg-slate-100 px-1.5 py-0.5 rounded w-fit">
+                                  {v.plate}
+                                </span>
+                              ))}
+                              {p.vehicles.every(v => !v.plate) && <span className="text-muted text-xs">Sem placas</span>}
+                            </div>
+                          ) : (
+                            <div>
+                              <span className="font-medium">{p.plate || '—'}</span>
+                              {p.distance_km != null && <div className="text-muted text-xs">{p.distance_km} km</div>}
+                            </div>
+                          )}
                         </td>
                         <td>
                           <span className={`badge ${isActive ? 'badge-success' : 'badge-default'}`}>

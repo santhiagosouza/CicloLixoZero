@@ -9,6 +9,8 @@ export interface WasteLaunchItem {
   peso_kg: number;
   partner_id?: string;
   partner_name?: string;
+  vehicle_id?: string;
+  vehicle_plate?: string;
   vehicle_type?: string;
   fuel_type?: string;
   distance_km?: number;
@@ -60,7 +62,7 @@ export const seedFictionalData = async (clientId: string, _userId?: string) => {
   }
   saveStoredPartners(clientId, []);
 
-  // 3. Criar Parceiros de Destinação Fictícios
+  // 3. Criar Parceiros de Destinação Fictícios com Veículos Próprios
   const fictionalPartners: DestinationPartner[] = [
     {
       id: crypto.randomUUID(),
@@ -82,6 +84,32 @@ export const seedFictionalData = async (clientId: string, _userId?: string) => {
       transporter_cnh: '99887766554',
       transporter_cnh_validity: '2028-10-15',
       transporter_cnh_category: 'C',
+      vehicles: [
+        {
+          id: 'veh_eco_1',
+          vehicle_type: 'Caminhão Baú',
+          fuel_type: 'Diesel',
+          plate: 'ABC-8E90',
+          distance_km: 18.5,
+          description: 'Baú Principal 01'
+        },
+        {
+          id: 'veh_eco_2',
+          vehicle_type: 'VUC (Veículo Urbano de Carga)',
+          fuel_type: 'Diesel S10',
+          plate: 'ECO-1020',
+          distance_km: 18.5,
+          description: 'VUC Coleta Urbana'
+        },
+        {
+          id: 'veh_eco_3',
+          vehicle_type: 'Carreta',
+          fuel_type: 'Diesel',
+          plate: 'REC-9000',
+          distance_km: 25.0,
+          description: 'Carreta Carga Pesada'
+        }
+      ],
       vehicle_type: 'Caminhão Baú',
       fuel_type: 'Diesel',
       distance_km: 18.5,
@@ -111,6 +139,24 @@ export const seedFictionalData = async (clientId: string, _userId?: string) => {
       transporter_cnh: '88776655443',
       transporter_cnh_validity: '2027-05-20',
       transporter_cnh_category: 'D',
+      vehicles: [
+        {
+          id: 'veh_bio_1',
+          vehicle_type: 'Caminhão Caçamba',
+          fuel_type: 'Diesel',
+          plate: 'EKF-4210',
+          distance_km: 42.0,
+          description: 'Caçamba Orgânicos 01'
+        },
+        {
+          id: 'veh_bio_2',
+          vehicle_type: 'Caminhão Truck',
+          fuel_type: 'Diesel S10',
+          plate: 'BIO-7788',
+          distance_km: 42.0,
+          description: 'Truck Compostagem 02'
+        }
+      ],
       vehicle_type: 'Caminhão Caçamba',
       fuel_type: 'Diesel',
       distance_km: 42.0,
@@ -140,6 +186,24 @@ export const seedFictionalData = async (clientId: string, _userId?: string) => {
       transporter_cnh: '77665544332',
       transporter_cnh_validity: '2029-01-10',
       transporter_cnh_category: 'C',
+      vehicles: [
+        {
+          id: 'veh_coop_1',
+          vehicle_type: 'Caminhão Sider',
+          fuel_type: 'GNV',
+          plate: 'JKL-3344',
+          distance_km: 8.7,
+          description: 'Sider Coleta Seletiva'
+        },
+        {
+          id: 'veh_coop_2',
+          vehicle_type: 'Furgão / Utilitário',
+          fuel_type: 'Flex',
+          plate: 'CAT-5511',
+          distance_km: 8.7,
+          description: 'Furgão Apoio Rápido'
+        }
+      ],
       vehicle_type: 'Caminhão Sider',
       fuel_type: 'GNV',
       distance_km: 8.7,
@@ -169,7 +233,25 @@ export const seedFictionalData = async (clientId: string, _userId?: string) => {
       transporter_cnh: '66554433221',
       transporter_cnh_validity: '2028-12-01',
       transporter_cnh_category: 'E',
-      vehicle_type: 'VUC',
+      vehicles: [
+        {
+          id: 'veh_tech_1',
+          vehicle_type: 'VUC (Veículo Urbano de Carga)',
+          fuel_type: 'Elétrico',
+          plate: 'GHI-9F12',
+          distance_km: 12.3,
+          description: 'VUC Zero Emissão'
+        },
+        {
+          id: 'veh_tech_2',
+          vehicle_type: 'Furgão / Utilitário',
+          fuel_type: 'Elétrico',
+          plate: 'ELT-2026',
+          distance_km: 12.3,
+          description: 'Furgão Transporte E-Waste'
+        }
+      ],
+      vehicle_type: 'VUC (Veículo Urbano de Carga)',
       fuel_type: 'Elétrico',
       distance_km: 12.3,
       plate: 'GHI-9F12',
@@ -248,7 +330,7 @@ export const seedFictionalData = async (clientId: string, _userId?: string) => {
 
   const defaultSectorId = secList[0]?.id || null;
 
-  // 5. Criar Lançamentos de Resíduos Fictícios
+  // 5. Criar Lançamentos de Resíduos Fictícios com Veículos dos Parceiros
   const fictionalLaunches: WasteLaunchItem[] = [
     {
       id: crypto.randomUUID(),
@@ -256,6 +338,8 @@ export const seedFictionalData = async (clientId: string, _userId?: string) => {
       data: '2026-10-06',
       partner_id: fictionalPartners[0].id,
       partner_name: fictionalPartners[0].name,
+      vehicle_id: 'veh_eco_1',
+      vehicle_plate: 'ABC-8E90',
       vehicle_type: 'Caminhão Baú',
       fuel_type: 'Diesel',
       distance_km: 18.5,
@@ -273,6 +357,8 @@ export const seedFictionalData = async (clientId: string, _userId?: string) => {
       data: '2026-10-05',
       partner_id: fictionalPartners[1].id,
       partner_name: fictionalPartners[1].name,
+      vehicle_id: 'veh_bio_1',
+      vehicle_plate: 'EKF-4210',
       vehicle_type: 'Caminhão Caçamba',
       fuel_type: 'Diesel',
       distance_km: 42.0,
@@ -290,6 +376,8 @@ export const seedFictionalData = async (clientId: string, _userId?: string) => {
       data: '2026-10-04',
       partner_id: fictionalPartners[2].id,
       partner_name: fictionalPartners[2].name,
+      vehicle_id: 'veh_coop_1',
+      vehicle_plate: 'JKL-3344',
       vehicle_type: 'Caminhão Sider',
       fuel_type: 'GNV',
       distance_km: 8.7,
@@ -307,7 +395,9 @@ export const seedFictionalData = async (clientId: string, _userId?: string) => {
       data: '2026-10-03',
       partner_id: fictionalPartners[3].id,
       partner_name: fictionalPartners[3].name,
-      vehicle_type: 'VUC',
+      vehicle_id: 'veh_tech_1',
+      vehicle_plate: 'GHI-9F12',
+      vehicle_type: 'VUC (Veículo Urbano de Carga)',
       fuel_type: 'Elétrico',
       distance_km: 12.3,
       sector_id: defaultSectorId,
@@ -324,8 +414,10 @@ export const seedFictionalData = async (clientId: string, _userId?: string) => {
       data: '2026-10-02',
       partner_id: fictionalPartners[0].id,
       partner_name: fictionalPartners[0].name,
-      vehicle_type: 'Caminhão Baú',
-      fuel_type: 'Diesel',
+      vehicle_id: 'veh_eco_2',
+      vehicle_plate: 'ECO-1020',
+      vehicle_type: 'VUC (Veículo Urbano de Carga)',
+      fuel_type: 'Diesel S10',
       distance_km: 18.5,
       sector_id: defaultSectorId,
       category_id: catReciclavel,
@@ -341,8 +433,10 @@ export const seedFictionalData = async (clientId: string, _userId?: string) => {
       data: '2026-10-01',
       partner_id: fictionalPartners[1].id,
       partner_name: fictionalPartners[1].name,
-      vehicle_type: 'Caminhão Caçamba',
-      fuel_type: 'Diesel',
+      vehicle_id: 'veh_bio_2',
+      vehicle_plate: 'BIO-7788',
+      vehicle_type: 'Caminhão Truck',
+      fuel_type: 'Diesel S10',
       distance_km: 42.0,
       sector_id: defaultSectorId,
       category_id: catOrganico,
@@ -358,8 +452,10 @@ export const seedFictionalData = async (clientId: string, _userId?: string) => {
       data: '2026-09-29',
       partner_id: fictionalPartners[2].id,
       partner_name: fictionalPartners[2].name,
-      vehicle_type: 'Caminhão Sider',
-      fuel_type: 'GNV',
+      vehicle_id: 'veh_coop_2',
+      vehicle_plate: 'CAT-5511',
+      vehicle_type: 'Furgão / Utilitário',
+      fuel_type: 'Flex',
       distance_km: 8.7,
       sector_id: defaultSectorId,
       category_id: catReciclavel,
@@ -375,7 +471,9 @@ export const seedFictionalData = async (clientId: string, _userId?: string) => {
       data: '2026-09-28',
       partner_id: fictionalPartners[3].id,
       partner_name: fictionalPartners[3].name,
-      vehicle_type: 'VUC',
+      vehicle_id: 'veh_tech_2',
+      vehicle_plate: 'ELT-2026',
+      vehicle_type: 'Furgão / Utilitário',
       fuel_type: 'Elétrico',
       distance_km: 12.3,
       sector_id: defaultSectorId,

@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom';
 import { 
   ArrowLeft, Scale, Pencil, Trash2, Truck, CheckCircle, AlertCircle, X, Sparkles
 } from 'lucide-react';
-import type { DestinationPartner } from './GerenciarParceiros';
+import type { DestinationPartner, PartnerVehicle } from './GerenciarParceiros';
 import { getStoredPartners, GerenciarParceiros } from './GerenciarParceiros';
 import { seedFictionalData, getStoredLaunches, saveStoredLaunches } from '../utils/seedTestData';
 
@@ -20,6 +20,8 @@ interface WasteLaunch {
   peso_kg: number;
   partner_id?: string;
   partner_name?: string;
+  vehicle_id?: string;
+  vehicle_plate?: string;
   vehicle_type?: string;
   fuel_type?: string;
   distance_km?: number;
@@ -50,6 +52,9 @@ export const GerenciarLancamentosReais: React.FC = () => {
   // Form states - Matching media_1791380637546_13105d71.png
   const [dataEnvio, setDataEnvio] = useState<string>(new Date().toISOString().split('T')[0]);
   const [partnerId, setPartnerId] = useState<string>('');
+  const [availableVehicles, setAvailableVehicles] = useState<PartnerVehicle[]>([]);
+  const [selectedVehicleId, setSelectedVehicleId] = useState<string>('');
+  const [vehiclePlate, setVehiclePlate] = useState<string>('');
   const [vehicleType, setVehicleType] = useState<string>('Caminhão Baú');
   const [fuelType, setFuelType] = useState<string>('Diesel');
   const [distanceKm, setDistanceKm] = useState<number | null>(null);
@@ -178,20 +183,65 @@ export const GerenciarLancamentosReais: React.FC = () => {
     }
   };
 
-  // Quando escolhe um parceiro, preenche automaticamente os padrões do veículo e combustível
+  // Quando escolhe um parceiro, carrega a frota de veículos dele e seleciona o primeiro
   const handlePartnerChange = (pid: string) => {
     setPartnerId(pid);
     if (pid === '__NEW__') {
       setShowPartnerModal(true);
       setPartnerId('');
+      setAvailableVehicles([]);
+      setSelectedVehicleId('');
+      setVehiclePlate('');
       return;
     }
 
     const selectedPart = partners.find(p => p.id === pid);
     if (selectedPart) {
-      if (selectedPart.vehicle_type) setVehicleType(selectedPart.vehicle_type);
-      if (selectedPart.fuel_type) setFuelType(selectedPart.fuel_type);
-      if (selectedPart.distance_km != null) setDistanceKm(selectedPart.distance_km);
+      let vehs: PartnerVehicle[] = [];
+      if (selectedPart.vehicles && Array.isArray(selectedPart.vehicles) && selectedPart.vehicles.length > 0) {
+        vehs = selectedPart.vehicles;
+      } else if (selectedPart.vehicle_type) {
+        vehs = [{
+          id: `veh_leg_${selectedPart.id}`,
+          vehicle_type: selectedPart.vehicle_type,
+          fuel_type: selectedPart.fuel_type || 'Diesel',
+          plate: selectedPart.plate || undefined,
+          distance_km: selectedPart.distance_km != null ? selectedPart.distance_km : null,
+          description: 'Veículo Principal'
+        }];
+      }
+      setAvailableVehicles(vehs);
+
+      if (vehs.length > 0) {
+        const firstVeh = vehs[0];
+        setSelectedVehicleId(firstVeh.id);
+        setVehicleType(firstVeh.vehicle_type);
+        setFuelType(firstVeh.fuel_type);
+        setVehiclePlate(firstVeh.plate || '');
+        if (firstVeh.distance_km != null) setDistanceKm(firstVeh.distance_km);
+      } else {
+        setSelectedVehicleId('');
+        setVehicleType('Caminhão Baú');
+        setFuelType('Diesel');
+        setVehiclePlate('');
+        setDistanceKm(null);
+      }
+    } else {
+      setAvailableVehicles([]);
+      setSelectedVehicleId('');
+      setVehiclePlate('');
+      setDistanceKm(null);
+    }
+  };
+
+  const handleVehicleChange = (vid: string) => {
+    setSelectedVehicleId(vid);
+    const foundVeh = availableVehicles.find(v => v.id === vid);
+    if (foundVeh) {
+      setVehicleType(foundVeh.vehicle_type);
+      setFuelType(foundVeh.fuel_type);
+      setVehiclePlate(foundVeh.plate || '');
+      if (foundVeh.distance_km != null) setDistanceKm(foundVeh.distance_km);
     }
   };
 
@@ -228,12 +278,16 @@ export const GerenciarLancamentosReais: React.FC = () => {
     const partnerObj = partners.find(p => p.id === partnerId);
     const partnerName = partnerObj?.name || 'Parceiro Destinação';
     const firstSectorId = sectors[0]?.id || null;
+    const selectedVeh = availableVehicles.find(v => v.id === selectedVehicleId);
+    const resolvedPlate = vehiclePlate || selectedVeh?.plate || null;
 
     const payload = {
       client_id: clientId,
       data: dataEnvio,
       partner_id: partnerId,
       partner_name: partnerName,
+      vehicle_id: selectedVehicleId || null,
+      vehicle_plate: resolvedPlate,
       vehicle_type: vehicleType,
       fuel_type: fuelType,
       distance_km: distanceKm,
@@ -457,7 +511,7 @@ export const GerenciarLancamentosReais: React.FC = () => {
                 <option value="">Selecione o parceiro...</option>
                 {partners.map(p => (
                   <option key={p.id} value={p.id}>
-                    {p.name} {p.company_type ? `(${p.company_type})` : ''}
+                    {p.name} {p.vehicles && p.vehicles.length > 0 ? `(${p.vehicles.length} ${p.vehicles.length === 1 ? 'veículo' : 'veículos'})` : (p.company_type ? `(${p.company_type})` : '')}
                   </option>
                 ))}
                 <option value="__NEW__" style={{ fontWeight: 'bold', color: 'hsl(var(--primary))' }}>
@@ -467,22 +521,41 @@ export const GerenciarLancamentosReais: React.FC = () => {
             </div>
 
             <div className="form-group">
-              <label className="form-label">Tipo de Veículo</label>
-              <select className="form-select" value={vehicleType} onChange={e => setVehicleType(e.target.value)}>
-                <option value="Caminhão Baú">Caminhão Baú</option>
-                <option value="VUC (Veículo Urbano de Carga)">VUC (Veículo Urbano de Carga)</option>
-                <option value="Caminhão Toco">Caminhão Toco</option>
-                <option value="Caminhão Truck">Caminhão Truck</option>
-                <option value="Carreta">Carreta</option>
-                <option value="Caçamba">Caçamba</option>
-                <option value="Furgão / Utilitário">Furgão / Utilitário</option>
-                <option value="Outro">Outro</option>
+              <label className="form-label flex items-center justify-between">
+                <span>Veículo do Parceiro *</span>
+                {partnerId && (
+                  <span className="text-xs text-muted">
+                    {availableVehicles.length} {availableVehicles.length === 1 ? 'disponível' : 'disponíveis'}
+                  </span>
+                )}
+              </label>
+              <select 
+                className="form-select" 
+                value={selectedVehicleId} 
+                onChange={e => handleVehicleChange(e.target.value)} 
+                required 
+                disabled={!partnerId}
+              >
+                {!partnerId ? (
+                  <option value="">Selecione o parceiro primeiro...</option>
+                ) : availableVehicles.length === 0 ? (
+                  <option value="">Nenhum veículo cadastrado para este parceiro</option>
+                ) : (
+                  <>
+                    <option value="">Selecione o veículo...</option>
+                    {availableVehicles.map(v => (
+                      <option key={v.id} value={v.id}>
+                        {v.vehicle_type} {v.plate ? `(Placa: ${v.plate})` : ''} - {v.fuel_type}
+                      </option>
+                    ))}
+                  </>
+                )}
               </select>
             </div>
 
             <div className="form-group">
               <label className="form-label">Combustível</label>
-              <select className="form-select" value={fuelType} onChange={e => setFuelType(e.target.value)}>
+              <select className="form-select" value={fuelType} onChange={e => setFuelType(e.target.value)} disabled={!partnerId}>
                 <option value="Diesel">Diesel</option>
                 <option value="Diesel S10">Diesel S10</option>
                 <option value="Gasolina">Gasolina</option>
@@ -542,7 +615,9 @@ export const GerenciarLancamentosReais: React.FC = () => {
             <div className="flex-1">
               {partnerId && peso && (
                 <span className="badge badge-info" style={{ fontSize: '0.8rem', padding: '0.35rem 0.75rem' }}>
-                  Destinação: <strong>{partners.find(p => p.id === partnerId)?.name}</strong> | Peso: <strong>{peso} kg</strong>
+                  Destinação: <strong>{partners.find(p => p.id === partnerId)?.name}</strong>
+                  {vehicleType ? ` • Veículo: ${vehicleType}${vehiclePlate ? ` (${vehiclePlate})` : ''}` : ''}
+                  {' • '}Peso: <strong>{peso} kg</strong>
                 </span>
               )}
             </div>
@@ -663,8 +738,13 @@ export const GerenciarLancamentosReais: React.FC = () => {
                         <span className="font-bold text-slate-800">{partnerDisplay}</span>
                       </td>
                       <td>
-                        <span className="text-xs font-medium">{w.vehicle_type || '—'}</span>
-                        {w.fuel_type && <div className="text-muted text-xs">{w.fuel_type}</div>}
+                        <span className="text-xs font-semibold text-slate-800">{w.vehicle_type || '—'}</span>
+                        {w.vehicle_plate && (
+                          <div className="font-mono text-xs font-bold text-slate-700 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-300 w-fit mt-0.5">
+                            {w.vehicle_plate}
+                          </div>
+                        )}
+                        {w.fuel_type && <div className="text-muted text-xs mt-0.5">{w.fuel_type}</div>}
                       </td>
                       <td>
                         <span className="badge badge-default">{catName}</span>
