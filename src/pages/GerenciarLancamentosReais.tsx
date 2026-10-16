@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../integrations/supabase/client';
 import { Link } from 'react-router-dom';
@@ -8,6 +8,10 @@ import {
 import type { DestinationPartner, PartnerVehicle } from './GerenciarParceiros';
 import { getStoredPartners, GerenciarParceiros } from './GerenciarParceiros';
 import { getStoredLaunches, saveStoredLaunches } from '../utils/seedTestData';
+import { 
+  getPartnerAcceptedCategories, 
+  getPartnerAcceptedSubcategories 
+} from '../utils/partnerMaterials';
 
 interface Sector { id: string; name: string; }
 interface Category { id: string; name: string; color: string | null; }
@@ -168,6 +172,7 @@ export const GerenciarLancamentosReais: React.FC = () => {
   };
 
   // Quando escolhe um parceiro, carrega a frota de veículos dele e seleciona o primeiro
+  // Quando escolhe um parceiro, carrega a frota de veículos dele e valida as categorias aceitas
   const handlePartnerChange = (pid: string) => {
     setPartnerId(pid);
     if (pid === '__NEW__') {
@@ -176,6 +181,9 @@ export const GerenciarLancamentosReais: React.FC = () => {
       setAvailableVehicles([]);
       setSelectedVehicleId('');
       setVehiclePlate('');
+      setCategoryId('');
+      setSubcategoryId('');
+      setTypeId('');
       return;
     }
 
@@ -210,11 +218,28 @@ export const GerenciarLancamentosReais: React.FC = () => {
         setVehiclePlate('');
         setDistanceKm(null);
       }
+
+      // Validar se a categoria atual continua sendo aceita pelo parceiro
+      const partnerCats = getPartnerAcceptedCategories(selectedPart, categories);
+      if (categoryId) {
+        const isCurrentValid = partnerCats.some(c => c.id === categoryId);
+        if (!isCurrentValid) {
+          setCategoryId('');
+          setSubcategoryId('');
+          setTypeId('');
+        }
+      } else if (partnerCats.length === 1) {
+        // Se o parceiro tiver somente 1 categoria aceita, seleciona automaticamente
+        setCategoryId(partnerCats[0].id);
+      }
     } else {
       setAvailableVehicles([]);
       setSelectedVehicleId('');
       setVehiclePlate('');
       setDistanceKm(null);
+      setCategoryId('');
+      setSubcategoryId('');
+      setTypeId('');
     }
   };
 
@@ -229,6 +254,53 @@ export const GerenciarLancamentosReais: React.FC = () => {
     }
   };
 
+  // Parceiro selecionado no formulário
+  const selectedPartner = useMemo(() => {
+    return partners.find(p => p.id === partnerId);
+  }, [partners, partnerId]);
+
+  // Categorias disponíveis para o parceiro selecionado (filtradas pelos materiais aceitos)
+  const availableCategories = useMemo(() => {
+    return getPartnerAcceptedCategories(selectedPartner, categories);
+  }, [selectedPartner, categories]);
+
+  // Categoria atualmente selecionada
+  const selectedCategoryObj = useMemo(() => {
+    return categories.find(c => c.id === categoryId);
+  }, [categories, categoryId]);
+
+  // Subcategorias disponíveis (filtradas pela categoria e pelos materiais aceitos do parceiro)
+  const filteredSubs = useMemo(() => {
+    const raw = subcategories.filter(s => s.category_id === categoryId);
+    return getPartnerAcceptedSubcategories(selectedPartner, selectedCategoryObj, raw);
+  }, [selectedPartner, selectedCategoryObj, categoryId, subcategories]);
+
+  const filteredTypes = useMemo(() => {
+    return types.filter(t => t.subcategory_id === subcategoryId);
+  }, [types, subcategoryId]);
+
+  // Cascaded filters for inline editing
+  const editPartnerObj = useMemo(() => {
+    return partners.find(p => p.id === editPartnerId);
+  }, [partners, editPartnerId]);
+
+  const editAvailableCategories = useMemo(() => {
+    return getPartnerAcceptedCategories(editPartnerObj, categories);
+  }, [editPartnerObj, categories]);
+
+  const editSelectedCategoryObj = useMemo(() => {
+    return categories.find(c => c.id === editCategory);
+  }, [categories, editCategory]);
+
+  const editFilteredSubs = useMemo(() => {
+    const raw = subcategories.filter(s => s.category_id === editCategory);
+    return getPartnerAcceptedSubcategories(editPartnerObj, editSelectedCategoryObj, raw);
+  }, [editPartnerObj, editSelectedCategoryObj, editCategory, subcategories]);
+
+  const editFilteredTypes = useMemo(() => {
+    return types.filter(t => t.subcategory_id === editSub);
+  }, [types, editSub]);
+
   // Cascaded filters: Categoria -> Subcategoria -> Tipo
   useEffect(() => {
     setSubcategoryId('');
@@ -238,13 +310,6 @@ export const GerenciarLancamentosReais: React.FC = () => {
   useEffect(() => {
     setTypeId('');
   }, [subcategoryId]);
-
-  const filteredSubs = subcategories.filter(s => s.category_id === categoryId);
-  const filteredTypes = types.filter(t => t.subcategory_id === subcategoryId);
-
-  // Cascaded filters for inline editing
-  const editFilteredSubs = subcategories.filter(s => s.category_id === editCategory);
-  const editFilteredTypes = types.filter(t => t.subcategory_id === editSub);
 
   // Registrar Envio / Lançamento de Resíduos
   const handleRegisterWaste = async (e: React.FormEvent) => {
@@ -574,10 +639,31 @@ export const GerenciarLancamentosReais: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             
             <div className="form-group">
-              <label className="form-label">Categoria *</label>
-              <select className="form-select" value={categoryId} onChange={e => setCategoryId(e.target.value)} required>
-                <option value="">Selecione a categoria...</option>
-                {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+              <label className="form-label flex items-center justify-between">
+                <span>Categoria *</span>
+                {partnerId && (
+                  <span className="text-xs text-muted" style={{ fontWeight: 'normal' }}>
+                    {availableCategories.length} {availableCategories.length === 1 ? 'aceita' : 'aceitas'}
+                  </span>
+                )}
+              </label>
+              <select 
+                className="form-select" 
+                value={categoryId} 
+                onChange={e => setCategoryId(e.target.value)} 
+                required
+                disabled={!partnerId}
+              >
+                {!partnerId ? (
+                  <option value="">Selecione o parceiro primeiro...</option>
+                ) : availableCategories.length === 0 ? (
+                  <option value="">Nenhuma categoria aceita configurada para este parceiro</option>
+                ) : (
+                  <>
+                    <option value="">Selecione a categoria...</option>
+                    {availableCategories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                  </>
+                )}
               </select>
             </div>
 
@@ -678,7 +764,23 @@ export const GerenciarLancamentosReais: React.FC = () => {
                           <input type="date" className="form-input py-1 text-xs" value={editData} onChange={e => setEditData(e.target.value)} />
                         </td>
                         <td>
-                          <select className="form-select py-1 text-xs" value={editPartnerId} onChange={e => setEditPartnerId(e.target.value)}>
+                          <select 
+                            className="form-select py-1 text-xs" 
+                            value={editPartnerId} 
+                            onChange={e => {
+                              const newPid = e.target.value;
+                              setEditPartnerId(newPid);
+                              const newPart = partners.find(p => p.id === newPid);
+                              const allowed = getPartnerAcceptedCategories(newPart, categories);
+                              if (editCategory && !allowed.some(c => c.id === editCategory)) {
+                                setEditCategory('');
+                                setEditSub('');
+                                setEditType('');
+                              } else if (!editCategory && allowed.length === 1) {
+                                setEditCategory(allowed[0].id);
+                              }
+                            }}
+                          >
                             <option value="">Selecione...</option>
                             {partners.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
                           </select>
@@ -693,13 +795,30 @@ export const GerenciarLancamentosReais: React.FC = () => {
                           </select>
                         </td>
                         <td>
-                          <select className="form-select py-1 text-xs" value={editCategory} onChange={e => setEditCategory(e.target.value)}>
-                            <option value="">Selecione...</option>
-                            {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                          <select 
+                            className="form-select py-1 text-xs" 
+                            value={editCategory} 
+                            onChange={e => {
+                              setEditCategory(e.target.value);
+                              setEditSub('');
+                              setEditType('');
+                            }}
+                            disabled={!editPartnerId}
+                          >
+                            <option value="">{editPartnerId ? 'Selecione...' : 'Selecione o parceiro'}</option>
+                            {editAvailableCategories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                           </select>
                         </td>
                         <td>
-                          <select className="form-select py-1 text-xs" value={editSub} onChange={e => setEditSub(e.target.value)}>
+                          <select 
+                            className="form-select py-1 text-xs" 
+                            value={editSub} 
+                            onChange={e => {
+                              setEditSub(e.target.value);
+                              setEditType('');
+                            }}
+                            disabled={!editCategory}
+                          >
                             <option value="">Selecione...</option>
                             {editFilteredSubs.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                           </select>

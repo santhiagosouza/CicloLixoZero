@@ -420,7 +420,7 @@ export const seedFictionalData = async (clientId: string, _userId?: string) => {
       distance_km: 12.3,
       plate: 'GHI-9F12',
       collection_days: ['TER', 'QUI'],
-      accepted_materials: ['REJEITO', 'OUTROS', 'METAL', 'PLÁSTICO'],
+      accepted_materials: ['PERIGOSO', 'REJEITO', 'METAL', 'PLÁSTICO'],
       active: true,
       created_at: new Date().toISOString()
     }

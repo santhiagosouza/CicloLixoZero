@@ -245,7 +245,7 @@ export const getDefaultPartners = (clientId: string): DestinationPartner[] => [
     distance_km: 12.3,
     plate: 'GHI-9F12',
     collection_days: ['TER', 'QUI'],
-    accepted_materials: ['REJEITO', 'OUTROS', 'METAL', 'PLÁSTICO'],
+    accepted_materials: ['PERIGOSO', 'REJEITO', 'METAL', 'PLÁSTICO'],
     active: true,
     created_at: new Date().toISOString()
   }
@@ -1023,36 +1023,91 @@ export const GerenciarParceiros: React.FC<{ isEmbeddedModal?: boolean; onCloseMo
 
             {/* TIPO DE MATERIAL ACEITO */}
             <div className="form-group">
-              <label className="form-label font-bold text-xs uppercase block mb-2" style={{ color: '#475569' }}>
-                TIPO DE MATERIAL ACEITO
-              </label>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
-                {['PAPEL', 'PLÁSTICO', 'METAL', 'VIDRO', 'ORGÂNICO', 'PERIGOSO', 'REJEITO'].map(mat => {
-                  const isChecked = acceptedMaterials.includes(mat);
-                  return (
-                    <button 
-                      key={mat} 
-                      type="button"
-                      onClick={() => {
-                        setAcceptedMaterials(prev => isChecked ? prev.filter(m => m !== mat) : [...prev, mat]);
-                      }} 
-                      style={{ 
-                        border: isChecked ? '1px solid #157a43' : '1px solid #dc2626', 
-                        borderRadius: '6px', 
-                        padding: '0.45rem 0.85rem', 
-                        backgroundColor: isChecked ? '#157a43' : '#dc2626', 
-                        color: '#ffffff', 
-                        fontWeight: 700, 
-                        fontSize: '0.8rem', 
-                        cursor: 'pointer', 
-                        userSelect: 'none',
-                        transition: 'all 0.15s ease'
-                      }}
-                    >
-                      {mat}
-                    </button>
-                  );
-                })}
+              <div className="flex items-center justify-between mb-2">
+                <label className="form-label font-bold text-xs uppercase block m-0" style={{ color: '#475569' }}>
+                  TIPO DE MATERIAL ACEITO PELO PARCEIRO
+                </label>
+                <span className="text-xs text-muted">
+                  Configura as categorias permitidas no lançamento
+                </span>
+              </div>
+
+              {/* Grupo 1: Recicláveis */}
+              <div style={{ backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '0.75rem', marginBottom: '0.75rem' }}>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-bold text-emerald-800 uppercase tracking-wide flex items-center gap-1.5">
+                    <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#157a43' }} />
+                    Recicláveis (Categoria Reciclável)
+                  </span>
+                  <span className="text-xs text-muted">Papel, Plástico, Metal e Vidro</span>
+                </div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
+                  {['PAPEL', 'PLÁSTICO', 'METAL', 'VIDRO'].map(mat => {
+                    const isChecked = acceptedMaterials.includes(mat);
+                    return (
+                      <button 
+                        key={mat} 
+                        type="button"
+                        onClick={() => {
+                          setAcceptedMaterials(prev => isChecked ? prev.filter(m => m !== mat) : [...prev, mat]);
+                        }} 
+                        style={{ 
+                          border: isChecked ? '1px solid #157a43' : '1px solid #dc2626', 
+                          borderRadius: '6px', 
+                          padding: '0.4rem 0.8rem', 
+                          backgroundColor: isChecked ? '#157a43' : '#dc2626', 
+                          color: '#ffffff', 
+                          fontWeight: 700, 
+                          fontSize: '0.8rem', 
+                          cursor: 'pointer', 
+                          userSelect: 'none',
+                          transition: 'all 0.15s ease'
+                        }}
+                      >
+                        {mat}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Grupo 2: Demais Categorias */}
+              <div style={{ backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '0.75rem' }}>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-bold text-slate-800 uppercase tracking-wide flex items-center gap-1.5">
+                    <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#0284c7' }} />
+                    Demais Categorias Respectivas
+                  </span>
+                  <span className="text-xs text-muted">Habilitam a respectiva categoria</span>
+                </div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
+                  {['ORGÂNICO', 'PERIGOSO', 'REJEITO'].map(mat => {
+                    const isChecked = acceptedMaterials.includes(mat);
+                    return (
+                      <button 
+                        key={mat} 
+                        type="button"
+                        onClick={() => {
+                          setAcceptedMaterials(prev => isChecked ? prev.filter(m => m !== mat) : [...prev, mat]);
+                        }} 
+                        style={{ 
+                          border: isChecked ? '1px solid #157a43' : '1px solid #dc2626', 
+                          borderRadius: '6px', 
+                          padding: '0.4rem 0.8rem', 
+                          backgroundColor: isChecked ? '#157a43' : '#dc2626', 
+                          color: '#ffffff', 
+                          fontWeight: 700, 
+                          fontSize: '0.8rem', 
+                          cursor: 'pointer', 
+                          userSelect: 'none',
+                          transition: 'all 0.15s ease'
+                        }}
+                      >
+                        {mat}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             </div>
 
@@ -1122,8 +1177,31 @@ export const GerenciarParceiros: React.FC<{ isEmbeddedModal?: boolean; onCloseMo
                     return (
                       <tr key={p.id}>
                         <td>
-                          <span className="font-semibold">{p.name}</span>
+                          <span className="font-semibold text-slate-900">{p.name}</span>
                           {p.cnpj && <div className="text-muted text-xs">{p.cnpj}</div>}
+                          {p.accepted_materials && p.accepted_materials.length > 0 && (
+                            <div className="flex flex-wrap gap-1 mt-1.5">
+                              {p.accepted_materials.map((m, mi) => {
+                                const isRecyc = ['PAPEL', 'PLÁSTICO', 'PLASTICO', 'METAL', 'VIDRO'].includes(m);
+                                return (
+                                  <span 
+                                    key={mi} 
+                                    className="badge" 
+                                    style={{ 
+                                      fontSize: '0.65rem', 
+                                      padding: '0.15rem 0.4rem',
+                                      backgroundColor: isRecyc ? '#dcfce7' : '#f1f5f9',
+                                      color: isRecyc ? '#166534' : '#334155',
+                                      border: isRecyc ? '1px solid #bbf7d0' : '1px solid #e2e8f0',
+                                      fontWeight: 700
+                                    }}
+                                  >
+                                    {m}
+                                  </span>
+                                );
+                              })}
+                            </div>
+                          )}
                         </td>
                         <td>{p.company_type || '—'}</td>
                         <td>
