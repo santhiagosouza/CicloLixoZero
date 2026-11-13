@@ -64,7 +64,6 @@ export const ReciboEnvioModal: React.FC<ReciboEnvioModalProps> = ({
   // ID do recibo formatado amigável
   const formattedReciboId = useMemo(() => {
     if (!currentLaunch) return 'REC-000000';
-    // Se o id for uuid, cria um código legível estilo REC-A1B2C3
     const cleanId = currentLaunch.id.replace(/-/g, '').substring(0, 8).toUpperCase();
     return `REC-${cleanId}`;
   }, [currentLaunch]);
@@ -83,12 +82,6 @@ export const ReciboEnvioModal: React.FC<ReciboEnvioModalProps> = ({
     }
   }, [currentLaunch]);
 
-  const handlePrint = () => {
-    window.print();
-  };
-
-  if (!isOpen) return null;
-
   // Resolução de nomes dos itens
   const catName = currentLaunch?.category_id ? (categoryMap[currentLaunch.category_id]?.name || '—') : '—';
   const subName = currentLaunch?.subcategory_id ? (subMap[currentLaunch.subcategory_id] || '—') : '—';
@@ -97,9 +90,356 @@ export const ReciboEnvioModal: React.FC<ReciboEnvioModalProps> = ({
     ? Number(currentLaunch.peso_kg).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) 
     : '0,00';
 
+  // Dados do Remetente
+  const remetenteNome = clientInfo?.name || 'Escola Mário Venancio';
+  const remetenteCnpj = clientInfo?.cnpj || '22.333.444/0001-72';
+  const remetenteEndereco = clientInfo?.address || 'Av. São Luiz de Carlos, 5.482';
+  const remetenteCidade = clientInfo?.city || 'Campinas';
+  const remetenteUf = clientInfo?.uf || 'SP';
+  const remetenteBairro = clientInfo?.bairro || 'Jardim Primavera';
+  const remetenteTelefone = clientInfo?.phone || '(19) 98120-6670';
+  const remetenteResponsavel = clientInfo?.responsible_name || 'Augusto Leme';
+
+  // Dados do Destinatário
+  const destEmpresa = currentPartner?.name || currentLaunch?.partner_name || currentLaunch?.destino || 'EcoRecicla Soluções Ambientais Ltda';
+  const destCnpj = currentPartner?.cnpj || '12.345.678/0001-90';
+  const destEndereco = currentPartner?.address || 'Av. Industrial, 1500';
+  const destCidade = currentPartner?.city || 'Santo André';
+  const destUf = currentPartner?.uf || 'SP';
+  const destBairro = currentPartner?.bairro || 'Jardim';
+  const destTelefone = currentPartner?.phone || '(11) 4004-9876';
+  const destTransportador = currentPartner?.transporter_name || 'TransLixo Logística Eireli';
+
+  // Dados do Transporte
+  const transpVeiculo = currentLaunch?.vehicle_type || currentPartner?.vehicle_type || 'Caminhão Baú';
+  const transpCombustivel = currentLaunch?.fuel_type || currentPartner?.fuel_type || 'Diesel';
+  const transpPlaca = currentLaunch?.vehicle_plate || currentPartner?.plate || 'ABC-8E90';
+
+  // Impressão isolada e perfeita via Iframe
+  const handlePrint = () => {
+    let iframe = document.getElementById('recibo-isolated-print-frame') as HTMLIFrameElement;
+    if (!iframe) {
+      iframe = document.createElement('iframe');
+      iframe.id = 'recibo-isolated-print-frame';
+      iframe.style.position = 'fixed';
+      iframe.style.right = '0';
+      iframe.style.bottom = '0';
+      iframe.style.width = '0';
+      iframe.style.height = '0';
+      iframe.style.border = '0';
+      iframe.style.zIndex = '-9999';
+      document.body.appendChild(iframe);
+    }
+
+    const doc = iframe.contentWindow?.document;
+    if (!doc) return;
+
+    const receiptHtml = `
+      <!DOCTYPE html>
+      <html lang="pt-BR">
+        <head>
+          <meta charset="utf-8" />
+          <title>Recibo - ${formattedReciboId}</title>
+          <style>
+            @page {
+              size: A4 portrait;
+              margin: 10mm 15mm 10mm 15mm;
+            }
+            * {
+              box-sizing: border-box;
+              margin: 0;
+              padding: 0;
+            }
+            body {
+              font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+              color: #0f172a;
+              background-color: #ffffff;
+              padding: 0;
+              margin: 0;
+              -webkit-print-color-adjust: exact !important;
+              print-color-adjust: exact !important;
+            }
+            .recibo-paper {
+              width: 100%;
+              max-width: 100%;
+              padding: 0;
+              background: #ffffff;
+            }
+            .recibo-header {
+              display: flex;
+              align-items: flex-end;
+              justify-content: space-between;
+              margin-bottom: 2rem;
+            }
+            .recibo-title {
+              color: #157a43;
+              font-size: 2.85rem;
+              font-weight: 800;
+              line-height: 1;
+              letter-spacing: -0.02em;
+            }
+            .recibo-header-meta {
+              display: flex;
+              align-items: flex-end;
+              gap: 1.25rem;
+            }
+            .meta-box-label {
+              font-size: 0.72rem;
+              color: #475569;
+              margin-bottom: 0.25rem;
+              font-weight: 600;
+            }
+            .meta-box-value {
+              border: 1px solid #157a43;
+              border-radius: 6px;
+              padding: 0.35rem 0.85rem;
+              font-size: 0.85rem;
+              font-weight: 700;
+              color: #0f172a;
+              min-width: 130px;
+              text-align: center;
+              background-color: #ffffff;
+            }
+            .grid-cols-2 {
+              display: grid;
+              grid-template-columns: 1fr 1fr;
+              gap: 2rem;
+              margin-bottom: 1.25rem;
+            }
+            .recibo-col {
+              border-left: 2px solid #0f172a;
+              padding-left: 0.85rem;
+            }
+            .recibo-section-title {
+              font-weight: 800;
+              font-style: italic;
+              font-size: 0.95rem;
+              color: #0f172a;
+              margin-bottom: 0.65rem;
+            }
+            .recibo-row {
+              font-size: 0.82rem;
+              line-height: 1.65;
+              color: #0f172a;
+            }
+            .recibo-label {
+              font-weight: 700;
+              color: #0f172a;
+            }
+            .recibo-val {
+              font-weight: 400;
+              color: #1e293b;
+              margin-left: 0.35rem;
+            }
+            .recibo-row-split {
+              display: grid;
+              grid-template-columns: 1fr 1fr;
+              gap: 0.5rem;
+            }
+            .recibo-dotted-line {
+              border: none;
+              border-top: 2px dotted #94a3b8;
+              margin: 1.5rem 0;
+              height: 1px;
+              width: 100%;
+            }
+            .recibo-table-box {
+              background-color: #f1f5f9 !important;
+              border-radius: 4px;
+              padding: 0.85rem 1.15rem;
+              display: grid;
+              grid-template-columns: 1.2fr 1.1fr 1.1fr 1.4fr 1fr;
+              gap: 0.75rem;
+              align-items: center;
+            }
+            .table-head {
+              font-size: 0.78rem;
+              font-weight: 700;
+              color: #0f172a;
+              margin-bottom: 0.35rem;
+            }
+            .table-data {
+              font-size: 0.85rem;
+              font-weight: 500;
+              color: #334155;
+            }
+            .table-data-bold {
+              font-size: 0.9rem;
+              font-weight: 800;
+              color: #0f172a;
+            }
+            .transport-grid {
+              display: grid;
+              grid-template-columns: 1fr 1fr 1fr;
+              gap: 1.5rem;
+              margin-top: 0.5rem;
+            }
+            .sign-area {
+              margin-top: 5rem;
+              display: grid;
+              grid-template-columns: 1fr 1fr;
+              gap: 3rem;
+            }
+            .sign-box {
+              text-align: center;
+            }
+            .sign-line {
+              border-top: 1px solid #334155;
+              width: 240px;
+              margin: 0 auto 0.5rem auto;
+            }
+            .sign-title {
+              font-size: 0.85rem;
+              font-weight: 600;
+              color: #334155;
+            }
+            .recibo-footer {
+              text-align: center;
+              font-size: 0.82rem;
+              font-style: italic;
+              color: #94a3b8;
+              margin-top: 3.5rem;
+              letter-spacing: 0.02em;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="recibo-paper">
+            
+            <!-- TOPO -->
+            <div class="recibo-header">
+              <h1 class="recibo-title">Recibo</h1>
+              <div class="recibo-header-meta">
+                <div>
+                  <div class="meta-box-label">Data de Envio</div>
+                  <div class="meta-box-value">${formattedDate}</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- REMETENTE & DESTINATÁRIO -->
+            <div class="grid-cols-2">
+              <div class="recibo-col">
+                <div class="recibo-section-title">Remetente:</div>
+                <div class="recibo-row"><span class="recibo-label">Nome da Escola:</span><span class="recibo-val">${remetenteNome}</span></div>
+                <div class="recibo-row"><span class="recibo-label">CNPJ:</span><span class="recibo-val">${remetenteCnpj}</span></div>
+                <div class="recibo-row"><span class="recibo-label">Endereço:</span><span class="recibo-val">${remetenteEndereco}</span></div>
+                <div class="recibo-row-split">
+                  <div class="recibo-row"><span class="recibo-label">Cidade:</span><span class="recibo-val">${remetenteCidade}</span></div>
+                  <div class="recibo-row"><span class="recibo-label">UF:</span><span class="recibo-val">${remetenteUf}</span></div>
+                </div>
+                <div class="recibo-row-split">
+                  <div class="recibo-row"><span class="recibo-label">Bairro:</span><span class="recibo-val">${remetenteBairro}</span></div>
+                  <div class="recibo-row"><span class="recibo-label">Telefone:</span><span class="recibo-val">${remetenteTelefone}</span></div>
+                </div>
+                <div class="recibo-row"><span class="recibo-label">Responsável:</span><span class="recibo-val">${remetenteResponsavel}</span></div>
+              </div>
+
+              <div class="recibo-col">
+                <div class="recibo-section-title">Destinatário:</div>
+                <div class="recibo-row"><span class="recibo-label">Empresa:</span><span class="recibo-val">${destEmpresa}</span></div>
+                <div class="recibo-row"><span class="recibo-label">CNPJ:</span><span class="recibo-val">${destCnpj}</span></div>
+                <div class="recibo-row"><span class="recibo-label">Endereço:</span><span class="recibo-val">${destEndereco}</span></div>
+                <div class="recibo-row-split">
+                  <div class="recibo-row"><span class="recibo-label">Cidade:</span><span class="recibo-val">${destCidade}</span></div>
+                  <div class="recibo-row"><span class="recibo-label">UF:</span><span class="recibo-val">${destUf}</span></div>
+                </div>
+                <div class="recibo-row-split">
+                  <div class="recibo-row"><span class="recibo-label">Bairro:</span><span class="recibo-val">${destBairro}</span></div>
+                  <div class="recibo-row"><span class="recibo-label">Telefone:</span><span class="recibo-val">${destTelefone}</span></div>
+                </div>
+                <div class="recibo-row"><span class="recibo-label">Nome do Transportador:</span><span class="recibo-val">${destTransportador}</span></div>
+              </div>
+            </div>
+
+            <!-- LINHA PONTILHADA -->
+            <div class="recibo-dotted-line"></div>
+
+            <!-- RESÍDUOS DESTINADOS -->
+            <div style="margin-bottom: 0.5rem;">
+              <div class="recibo-section-title">Resíduos Destinados:</div>
+              <div class="recibo-table-box">
+                <div>
+                  <div class="table-head">ID Recibo</div>
+                  <div class="table-data-bold" style="font-family: monospace;">${formattedReciboId}</div>
+                </div>
+                <div>
+                  <div class="table-head">Categoria:</div>
+                  <div class="table-data">${catName}</div>
+                </div>
+                <div>
+                  <div class="table-head">Sub Categoria:</div>
+                  <div class="table-data">${subName}</div>
+                </div>
+                <div>
+                  <div class="table-head">Tipo de Material:</div>
+                  <div class="table-data">${typeName}</div>
+                </div>
+                <div>
+                  <div class="table-head">Peso (kg):</div>
+                  <div class="table-data-bold">${pesoFormatado} kg</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- LINHA PONTILHADA -->
+            <div class="recibo-dotted-line"></div>
+
+            <!-- DADOS DO TRANSPORTE -->
+            <div style="margin-bottom: 0.5rem;">
+              <div class="recibo-section-title">Dados do Transporte:</div>
+              <div class="transport-grid">
+                <div>
+                  <div class="table-head">Tipo de Veículo:</div>
+                  <div class="table-data">${transpVeiculo}</div>
+                </div>
+                <div>
+                  <div class="table-head">Combustível:</div>
+                  <div class="table-data">${transpCombustivel}</div>
+                </div>
+                <div>
+                  <div class="table-head">Placa do Veículo:</div>
+                  <div class="table-data-bold" style="font-family: monospace;">${transpPlaca}</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- ASSINATURAS -->
+            <div class="sign-area">
+              <div class="sign-box">
+                <div class="sign-line"></div>
+                <div class="sign-title">Responsável Escola</div>
+              </div>
+              <div class="sign-box">
+                <div class="sign-line"></div>
+                <div class="sign-title">Transportador</div>
+              </div>
+            </div>
+
+            <!-- RODAPÉ -->
+            <div class="recibo-footer">
+              Programa de Gestão de Resíduos e Impactos
+            </div>
+
+          </div>
+        </body>
+      </html>
+    `;
+
+    doc.open();
+    doc.write(receiptHtml);
+    doc.close();
+
+    setTimeout(() => {
+      iframe.contentWindow?.focus();
+      iframe.contentWindow?.print();
+    }, 200);
+  };
+
+  if (!isOpen) return null;
+
   return (
     <div className="recibo-modal-overlay">
-      {/* Estilos para tela e para impressão nativa A4 */}
       <style>{`
         .recibo-modal-overlay {
           position: fixed;
@@ -141,15 +481,13 @@ export const ReciboEnvioModal: React.FC<ReciboEnvioModalProps> = ({
         }
 
         .recibo-modal-body {
-          padding: 2rem;
+          padding: 2.25rem 2.5rem;
           overflow-y: auto;
           background-color: #ffffff;
         }
 
-        /* Folha A4 do Recibo */
         .recibo-paper {
           background-color: #ffffff;
-          padding: 1.5rem 1rem;
           color: #0f172a;
           font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         }
@@ -165,7 +503,7 @@ export const ReciboEnvioModal: React.FC<ReciboEnvioModalProps> = ({
 
         .recibo-dotted-line {
           border: none;
-          border-top: 3px dotted #cbd5e1;
+          border-top: 2px dotted #94a3b8;
           margin: 1.5rem 0;
           height: 1px;
           width: 100%;
@@ -181,33 +519,34 @@ export const ReciboEnvioModal: React.FC<ReciboEnvioModalProps> = ({
 
         .recibo-column-box {
           border-left: 2px solid #0f172a;
-          padding-left: 0.75rem;
+          padding-left: 0.85rem;
         }
 
         .recibo-field-row {
           font-size: 0.82rem;
-          line-height: 1.6;
+          line-height: 1.65;
           color: #0f172a;
         }
 
         .recibo-field-label {
-          font-weight: 600;
-          color: #1e293b;
+          font-weight: 700;
+          color: #0f172a;
         }
 
         .recibo-field-value {
           font-weight: 400;
-          color: #334155;
+          color: #1e293b;
           margin-left: 0.35rem;
         }
 
         .recibo-table-banner {
           background-color: #f1f5f9;
           border-radius: 4px;
-          padding: 0.85rem 1rem;
+          padding: 0.85rem 1.15rem;
           display: grid;
-          grid-template-columns: 1.4fr 1.2fr 1.2fr 1.6fr 1fr;
+          grid-template-columns: 1.2fr 1.1fr 1.1fr 1.4fr 1fr;
           gap: 0.75rem;
+          align-items: center;
         }
 
         .recibo-table-col-title {
@@ -225,22 +564,20 @@ export const ReciboEnvioModal: React.FC<ReciboEnvioModalProps> = ({
 
         .recibo-transport-grid {
           display: grid;
-          grid-template-columns: 1.5fr 1.5fr 1.5fr;
+          grid-template-columns: 1fr 1fr 1fr;
           gap: 1.5rem;
           font-size: 0.85rem;
         }
 
         .recibo-sign-line {
-          border-top: 1px solid #475569;
-          width: 100%;
-          max-width: 250px;
-          margin: 0 auto;
+          border-top: 1px solid #334155;
+          width: 240px;
+          margin: 0 auto 0.5rem auto;
         }
 
         .recibo-sign-label {
-          font-size: 0.8rem;
+          font-size: 0.85rem;
           color: #334155;
-          margin-top: 0.5rem;
           font-weight: 600;
           text-align: center;
         }
@@ -253,59 +590,18 @@ export const ReciboEnvioModal: React.FC<ReciboEnvioModalProps> = ({
           margin-top: 3.5rem;
           letter-spacing: 0.02em;
         }
-
-        /* CONFIGURAÇÃO EXCLUSIVA DE IMPRESSÃO */
-        @media print {
-          body * {
-            visibility: hidden !important;
-          }
-          .recibo-modal-overlay {
-            position: absolute !important;
-            top: 0 !important;
-            left: 0 !important;
-            width: 100% !important;
-            height: auto !important;
-            background: none !important;
-            padding: 0 !important;
-            overflow: visible !important;
-          }
-          .recibo-modal-container {
-            box-shadow: none !important;
-            max-width: 100% !important;
-            width: 100% !important;
-            border-radius: 0 !important;
-            overflow: visible !important;
-          }
-          .recibo-modal-header-bar {
-            display: none !important;
-          }
-          .recibo-modal-body {
-            padding: 0 !important;
-            overflow: visible !important;
-          }
-          .recibo-paper, .recibo-paper * {
-            visibility: visible !important;
-          }
-          .recibo-paper {
-            padding: 1.5cm 1cm !important;
-            width: 100% !important;
-          }
-          .no-print {
-            display: none !important;
-          }
-        }
       `}</style>
 
       <div className="recibo-modal-container">
-        {/* Barra superior de ações (Não sai na impressão) */}
-        <div className="recibo-modal-header-bar no-print">
+        {/* Barra superior de ações */}
+        <div className="recibo-modal-header-bar">
           <div className="flex items-center gap-2">
             <div style={{ backgroundColor: '#dcfce7', color: '#157a43', padding: '0.4rem', borderRadius: '8px' }}>
               <FileText size={20} />
             </div>
             <div>
               <h3 className="m-0 text-sm font-bold text-slate-800">Visualização de Recibo de Envio de Resíduos</h3>
-              <p className="m-0 text-xs text-muted">Pronto para impressão ou salvamento em PDF oficial</p>
+              <p className="m-0 text-xs text-muted">Pronto para impressão em 1 página A4 ou download em PDF oficial</p>
             </div>
           </div>
 
@@ -340,15 +636,15 @@ export const ReciboEnvioModal: React.FC<ReciboEnvioModalProps> = ({
                 <h1 className="recibo-title">Recibo</h1>
               </div>
 
-              <div className="flex items-end gap-3 no-print">
+              <div className="flex items-end gap-3">
                 {/* Seletor 'Busca Recibos' */}
                 <div>
-                  <label className="block text-xs font-semibold mb-1" style={{ color: '#157a43' }}>
+                  <label className="block text-xs font-semibold mb-1" style={{ color: '#475569' }}>
                     Busca Recibos
                   </label>
                   <select
                     className="form-select text-xs font-medium"
-                    style={{ borderColor: '#157a43', borderRadius: '8px', minWidth: '220px', padding: '0.4rem 0.6rem' }}
+                    style={{ borderColor: '#157a43', borderRadius: '6px', minWidth: '220px', padding: '0.4rem 0.6rem' }}
                     value={currentId}
                     onChange={e => setCurrentId(e.target.value)}
                   >
@@ -368,16 +664,16 @@ export const ReciboEnvioModal: React.FC<ReciboEnvioModalProps> = ({
 
                 {/* Data de Envio */}
                 <div>
-                  <label className="block text-xs font-semibold mb-1" style={{ color: '#157a43' }}>
+                  <label className="block text-xs font-semibold mb-1" style={{ color: '#475569' }}>
                     Data de Envio
                   </label>
                   <div
                     style={{
                       border: '1px solid #157a43',
-                      borderRadius: '8px',
-                      padding: '0.4rem 0.75rem',
+                      borderRadius: '6px',
+                      padding: '0.4rem 0.85rem',
                       fontSize: '0.85rem',
-                      fontWeight: 600,
+                      fontWeight: 700,
                       color: '#0f172a',
                       backgroundColor: '#ffffff',
                       minWidth: '130px',
@@ -388,16 +684,10 @@ export const ReciboEnvioModal: React.FC<ReciboEnvioModalProps> = ({
                   </div>
                 </div>
               </div>
-
-              {/* Versão impressa da Data de Envio */}
-              <div className="hidden print:block" style={{ textAlign: 'right' }}>
-                <span style={{ fontSize: '0.75rem', color: '#157a43', fontWeight: 700, display: 'block' }}>Data de Envio</span>
-                <span style={{ fontSize: '1rem', fontWeight: 800, color: '#0f172a' }}>{formattedDate}</span>
-              </div>
             </div>
 
             {/* SEÇÃO: Remetente (Escola) e Destinatário (Parceiro) */}
-            <div className="grid grid-cols-2 gap-6 my-4">
+            <div className="grid grid-cols-2 gap-8 my-4">
               
               {/* Coluna 1: Remetente */}
               <div className="recibo-column-box">
@@ -405,39 +695,39 @@ export const ReciboEnvioModal: React.FC<ReciboEnvioModalProps> = ({
                 <div className="flex flex-col gap-1">
                   <div className="recibo-field-row">
                     <span className="recibo-field-label">Nome da Escola:</span>
-                    <span className="recibo-field-value">{clientInfo?.name || 'Escola Mário Venancio'}</span>
+                    <span className="recibo-field-value">{remetenteNome}</span>
                   </div>
                   <div className="recibo-field-row">
                     <span className="recibo-field-label">CNPJ:</span>
-                    <span className="recibo-field-value">{clientInfo?.cnpj || '22.333.444/0001-72'}</span>
+                    <span className="recibo-field-value">{remetenteCnpj}</span>
                   </div>
                   <div className="recibo-field-row">
                     <span className="recibo-field-label">Endereço:</span>
-                    <span className="recibo-field-value">{clientInfo?.address || 'Av. São Luiz de Carlos, 5.482'}</span>
+                    <span className="recibo-field-value">{remetenteEndereco}</span>
                   </div>
                   <div className="grid grid-cols-2 gap-2">
                     <div className="recibo-field-row">
                       <span className="recibo-field-label">Cidade:</span>
-                      <span className="recibo-field-value">{clientInfo?.city || 'Campinas'}</span>
+                      <span className="recibo-field-value">{remetenteCidade}</span>
                     </div>
                     <div className="recibo-field-row">
                       <span className="recibo-field-label">UF:</span>
-                      <span className="recibo-field-value">{clientInfo?.uf || 'SP'}</span>
+                      <span className="recibo-field-value">{remetenteUf}</span>
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-2">
                     <div className="recibo-field-row">
                       <span className="recibo-field-label">Bairro:</span>
-                      <span className="recibo-field-value">{clientInfo?.bairro || 'Jardim Primavera'}</span>
+                      <span className="recibo-field-value">{remetenteBairro}</span>
                     </div>
                     <div className="recibo-field-row">
                       <span className="recibo-field-label">Telefone:</span>
-                      <span className="recibo-field-value">{clientInfo?.phone || '(19) 98120-6670'}</span>
+                      <span className="recibo-field-value">{remetenteTelefone}</span>
                     </div>
                   </div>
                   <div className="recibo-field-row">
                     <span className="recibo-field-label">Responsável:</span>
-                    <span className="recibo-field-value">{clientInfo?.responsible_name || 'Augusto Leme'}</span>
+                    <span className="recibo-field-value">{remetenteResponsavel}</span>
                   </div>
                 </div>
               </div>
@@ -448,39 +738,39 @@ export const ReciboEnvioModal: React.FC<ReciboEnvioModalProps> = ({
                 <div className="flex flex-col gap-1">
                   <div className="recibo-field-row">
                     <span className="recibo-field-label">Empresa:</span>
-                    <span className="recibo-field-value">{currentPartner?.name || currentLaunch?.partner_name || currentLaunch?.destino || 'EcoRecicla Soluções Ambientais Ltda'}</span>
+                    <span className="recibo-field-value">{destEmpresa}</span>
                   </div>
                   <div className="recibo-field-row">
                     <span className="recibo-field-label">CNPJ:</span>
-                    <span className="recibo-field-value">{currentPartner?.cnpj || '12.345.678/0001-90'}</span>
+                    <span className="recibo-field-value">{destCnpj}</span>
                   </div>
                   <div className="recibo-field-row">
                     <span className="recibo-field-label">Endereço:</span>
-                    <span className="recibo-field-value">{currentPartner?.address || 'Av. Industrial, 1500'}</span>
+                    <span className="recibo-field-value">{destEndereco}</span>
                   </div>
                   <div className="grid grid-cols-2 gap-2">
                     <div className="recibo-field-row">
                       <span className="recibo-field-label">Cidade:</span>
-                      <span className="recibo-field-value">{currentPartner?.city || 'Santo André'}</span>
+                      <span className="recibo-field-value">{destCidade}</span>
                     </div>
                     <div className="recibo-field-row">
                       <span className="recibo-field-label">UF:</span>
-                      <span className="recibo-field-value">{currentPartner?.uf || 'SP'}</span>
+                      <span className="recibo-field-value">{destUf}</span>
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-2">
                     <div className="recibo-field-row">
                       <span className="recibo-field-label">Bairro:</span>
-                      <span className="recibo-field-value">{currentPartner?.bairro || 'Jardim'}</span>
+                      <span className="recibo-field-value">{destBairro}</span>
                     </div>
                     <div className="recibo-field-row">
                       <span className="recibo-field-label">Telefone:</span>
-                      <span className="recibo-field-value">{currentPartner?.phone || '(11) 4004-9876'}</span>
+                      <span className="recibo-field-value">{destTelefone}</span>
                     </div>
                   </div>
                   <div className="recibo-field-row">
                     <span className="recibo-field-label">Nome do Transportador:</span>
-                    <span className="recibo-field-value">{currentPartner?.transporter_name || 'TransLixo Logística Eireli'}</span>
+                    <span className="recibo-field-value">{destTransportador}</span>
                   </div>
                 </div>
               </div>
@@ -526,23 +816,23 @@ export const ReciboEnvioModal: React.FC<ReciboEnvioModalProps> = ({
               <div className="recibo-transport-grid">
                 <div>
                   <div className="recibo-table-col-title">Tipo de Veículo:</div>
-                  <div className="recibo-table-col-val font-medium">{currentLaunch?.vehicle_type || currentPartner?.vehicle_type || 'Caminhão Baú'}</div>
+                  <div className="recibo-table-col-val font-medium">{transpVeiculo}</div>
                 </div>
                 <div>
                   <div className="recibo-table-col-title">Combustível:</div>
-                  <div className="recibo-table-col-val font-medium">{currentLaunch?.fuel_type || currentPartner?.fuel_type || 'Diesel'}</div>
+                  <div className="recibo-table-col-val font-medium">{transpCombustivel}</div>
                 </div>
                 <div>
                   <div className="recibo-table-col-title">Placa do Veículo:</div>
                   <div className="recibo-table-col-val font-mono font-bold text-slate-800">
-                    {currentLaunch?.vehicle_plate || currentPartner?.plate || 'ABC-8E90'}
+                    {transpPlaca}
                   </div>
                 </div>
               </div>
             </div>
 
             {/* ESPAÇO PARA ASSINATURAS */}
-            <div style={{ marginTop: '5.5rem' }}>
+            <div style={{ marginTop: '5rem' }}>
               <div className="grid grid-cols-2 gap-12">
                 <div style={{ textAlign: 'center' }}>
                   <div className="recibo-sign-line" />
