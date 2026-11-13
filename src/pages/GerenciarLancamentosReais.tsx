@@ -3,7 +3,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../integrations/supabase/client';
 import { Link } from 'react-router-dom';
 import { 
-  ArrowLeft, Scale, Pencil, Trash2, Truck, CheckCircle, AlertCircle, X 
+  ArrowLeft, Scale, Pencil, Trash2, Truck, CheckCircle, AlertCircle, X, FileText 
 } from 'lucide-react';
 import type { DestinationPartner, PartnerVehicle } from './GerenciarParceiros';
 import { getStoredPartners, GerenciarParceiros } from './GerenciarParceiros';
@@ -12,6 +12,7 @@ import {
   getPartnerAcceptedCategories, 
   getPartnerAcceptedSubcategories 
 } from '../utils/partnerMaterials';
+import { ReciboEnvioModal } from '../components/ReciboEnvioModal';
 
 interface Sector { id: string; name: string; }
 interface Category { id: string; name: string; color: string | null; }
@@ -73,6 +74,12 @@ export const GerenciarLancamentosReais: React.FC = () => {
   // Quick partner modal state
   const [showPartnerModal, setShowPartnerModal] = useState(false);
 
+  // Recibo modal state
+  const [showReciboModal, setShowReciboModal] = useState(false);
+  const [reciboLaunchId, setReciboLaunchId] = useState<string | null>(null);
+  const [lastRegisteredId, setLastRegisteredId] = useState<string | null>(null);
+  const [clientInfo, setClientInfo] = useState<any>(null);
+
   // Edit state
   const [editId, setEditId] = useState<string | null>(null);
   const [editData, setEditData] = useState('');
@@ -93,13 +100,18 @@ export const GerenciarLancamentosReais: React.FC = () => {
 
     const loadAuxData = async () => {
       try {
-        const [secRes, catRes, subRes, typeRes, partRes] = await Promise.all([
+        const [secRes, catRes, subRes, typeRes, partRes, clientRes] = await Promise.all([
           supabase.from('sectors').select('id, name').eq('client_id', clientId).eq('active', true).order('name'),
           supabase.from('categories').select('id, name, color').order('name'),
           supabase.from('subcategories').select('id, category_id, name').eq('active', true).order('name'),
           supabase.from('types').select('id, subcategory_id, name, color').eq('client_id', clientId).eq('active', true).order('name'),
-          supabase.from('destination_partners').select('*').eq('client_id', clientId).order('name')
+          supabase.from('destination_partners').select('*').eq('client_id', clientId).order('name'),
+          supabase.from('clients').select('*').eq('id', clientId).maybeSingle()
         ]);
+
+        if (clientRes?.data) {
+          setClientInfo(clientRes.data);
+        }
 
         const secs = (secRes.data || []) as Sector[];
         const cats = (catRes.data || []) as Category[];
@@ -384,12 +396,14 @@ export const GerenciarLancamentosReais: React.FC = () => {
       if (error) throw error;
 
       // Update local storage as well
+      const newId = crypto.randomUUID();
       const newLaunch: WasteLaunch = {
-        id: crypto.randomUUID(),
+        id: newId,
         ...payload
       };
       saveStoredLaunches(clientId, [newLaunch, ...launches]);
 
+      setLastRegisteredId(newId);
       setMsg({ type: 'success', text: 'Envio de resíduos registrado com sucesso!' });
       setPeso('');
       setReloadKey(k => k + 1);
@@ -529,7 +543,7 @@ export const GerenciarLancamentosReais: React.FC = () => {
       </div>
 
       {msg && (
-        <div className="flex items-center gap-2" style={{
+        <div className="flex items-center justify-between flex-wrap gap-2" style={{
           padding: '0.85rem 1.15rem',
           borderRadius: '8px',
           backgroundColor: msg.type === 'success' ? '#dcfce7' : '#fee2e2',
@@ -538,8 +552,25 @@ export const GerenciarLancamentosReais: React.FC = () => {
           fontSize: '0.875rem',
           fontWeight: 600
         }}>
-          {msg.type === 'success' ? <CheckCircle size={18} /> : <AlertCircle size={18} />}
-          {msg.text}
+          <div className="flex items-center gap-2">
+            {msg.type === 'success' ? <CheckCircle size={18} /> : <AlertCircle size={18} />}
+            <span>{msg.text}</span>
+          </div>
+
+          {msg.type === 'success' && lastRegisteredId && (
+            <button
+              type="button"
+              onClick={() => {
+                setReciboLaunchId(lastRegisteredId);
+                setShowReciboModal(true);
+              }}
+              className="btn btn-sm btn-primary flex items-center gap-1.5 shadow-sm"
+              style={{ backgroundColor: '#157a43', borderColor: '#157a43', padding: '0.35rem 0.85rem', fontWeight: 700 }}
+            >
+              <FileText size={15} />
+              <span>Emitir Recibo deste Envio</span>
+            </button>
+          )}
         </div>
       )}
 
@@ -728,8 +759,24 @@ export const GerenciarLancamentosReais: React.FC = () => {
             <p className="text-muted text-xs mt-1">Acompanhe os envios pesados e destinados aos parceiros de logística</p>
           </div>
 
-          <div className="text-sm font-semibold" style={{ color: '#1e293b' }}>
-            Total Acumulado: <span style={{ color: '#157a43', fontWeight: 800 }}>{totalKgAcumulados.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} kg</span>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => {
+                setReciboLaunchId(launches[0]?.id || null);
+                setShowReciboModal(true);
+              }}
+              className="btn btn-sm btn-outline flex items-center gap-1.5"
+              style={{ borderColor: '#157a43', color: '#157a43', fontWeight: 700 }}
+              disabled={launches.length === 0}
+              title="Abrir visualização e impressão de recibos"
+            >
+              <FileText size={15} />
+              <span>Emitir Recibos</span>
+            </button>
+            <div className="text-sm font-semibold" style={{ color: '#1e293b' }}>
+              Total Acumulado: <span style={{ color: '#157a43', fontWeight: 800 }}>{totalKgAcumulados.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} kg</span>
+            </div>
           </div>
         </div>
 
@@ -875,6 +922,18 @@ export const GerenciarLancamentosReais: React.FC = () => {
                       <td className="font-bold text-slate-900">{Number(w.peso_kg).toLocaleString('pt-BR', { minimumFractionDigits: 2 })} kg</td>
                       <td className="text-right">
                         <div className="flex gap-2 justify-end">
+                          <button 
+                            type="button"
+                            onClick={() => { 
+                              setReciboLaunchId(w.id); 
+                              setShowReciboModal(true); 
+                            }} 
+                            className="btn btn-ghost btn-icon" 
+                            style={{ color: '#157a43' }}
+                            title="Emitir / Imprimir Recibo"
+                          >
+                            <FileText size={15} />
+                          </button>
                           <button onClick={() => handleStartInlineEdit(w)} className="btn btn-ghost btn-icon" title="Editar">
                             <Pencil size={15} />
                           </button>
@@ -921,6 +980,19 @@ export const GerenciarLancamentosReais: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* MODAL DE EMISSÃO DE RECIBO */}
+      <ReciboEnvioModal
+        isOpen={showReciboModal}
+        onClose={() => setShowReciboModal(false)}
+        selectedLaunchId={reciboLaunchId}
+        launches={launches}
+        partners={partners}
+        clientInfo={clientInfo}
+        categoryMap={categoryMap}
+        subMap={subMap}
+        typeMap={typeMap}
+      />
 
     </div>
   );
