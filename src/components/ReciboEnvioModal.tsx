@@ -143,7 +143,7 @@ export const ReciboEnvioModal: React.FC<ReciboEnvioModalProps> = ({
           <style>
             @page {
               size: A4 portrait;
-              margin: 10mm 15mm 10mm 15mm;
+              margin: 0;
             }
             * {
               box-sizing: border-box;
@@ -154,7 +154,7 @@ export const ReciboEnvioModal: React.FC<ReciboEnvioModalProps> = ({
               font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
               color: #0f172a;
               background-color: #ffffff;
-              padding: 0;
+              padding: 12mm 15mm 10mm 15mm;
               margin: 0;
               -webkit-print-color-adjust: exact !important;
               print-color-adjust: exact !important;
@@ -649,13 +649,13 @@ export const ReciboEnvioModal: React.FC<ReciboEnvioModalProps> = ({
                     onChange={e => setCurrentId(e.target.value)}
                   >
                     {launches.map((l) => {
-                      const lDate = l.data ? new Date(l.data + 'T00:00:00').toLocaleDateString('pt-BR') : '';
+                      const cleanId = l.id.replace(/-/g, '').substring(0, 8).toUpperCase();
                       const lDest = l.partner_name || l.destino || 'Parceiro';
                       const lPeso = l.peso_kg ? `${l.peso_kg}kg` : '';
                       const lTypeName = typeMap[l.type_id]?.name || 'Resíduo';
                       return (
                         <option key={l.id} value={l.id}>
-                          {lDate} - {lDest} ({lTypeName} - {lPeso})
+                          REC-{cleanId} - {lDest} ({lTypeName} - {lPeso})
                         </option>
                       );
                     })}
